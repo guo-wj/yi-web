@@ -1,0 +1,332 @@
+$text-title: #4a3f35;
+$text-body: #8c8279;
+$text-muted: #a89888;
+$gold: #c59436;
+$gold-mid: #b8956a;
+$gold-deep: #9a7d58;
+$cta-bg: linear-gradient(145deg, #d4a84a, #b8892e);
+$border: rgba(74, 63, 53, 0.1);
+
+.lottery-panel {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0 4px 24px;
+  text-align: center;
+  background: transparent;
+}
+
+.lottery-panel__back {
+  align-self: flex-start;
+  margin-bottom: 12px;
+  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    opacity: 0.65;
+  }
+}
+
+.lottery-panel__back-txt {
+  font-size: 14px;
+  color: $text-body;
+  letter-spacing: 0.04em;
+}
+
+.lottery-panel__date-block {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.lottery-panel__date-big {
+  display: block;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: $text-title;
+  font-family: 'Songti SC', 'SimSun', 'PingFang SC', serif;
+  line-height: 1.15;
+}
+
+.lottery-panel__date-sub {
+  display: block;
+  margin-top: 8px;
+  font-size: 15px;
+  color: $text-body;
+  letter-spacing: 0.06em;
+}
+
+.lottery-panel__pill {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 8px;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 28px;
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 999px;
+}
+
+.lottery-panel__pill-hot {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c4782a;
+}
+
+.lottery-panel__pill-div {
+  font-size: 12px;
+  color: rgba(74, 63, 53, 0.25);
+}
+
+.lottery-panel__pill-mid {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-title;
+}
+
+.lottery-panel__pill-right {
+  font-size: 12px;
+  color: $text-muted;
+}
+
+/* —— 签筒 + 底部淡影 —— */
+.lottery-panel__tube-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 28px;
+  transform-origin: 50% 85%;
+  will-change: transform;
+}
+
+.lottery-panel__tube-stage--shake {
+  animation: lottery-tube-shake 0.72s ease-in-out;
+}
+
+@keyframes lottery-tube-shake {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+
+  12% {
+    transform: translateX(-6px) rotate(-5deg);
+  }
+
+  24% {
+    transform: translateX(6px) rotate(5deg);
+  }
+
+  36% {
+    transform: translateX(-8px) rotate(-6deg);
+  }
+
+  48% {
+    transform: translateX(8px) rotate(6deg);
+  }
+
+  60% {
+    transform: translateX(-5px) rotate(-4deg);
+  }
+
+  72% {
+    transform: translateX(5px) rotate(4deg);
+  }
+
+  84% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+
+  92% {
+    transform: translateX(2px) rotate(1deg);
+  }
+}
+
+.lottery-panel__tube-shadow {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 68%;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(74, 63, 53, 0.07);
+  transform: translateX(-50%);
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+.lottery-panel__tube-img-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  line-height: 0;
+}
+
+.lottery-panel__tube-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: top;
+  pointer-events: none;
+  user-select: none;
+}
+
+.lottery-panel__title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: $text-title;
+  font-family: 'Songti SC', 'SimSun', 'PingFang SC', serif;
+  margin-bottom: 8px;
+}
+
+.lottery-panel__desc {
+  font-size: 14px;
+  line-height: 1.65;
+  color: $text-body;
+  letter-spacing: 0.04em;
+  margin-bottom: 28px;
+  padding: 0 8px;
+}
+
+.lottery-panel__cta {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 300px;
+  padding: 16px 28px;
+  border-radius: 999px;
+  background: $cta-bg;
+  box-shadow: 0 6px 20px rgba(197, 148, 54, 0.35);
+  -webkit-tap-highlight-color: transparent;
+
+  &--disabled {
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  &:active:not(.lottery-panel__cta--disabled) {
+    opacity: 0.92;
+    transform: scale(0.99);
+  }
+}
+
+.lottery-panel__cta-txt {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: #fff;
+  text-align: center;
+}
+
+.lottery-panel__err {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #a94442;
+  text-align: left;
+  background: rgba(169, 68, 66, 0.08);
+  border-radius: 10px;
+}
+
+.lottery-panel__result {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 24px;
+  padding: 16px 14px 18px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid $border;
+  border-radius: 16px;
+}
+
+.lottery-panel__result-meta {
+  font-size: 12px;
+  line-height: 1.55;
+  color: $text-muted;
+  margin-bottom: 12px;
+}
+
+.lottery-panel__result-slip {
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px dashed rgba(74, 63, 53, 0.12);
+}
+
+.lottery-panel__result-head {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.lottery-panel__result-id {
+  font-size: 13px;
+  font-weight: 600;
+  color: $gold-deep;
+}
+
+.lottery-panel__result-tier {
+  font-size: 12px;
+  color: $gold-mid;
+}
+
+.lottery-panel__result-title {
+  display: block;
+  width: 100%;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: $text-title;
+}
+
+.lottery-panel__result-poem {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.85;
+  color: $text-body;
+  white-space: pre-wrap;
+}
+
+.lottery-panel__result-sec-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-title;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.lottery-panel__result-interpret {
+  font-size: 14px;
+  line-height: 1.75;
+  color: $text-body;
+  white-space: pre-wrap;
+}
+
+@media (min-width: 1024px) {
+  .lottery-panel__date-big {
+    font-size: 44px;
+  }
+
+  .lottery-panel__tube-img-wrap {
+    max-width: 320px;
+  }
+}
