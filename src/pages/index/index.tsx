@@ -4,17 +4,17 @@ import HomePageMobile from './HomePageMobile'
 import { isMobile } from '@/utils/device'
 
 export default function Index () {
-  const mobile = isMobile()
+    const mobile = isMobile()
 
-  useEffect(() => {
+    useEffect(() => {
+        if (!mobile) {
+            void Taro.reLaunch({ url: '/pages/feature/index' })
+        }
+    }, [mobile])
+
     if (!mobile) {
-      void Taro.reLaunch({ url: '/pages/feature/index' })
+        return null
     }
-  }, [mobile])
 
-  if (!mobile) {
-    return null
-  }
-
-  return <HomePageMobile />
+    return <HomePageMobile />
 }

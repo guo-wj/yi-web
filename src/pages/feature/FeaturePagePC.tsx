@@ -4,36 +4,36 @@ import { FeatureMainBlock, FeatureSidebar, useFeatureState } from './components/
 import './pc.scss'
 
 export default function FeaturePagePC () {
-  const {
-    activeKey,
-    today,
-    selectFeature,
-    syncFeatureKey,
-    goHome,
-    onPrimaryAction
-  } = useFeatureState()
+    const {
+        activeKey,
+        today,
+        selectFeature,
+        syncFeatureKey,
+        goHome,
+        onPrimaryAction
+    } = useFeatureState()
 
-  useLoad((options) => {
-    const raw = options?.key as string | undefined
-    syncFeatureKey(raw)
-  })
+    useLoad((options) => {
+        const raw = options?.key as string | undefined
+        syncFeatureKey(raw)
+    })
 
-  return (
-    <View className='feature-page-pc feature-page-pc--theme-dark'>
-      <View className='feature-page-pc__sidebar'>
-        <FeatureSidebar
-          activeKey={activeKey}
-          onSelect={selectFeature}
-          onGoHome={goHome}
-          pcMode
-        />
-      </View>
+    return (
+        <View className='feature-page-pc feature-page-pc--theme-dark'>
+            <View className='feature-page-pc__sidebar'>
+                <FeatureSidebar
+                    activeKey={activeKey}
+                    onSelect={selectFeature}
+                    onGoHome={goHome}
+                    pcMode
+                />
+            </View>
 
-      <FeatureMainBlock
-        activeKey={activeKey}
-        onPrimaryAction={onPrimaryAction}
-        today={today}
-      />
-    </View>
-  )
+            <FeatureMainBlock
+                activeKey={activeKey}
+                onPrimaryAction={onPrimaryAction}
+                today={today}
+            />
+        </View>
+    )
 }
