@@ -1,0 +1,52 @@
+.md-view {
+    color: #5a3a26;
+    font-size: 14px;
+    line-height: 1.85;
+
+    &__h {
+        display: block;
+        font-weight: 700;
+        color: #5a3a26;
+        letter-spacing: 0.04em;
+
+        &:not(:first-child) {
+            margin-top: 18px;
+        }
+    }
+
+    &__h1 {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    &__h2 {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    &__h3 {
+        font-size: 15px;
+        margin-bottom: 8px;
+    }
+
+    &__h4 {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    &__p {
+        display: block;
+        margin-bottom: 12px;
+        white-space: pre-wrap;
+        word-break: break-word;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    &__strong {
+        font-weight: 700;
+        color: #4a2f20;
+    }
+}

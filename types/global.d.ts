@@ -23,7 +23,7 @@ declare namespace NodeJS {
           * @see https://taro-docs.jd.com/docs/next/env-mode-config#特殊环境变量-taro_app_id
           */
         TARO_APP_ID: string
-        /** yiBackend 根地址，无尾斜杠，如 http://127.0.0.1:8000 */
+        /** yiBackend 根地址，无尾斜杠，如 /api */
         TARO_APP_API_BASE?: string
     }
 }

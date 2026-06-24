@@ -1,8 +1,10 @@
 import { View, Text, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import lotteryTubeImg from '@/assets/images/lottery-tube.png'
+import MarkdownView from '@/components/MarkdownView'
+import canisterSvg from '@/assets/images/canister.svg'
+import { ensureLoggedIn } from '@/utils/requireAuth'
 import {
     postLotteryDraw,
     type LotteryDrawResponse
@@ -10,145 +12,228 @@ import {
 
 import './index.scss'
 
-export interface LotteryPanelProps {
-    today?: { dateLine: string; weekdayLine: string }
-}
+// 摇签最短时长：接口秒回也至少让晃动播这么久；接口慢则晃动循环等它。
+const SHAKE_MIN_MS = 1150
+// 签飞出筒（sway）到定格的时长，与 keyframes 对齐。
+const SWAY_MS = 1500
 
-// 摇签动画的最短展示时长。即便接口秒回，也至少让用户看到这么久的摇签动效。
-const SHAKE_MS = 720
-
-// 单一状态机：idle 待机 / drawing 摇签+请求中 / done 出签 / error 失败
-type Status = 'idle' | 'drawing' | 'done' | 'error'
+// idle 待机 / shaking 摇签+请求中 / drawn 签正飞出 / settled 签定格可点
+type Phase = 'idle' | 'shaking' | 'drawn' | 'settled'
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
-function formatTodayCn (): { dateLine: string; weekdayLine: string } {
-    const d = new Date()
-    const mon = d.getMonth() + 1
-    const day = d.getDate()
-    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
-    return {
-        dateLine: `${mon}月${day}日`,
-        weekdayLine: `${weekdays[d.getDay()]} · 今日运势`
+const CN_DIGITS = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']
+
+function numberToChinese (n: number): string {
+    if (n <= 0) return String(n)
+    if (n < 10) return CN_DIGITS[n]
+    if (n === 10) return '十'
+    if (n < 20) return `十${CN_DIGITS[n % 10]}`
+    if (n < 100) {
+        const tens = Math.floor(n / 10)
+        const ones = n % 10
+        return `${CN_DIGITS[tens]}十${ones ? CN_DIGITS[ones] : ''}`
     }
+    return String(n)
 }
 
-export default function LotteryPanel ({ today: todayProp }: LotteryPanelProps) {
-    const today = useMemo(() => todayProp ?? formatTodayCn(), [todayProp])
+function formatSlipHeading (id: number): string {
+    return `第${numberToChinese(id)}签`
+}
 
-    const [status, setStatus] = useState<Status>('idle')
+// 把签诗按换行/句读拆成若干竖排列
+function splitPoem (poem: string): string[] {
+    return poem
+        .split(/[\n，。、；！？,.;!?]+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+}
+
+export default function LotteryPanel () {
+    const [phase, setPhase] = useState<Phase>('idle')
     const [result, setResult] = useState<LotteryDrawResponse | null>(null)
-    const [errorMsg, setErrorMsg] = useState<string | null>(null)
+    const [openSheet, setOpenSheet] = useState(false)
 
-    const isDrawing = status === 'drawing'
+    const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+    const drawingRef = useRef(false)
 
-    const goHome = useCallback(() => {
-        void Taro.reLaunch({ url: '/pages/index/index' })
+    const clearTimers = useCallback(() => {
+        timers.current.forEach(clearTimeout)
+        timers.current = []
     }, [])
 
-    // 点击摇签：动画与请求并行；用 Promise.all + sleep 保证动画至少播完 SHAKE_MS。
-    // status 本身就承担了「请求是否在途」的语义，因此无需额外的 in-flight ref。
-    const onShakeDraw = useCallback(async () => {
-        if (status === 'drawing') return
-        setStatus('drawing')
-        setErrorMsg(null)
+    useEffect(() => () => clearTimers(), [clearTimers])
+
+    const onDraw = useCallback(async () => {
+        if (phase !== 'idle' || drawingRef.current) return
+        if (!ensureLoggedIn()) return
+        drawingRef.current = true
+        clearTimers()
+        setOpenSheet(false)
+        setResult(null)
+        setPhase('shaking')
         try {
-            const [data] = await Promise.all([postLotteryDraw({}), sleep(SHAKE_MS)])
+            // 接口与最短摇签并行；接口慢则晃动动画循环等它返回。
+            const [data] = await Promise.all([
+                postLotteryDraw({}),
+                sleep(SHAKE_MIN_MS)
+            ])
             setResult(data)
-            setStatus('done')
+            setPhase('drawn')
+            timers.current.push(setTimeout(() => setPhase('settled'), SWAY_MS))
         } catch (e) {
             const msg = e instanceof Error ? e.message : '抽签失败，请稍后重试'
-            setErrorMsg(msg)
-            setStatus('error')
+            setPhase('idle')
             void Taro.showToast({
                 title: msg.length > 20 ? '抽签失败' : msg,
                 icon: 'none'
             })
+        } finally {
+            drawingRef.current = false
         }
-    }, [status])
+    }, [phase, clearTimers])
 
-    // 顶部胶囊条：出签前展示占位，出签后展示签号与签等
-    const pill = useMemo(() => {
-        if (result) {
-            return {
-                mid: `第 ${result.slip.id} 签 ${result.slip.tier}`,
-                right: `${500 + result.slip.id * 7} 人已抽中`
-            }
-        }
-        return { mid: '摇签后揭晓', right: '541 人已抽中' }
-    }, [result])
+    const reset = useCallback(() => {
+        clearTimers()
+        setOpenSheet(false)
+        setResult(null)
+        setPhase('idle')
+    }, [clearTimers])
 
-    const ctaLabel =
-        isDrawing ? '摇签中…' : status === 'done' ? '再摇一次' : '摇签求运势'
+    const drawnVisible = phase === 'drawn' || phase === 'settled'
+    const drawnClass = [
+        'lottery-panel__drawn',
+        phase === 'drawn' ? 'lottery-panel__drawn--sway' : '',
+        phase === 'settled' ? 'lottery-panel__drawn--sway lottery-panel__drawn--settled' : ''
+    ]
+        .filter(Boolean)
+        .join(' ')
+
+    const slipLabel = result ? `第${result.slip.id}签` : ''
 
     return (
         <View className='lottery-panel'>
-            <View className='lottery-panel__back' onClick={goHome}>
-                <Text className='lottery-panel__back-txt'>← 返回首页</Text>
-            </View>
-
-            <View className='lottery-panel__date-block'>
-                <Text className='lottery-panel__date-big'>{today.dateLine}</Text>
-                <Text className='lottery-panel__date-sub'>{today.weekdayLine}</Text>
-            </View>
-
-            <View className='lottery-panel__pill'>
-                <Text className='lottery-panel__pill-hot'>🔥 今日最热门</Text>
-                <Text className='lottery-panel__pill-div'>|</Text>
-                <Text className='lottery-panel__pill-mid'>{pill.mid}</Text>
-                <Text className='lottery-panel__pill-div'>|</Text>
-                <Text className='lottery-panel__pill-right'>{pill.right}</Text>
-            </View>
-
-            {/* 摇签动画类直接由 status 驱动，不再维护独立的定时器 */}
-            <View
-                className={`lottery-panel__tube-stage ${isDrawing ? 'lottery-panel__tube-stage--shake' : ''}`}
-            >
-                <View className='lottery-panel__tube-shadow' />
-                <View className='lottery-panel__tube-img-wrap'>
-                    <Image
-                        className='lottery-panel__tube-img'
-                        src={lotteryTubeImg}
-                        mode='widthFix'
-                    />
+            <View className='lottery-panel__scroll'>
+                <View className='lottery-panel__titleblock'>
+                    <Text className='lottery-panel__title'>灵签一动</Text>
+                    <Text className='lottery-panel__subtitle'>静心凝神，摇签即得今日指引</Text>
                 </View>
-            </View>
 
-            <Text className='lottery-panel__title'>观音灵签</Text>
-            <Text className='lottery-panel__desc'>静心凝神，摇签即得今日指引</Text>
-
-            <View
-                className={`lottery-panel__cta ${isDrawing ? 'lottery-panel__cta--disabled' : ''}`}
-                onClick={() => void onShakeDraw()}
-            >
-                <Text className='lottery-panel__cta-txt'>{ctaLabel}</Text>
-            </View>
-
-            {errorMsg && (
-                <View className='lottery-panel__err'>
-                    <Text>{errorMsg}</Text>
-                </View>
-            )}
-
-            {result && (
-                <View className='lottery-panel__result'>
-                    <View className='lottery-panel__result-meta'>
-                        <Text>{result.lunar_summary}</Text>
+                <View className='lottery-panel__canister-stage'>
+                    <View className='lottery-panel__glow' />
+                    <View
+                        className={`lottery-panel__canister ${phase === 'shaking' ? 'lottery-panel__canister--shaking' : ''}`}
+                    >
+                        <Image
+                            className='lottery-panel__canister-img'
+                            src={canisterSvg}
+                            mode='widthFix'
+                        />
                     </View>
 
-                    <View className='lottery-panel__result-slip'>
-                        <View className='lottery-panel__result-head'>
-                            <Text className='lottery-panel__result-id'>第 {result.slip.id} 签</Text>
-                            <Text className='lottery-panel__result-tier'>{result.slip.tier}</Text>
+                    {drawnVisible && result && (
+                        <View
+                            className={drawnClass}
+                            onClick={() => phase === 'settled' && setOpenSheet(true)}
+                        >
+                            <View className='lottery-panel__drawn-cap' />
+                            <View className='lottery-panel__drawn-body'>
+                                <Text className='lottery-panel__drawn-label'>{slipLabel}</Text>
+                                <View className='lottery-panel__drawn-seal'>
+                                    <Text className='lottery-panel__drawn-seal-txt'>中签</Text>
+                                </View>
+                            </View>
                         </View>
-                        <Text className='lottery-panel__result-title'>{result.slip.title}</Text>
-                        <Text className='lottery-panel__result-poem'>{result.slip.poem}</Text>
+                    )}
+                </View>
+
+                {phase === 'idle' && (
+                    <View className='lottery-panel__cta' onClick={() => void onDraw()}>
+                        <Text className='lottery-panel__cta-txt'>摇签求运势</Text>
+                    </View>
+                )}
+                {phase === 'shaking' && (
+                    <View className='lottery-panel__cta lottery-panel__cta--disabled'>
+                        <Text className='lottery-panel__cta-txt'>诚心摇签中…</Text>
+                    </View>
+                )}
+                {phase === 'drawn' && (
+                    <View className='lottery-panel__hint'>
+                        <View className='lottery-panel__hint-dot' />
+                        <Text className='lottery-panel__hint-txt'>签已出筒</Text>
+                    </View>
+                )}
+                {phase === 'settled' && (
+                    <View className='lottery-panel__foot'>
+                        <View className='lottery-panel__actions'>
+                            <View
+                                className='lottery-panel__action lottery-panel__action--primary'
+                                onClick={() => setOpenSheet(true)}
+                            >
+                                <Text className='lottery-panel__action-txt lottery-panel__action-txt--primary'>解签</Text>
+                            </View>
+                            <View className='lottery-panel__action' onClick={reset}>
+                                <Text className='lottery-panel__action-txt'>再抽一次</Text>
+                            </View>
+                        </View>
+                    </View>
+                )}
+            </View>
+
+            {openSheet && result && (
+                <ResultSheet
+                    result={result}
+                    onClose={() => setOpenSheet(false)}
+                />
+            )}
+        </View>
+    )
+}
+
+interface ResultSheetProps {
+    result: LotteryDrawResponse
+    onClose: () => void
+}
+
+function ResultSheet ({ result, onClose }: ResultSheetProps) {
+    const cols = useMemo(() => splitPoem(result.slip.poem), [result.slip.poem])
+
+    return (
+        <View className='lottery-panel__scrim' onClick={onClose}>
+            <View
+                className='lottery-panel__sheet'
+                onClick={(e) => e.stopPropagation?.()}
+            >
+                <View className='lottery-panel__sheet-close' onClick={onClose}>
+                    <Text className='lottery-panel__sheet-close-txt'>✕</Text>
+                </View>
+
+                <View className='lottery-panel__sheet-head'>
+                    <Text className='lottery-panel__sheet-n'>{result.slip.title}</Text>
+                    <View className='lottery-panel__sheet-tag'>
+                        <Text className='lottery-panel__sheet-tag-txt'>{formatSlipHeading(result.slip.id)} · {result.slip.tier}</Text>
+                    </View>
+                </View>
+
+                <View className='lottery-panel__sheet-body'>
+                    <View className='lottery-panel__poem-wrap'>
+                        <View className='lottery-panel__poem'>
+                            {cols.map((col, i) => (
+                                <Text key={i} className='lottery-panel__poem-col'>{col}</Text>
+                            ))}
+                        </View>
                     </View>
 
-                    <Text className='lottery-panel__result-sec-title'>解签</Text>
-                    <Text className='lottery-panel__result-interpret'>{result.interpretation}</Text>
+                    <View className='lottery-panel__sect'>
+                        <View className='lottery-panel__sect-h'>
+                            <Text className='lottery-panel__sect-h-txt'>解 曰</Text>
+                        </View>
+                        <MarkdownView className='lottery-panel__sect-md' content={result.interpretation} />
+                    </View>
+
+                    <Text className='lottery-panel__sheet-note'>云开月出照前程，莫向签文问死生。心若安然，处处是好程</Text>
                 </View>
-            )}
+            </View>
         </View>
     )
 }

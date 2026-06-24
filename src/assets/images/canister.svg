@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 400" width="240" height="400" style="overflow:visible">
+  <defs>
+    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bb3a2d"/>
+      <stop offset="0.5" stop-color="#9c2a20"/>
+      <stop offset="1" stop-color="#7c1d16"/>
+    </linearGradient>
+    <linearGradient id="bodyShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="rgba(0,0,0,0.45)"/>
+      <stop offset="0.18" stop-color="rgba(255,180,150,0.18)"/>
+      <stop offset="0.42" stop-color="rgba(255,200,170,0.10)"/>
+      <stop offset="0.72" stop-color="rgba(0,0,0,0.0)"/>
+      <stop offset="1" stop-color="rgba(0,0,0,0.5)"/>
+    </linearGradient>
+    <linearGradient id="rimGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2dca0"/>
+      <stop offset="1" stop-color="#c89a3e"/>
+    </linearGradient>
+    <radialGradient id="holeGrad" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#3a0f0a"/>
+      <stop offset="1" stop-color="#1c0605"/>
+    </radialGradient>
+    <linearGradient id="stickGradA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ecca85"/><stop offset="1" stop-color="#caa057"/>
+    </linearGradient>
+    <linearGradient id="stickGradB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3bd72"/><stop offset="1" stop-color="#bd8f46"/>
+    </linearGradient>
+    <linearGradient id="stickGradC" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f0d394"/><stop offset="1" stop-color="#d2a85e"/>
+    </linearGradient>
+    <radialGradient id="panelGlow" cx="0.5" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#a82c22"/><stop offset="1" stop-color="#7a1a13"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ground contact shadow -->
+  <ellipse cx="120" cy="350" rx="74" ry="13" fill="rgba(0,0,0,0.55)"/>
+
+  <!-- back of opening (so sticks emerge from inside) -->
+  <ellipse cx="120" cy="120" rx="62" ry="16" fill="url(#holeGrad)" stroke="#8f6a1f" stroke-width="2"/>
+
+  <!-- decorative bundle of sticks -->
+  <g transform="rotate(-13 92 122)">
+    <rect x="88" y="44" width="8" height="98" rx="4" fill="url(#stickGradA)" stroke="#7d5526" stroke-width="0.6"/>
+    <rect x="92.4" y="44" width="2.56" height="98" rx="1.28" fill="rgba(90,55,20,0.28)"/>
+  </g>
+  <g transform="rotate(-7 104 122)">
+    <rect x="99.5" y="26" width="9" height="116" rx="4.5" fill="url(#stickGradB)" stroke="#7d5526" stroke-width="0.6"/>
+    <rect x="104.45" y="26" width="2.88" height="116" rx="1.44" fill="rgba(90,55,20,0.28)"/>
+  </g>
+  <g transform="rotate(-3 113 122)">
+    <rect x="109.25" y="52" width="7.5" height="90" rx="3.75" fill="url(#stickGradA)" stroke="#7d5526" stroke-width="0.6"/>
+    <rect x="113.375" y="52" width="2.4" height="90" rx="1.2" fill="rgba(90,55,20,0.28)"/>
+  </g>
+  <g transform="rotate(0 120 122)">
+    <rect x="115.5" y="18" width="9" height="124" rx="4.5" fill="url(#stickGradC)" stroke="#7d5526" stroke-width="0.6"/>
+    <rect x="120.45" y="18" width="2.88" height="124" rx="1.44" fill="rgba(90,55,20,0.28)"/>
+  </g>
+  <g transform="rotate(4 127 122)">
+    <rect x="123.25" y="48" width="7.5" height="94" rx="3.75" fill="url(#stickGradB)" stroke="#7d5526" stroke-width="0.6"/>
+    <rect x="127.375" y="48" width="2.4" height="94" rx="1.2" fill="rgba(90,55,20,0.28)"/>
+  </g>
+  <g transform="rotate(9 136 122)">
+    <rect x="131.5" y="32" width="9" height="110" rx="4.5" fill="url(#stickGradA)" stroke="#7d5526" stroke-width="0.6"/>
+    <rect x="136.45" y="32" width="2.88" height="110" rx="1.44" fill="rgba(90,55,20,0.28)"/>
+  </g>
+  <g transform="rotate(14 148 122)">
+    <rect x="144" y="42" width="8" height="100" rx="4" fill="url(#stickGradC)" stroke="#7d5526" stroke-width="0.6"/>
+    <rect x="148.4" y="42" width="2.56" height="100" rx="1.28" fill="rgba(90,55,20,0.28)"/>
+  </g>
+
+  <!-- front lip occludes stick bottoms + body tube -->
+  <path d="M58 120 A62 16 0 0 0 182 120 L182 332 A62 18 0 0 1 58 332 Z" fill="url(#bodyGrad)"/>
+  <path d="M58 120 A62 16 0 0 0 182 120 L182 332 A62 18 0 0 1 58 332 Z" fill="url(#bodyShade)"/>
+  <!-- gold rim lip -->
+  <path d="M58 120 A62 16 0 0 0 182 120" fill="none" stroke="url(#rimGrad)" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- top meander band -->
+  <rect x="58" y="142" width="124" height="30" fill="#7c1d16" opacity="0.5"/>
+  <g>
+    <rect x="71.6" y="146" width="20" height="20" fill="none" stroke="#e0bf6e" stroke-width="2.2"/>
+    <rect x="77.6" y="152" width="8" height="8" fill="none" stroke="#e0bf6e" stroke-width="1.8"/>
+    <rect x="97.2" y="146" width="20" height="20" fill="none" stroke="#e0bf6e" stroke-width="2.2"/>
+    <rect x="103.2" y="152" width="8" height="8" fill="none" stroke="#e0bf6e" stroke-width="1.8"/>
+    <rect x="122.8" y="146" width="20" height="20" fill="none" stroke="#e0bf6e" stroke-width="2.2"/>
+    <rect x="128.8" y="152" width="8" height="8" fill="none" stroke="#e0bf6e" stroke-width="1.8"/>
+    <rect x="148.4" y="146" width="20" height="20" fill="none" stroke="#e0bf6e" stroke-width="2.2"/>
+    <rect x="154.4" y="152" width="8" height="8" fill="none" stroke="#e0bf6e" stroke-width="1.8"/>
+  </g>
+  <line x1="60" y1="140" x2="180" y2="140" stroke="#c89a3e" stroke-width="1.4"/>
+  <line x1="60" y1="174" x2="180" y2="174" stroke="#c89a3e" stroke-width="1.4"/>
+
+  <!-- bottom meander band -->
+  <rect x="58" y="300" width="124" height="28" fill="#7c1d16" opacity="0.5"/>
+  <g>
+    <rect x="64.92" y="302" width="18" height="18" fill="none" stroke="#e0bf6e" stroke-width="1.98"/>
+    <rect x="70.32" y="307.4" width="7.2" height="7.2" fill="none" stroke="#e0bf6e" stroke-width="1.62"/>
+    <rect x="87.96" y="302" width="18" height="18" fill="none" stroke="#e0bf6e" stroke-width="1.98"/>
+    <rect x="93.36" y="307.4" width="7.2" height="7.2" fill="none" stroke="#e0bf6e" stroke-width="1.62"/>
+    <rect x="111" y="302" width="18" height="18" fill="none" stroke="#e0bf6e" stroke-width="1.98"/>
+    <rect x="116.4" y="307.4" width="7.2" height="7.2" fill="none" stroke="#e0bf6e" stroke-width="1.62"/>
+    <rect x="134.04" y="302" width="18" height="18" fill="none" stroke="#e0bf6e" stroke-width="1.98"/>
+    <rect x="139.44" y="307.4" width="7.2" height="7.2" fill="none" stroke="#e0bf6e" stroke-width="1.62"/>
+    <rect x="157.08" y="302" width="18" height="18" fill="none" stroke="#e0bf6e" stroke-width="1.98"/>
+    <rect x="162.48" y="307.4" width="7.2" height="7.2" fill="none" stroke="#e0bf6e" stroke-width="1.62"/>
+  </g>
+  <line x1="60" y1="298" x2="180" y2="298" stroke="#c89a3e" stroke-width="1.4"/>
+  <line x1="60" y1="328" x2="180" y2="328" stroke="#c89a3e" stroke-width="1.4"/>
+
+  <!-- central panel with 签 -->
+  <rect x="92" y="198" width="56" height="64" rx="4" fill="url(#panelGlow)" stroke="#e0bf6e" stroke-width="2.4"/>
+  <rect x="97" y="203" width="46" height="54" rx="2" fill="none" stroke="#c89a3e" stroke-width="1.2"/>
+  <text x="120" y="244" text-anchor="middle" font-family="'Noto Serif SC', serif" font-weight="700" font-size="40" fill="url(#rimGrad)">签</text>
+
+  <!-- floral flourish below panel -->
+  <g stroke="#e0bf6e" stroke-width="1.6" fill="none" opacity="0.92" stroke-linecap="round">
+    <path d="M120 270 C120 276 116 280 110 281 C116 283 119 287 120 292 C121 287 124 283 130 281 C124 280 120 276 120 270 Z" fill="#e0bf6e" stroke="none"/>
+    <path d="M118 282 C104 280 96 286 90 294"/>
+    <path d="M122 282 C136 280 144 286 150 294"/>
+    <path d="M90 294 C88 290 84 289 80 291"/>
+    <path d="M150 294 C152 290 156 289 160 291"/>
+    <circle cx="84" cy="288" r="2" fill="#e0bf6e" stroke="none"/>
+    <circle cx="156" cy="288" r="2" fill="#e0bf6e" stroke="none"/>
+  </g>
+</svg>

@@ -11,11 +11,9 @@ export default function FeaturePageMobile () {
     const statusBarHeight = useStatusBarHeight()
     const {
         activeKey,
-        today,
         selectFeature,
         syncFeatureKey,
-        goHome,
-        onPrimaryAction
+        goHome
     } = useFeatureState()
     const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -41,14 +39,14 @@ export default function FeaturePageMobile () {
                     >
                         <Text className='feature-page-mobile__menu-icon'>☰</Text>
                     </View>
-                    <Text className='feature-page-mobile__topbar-title'>易鉴</Text>
+                    <Text className='feature-page-mobile__topbar-title'>易AI</Text>
                 </View>
             </View>
 
             <UserMenu
                 dock='top-right'
                 uiMode='mobile'
-                topOffset={statusBarHeight + 18}
+                topOffset={statusBarHeight + 12}
             />
 
             {drawerOpen && (
@@ -75,11 +73,7 @@ export default function FeaturePageMobile () {
                 />
             </View>
 
-            <FeatureMainBlock
-                activeKey={activeKey}
-                onPrimaryAction={onPrimaryAction}
-                today={today}
-            />
+            <FeatureMainBlock activeKey={activeKey} />
         </View>
     )
 }

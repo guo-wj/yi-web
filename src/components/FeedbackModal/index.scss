@@ -1,0 +1,184 @@
+.feedback-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px;
+    box-sizing: border-box;
+    background: transparent;
+    pointer-events: none;
+    font-family: 'Noto Serif SC', 'Songti SC', serif;
+
+    &__mask {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background: rgba(18, 12, 6, 0.52);
+        pointer-events: auto;
+    }
+
+    &__panel {
+        position: relative;
+        z-index: 1;
+        width: min(100%, 440px);
+        padding: 28px 24px 22px;
+        border-radius: 20px;
+        background: #fffdf8;
+        border: 1px solid rgba(169, 128, 47, 0.14);
+        box-shadow: 0 18px 48px rgba(70, 52, 22, 0.14);
+        box-sizing: border-box;
+        pointer-events: auto;
+        animation: feedback-modal-in 0.22s ease-out;
+    }
+
+    &__close {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9c8e76;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    &__emblem {
+        width: 56px;
+        height: 56px;
+        margin: 4px auto 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(155deg, #f0d18a, #c2923c);
+        box-shadow: 0 8px 20px rgba(169, 128, 47, 0.22);
+    }
+
+    &__emblem-char {
+        font-size: 24px;
+        font-weight: 700;
+        color: #3a230a;
+    }
+
+    &__title {
+        display: block;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: #2b241b;
+        margin-bottom: 6px;
+    }
+
+    &__subtitle {
+        display: block;
+        text-align: center;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #9c8e76;
+        margin-bottom: 18px;
+        padding: 0 8px;
+    }
+
+    &__field {
+        position: relative;
+        border-radius: 14px;
+        border: 1px solid rgba(169, 128, 47, 0.14);
+        background: rgba(214, 180, 110, 0.08);
+        padding: 14px 14px 32px;
+        margin-bottom: 18px;
+    }
+
+    &__textarea {
+        width: 100%;
+        min-height: 140px;
+        font-size: 14px;
+        line-height: 1.75;
+        color: #2b241b;
+        background: transparent;
+        box-sizing: border-box;
+    }
+
+    &__placeholder {
+        color: #b7a995;
+        font-size: 14px;
+    }
+
+    &__counter {
+        position: absolute;
+        right: 14px;
+        bottom: 10px;
+        font-size: 11px;
+        color: #b7a995;
+    }
+
+    &__actions {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+    }
+
+    &__cancel {
+        flex: 1;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(214, 180, 110, 0.12);
+        cursor: pointer;
+    }
+
+    &__cancel-txt {
+        font-size: 15px;
+        color: #a9802f;
+    }
+
+    &__submit {
+        flex: 1;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: #fff8eb;
+        background: linear-gradient(180deg, #6d4a2d 0%, #4a2f1a 100%);
+        box-shadow: 0 10px 24px rgba(74, 47, 26, 0.22);
+        cursor: pointer;
+
+        &--disabled {
+            opacity: 0.65;
+            pointer-events: none;
+        }
+    }
+
+    &__brand-foot {
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(169, 128, 47, 0.1);
+        text-align: center;
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        color: #c9bba6;
+    }
+}
+
+@keyframes feedback-modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

@@ -8,7 +8,7 @@ export default function HomePagePC () {
         <View className='home-page home-page--pc'>
             <View className='home-page__header'>
                 <View className='home-page__header-inner'>
-                    <Text className='home-page__brand'>易鉴</Text>
+                    <Text className='home-page__brand'>易AI</Text>
                     <Text className='home-page__brand-tagline'>易学参阅 · AI 相伴</Text>
                 </View>
             </View>

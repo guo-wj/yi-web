@@ -12,12 +12,14 @@ export default {
     mini: {},
     h5: {
         devServer: {
+            /** 允许局域网设备访问（如手机调试 10.x.x.x:10086） */
+            host: '0.0.0.0',
             /** 模块热替换（配合 babel react-refresh，保存后组件级更新） */
             hot: true,
-            /** 同源代理到 yiBackend，避免 H5 与 8000 端口跨域、localhost/127 混用问题 */
+            /** 同源代理到 yi-back-end，避免 H5 与 8000 端口跨域、localhost/127 混用问题 */
             proxy: {
                 "/api": {
-                    target: "http://127.0.0.1:8000",
+                    target: "/api",
                     changeOrigin: true
                 }
             }

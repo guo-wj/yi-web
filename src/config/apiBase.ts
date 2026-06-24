@@ -1,45 +1,59 @@
-/** yiBackend 根地址（与仓库 yiBackend 对应），勿尾斜杠 */
+/** yi-back-end 根地址（与仓库 yi-back-end 对应），勿尾斜杠 */
 
 import Taro from '@tarojs/taro'
+
+const DEFAULT_API_BASE = '/api'
 
 function stripTrailingSlash (s: string): string {
     return s.replace(/\/+$/, '')
 }
 
-/** 避免 H5 运行时未注入 `process` 导致 `process is not defined` */
-function nodeEnv (): NodeJS.ProcessEnv | undefined {
-    if (typeof process === 'undefined' || !process.env) {
-        return undefined
+function readProcessEnv (key: 'NODE_ENV' | 'TARO_APP_API_BASE'): string | undefined {
+    try {
+        if (typeof process !== 'undefined' && process.env) {
+            const value = process.env[key]
+            return typeof value === 'string' ? value : undefined
+        }
+    } catch {
+        /* H5 运行时可能无 process */
     }
-    return process.env
+    return undefined
 }
 
-function isBrowserLocalDev (): boolean {
-    if (typeof window === 'undefined' || !window.location) {
+/** H5 开发态是否应走 devServer 同源代理（/api -> yi-back-end） */
+function shouldUseH5DevProxy (): boolean {
+    try {
+        if (Taro.getEnv() !== Taro.ENV_TYPE.WEB) return false
+    } catch {
         return false
     }
-    return /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname)
+
+    // 优先用页面地址判断，避免浏览器无 process 时抛错
+    if (typeof window !== 'undefined' && window.location) {
+        const { hostname, port } = window.location
+        if (/^(localhost|127\.0\.0\.1)$/i.test(hostname)) return true
+        if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(hostname) && port === '10086') {
+            return true
+        }
+    }
+
+    return readProcessEnv('NODE_ENV') === 'development'
 }
 
 /**
-  * - 已配置 `TARO_APP_API_BASE` 时优先使用（生产 / 小程序真机联调等）。
-  * - H5 在本地开发域名下：走相对路径 `''`，由 webpack devServer 将 `/api` 代理到 yiBackend。
-  * - 否则回退 `http://127.0.0.1:8000`。
-  */
+ * - 已配置 `TARO_APP_API_BASE` 时优先使用（生产 / 小程序真机联调等）。
+ * - H5 开发：走相对路径 `''`，由 webpack devServer 将 `/api` 代理到 yi-back-end。
+ * - 否则回退 `/api`。
+ */
 export function getApiBaseUrl (): string {
-    const env = nodeEnv()
-    const raw = env?.TARO_APP_API_BASE
-    if (typeof raw === 'string' && raw.trim() !== '') {
-        return stripTrailingSlash(raw.trim())
+    const configured = readProcessEnv('TARO_APP_API_BASE')
+    if (configured && configured.trim() !== '') {
+        return stripTrailingSlash(configured.trim())
     }
-    try {
-        const isH5 = Taro.getEnv() === Taro.ENV_TYPE.WEB
-        const isDevBuild = env?.NODE_ENV === 'development'
-        if (isH5 && (isDevBuild || isBrowserLocalDev())) {
-            return ''
-        }
-    } catch {
-        /* 非 Taro 环境等 */
+
+    if (shouldUseH5DevProxy()) {
+        return ''
     }
-    return 'http://127.0.0.1:8000'
+
+    return DEFAULT_API_BASE
 }

@@ -14,7 +14,7 @@ export default function HomePageMobile () {
         >
             <View className='home-page__header'>
                 <View className='home-page__header-inner'>
-                    <Text className='home-page__brand'>易鉴</Text>
+                    <Text className='home-page__brand'>易AI</Text>
                     <Text className='home-page__brand-tagline'>易学参阅 · AI 相伴</Text>
                 </View>
             </View>
@@ -22,7 +22,7 @@ export default function HomePageMobile () {
             <UserMenu
                 dock='top-right'
                 uiMode='mobile'
-                topOffset={statusBarHeight + 14}
+                topOffset={statusBarHeight + 18}
             />
 
             <View className='home-page__main'>

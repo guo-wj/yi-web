@@ -1,38 +1,35 @@
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import UserMenu from '@/components/UserMenu'
+import FeatureIcon from '@/components/FeatureIcon'
 import LotteryPanel from '@/components/LotteryPanel'
+import HuangliPanel from '@/components/HuangliPanel'
+import LiuyaoPanel from '@/components/LiuyaoPanel'
+import BaziPanel from '@/components/BaziPanel'
+import MeihuaPanel from '@/components/MeihuaPanel'
+import PalmPanel from '@/components/PalmPanel'
+import FacePanel from '@/components/FacePanel'
+import foldIcon from '@/assets/icons/fold.svg'
 import {
     type FeatureKey,
     getFeatureByKey,
     isFeatureKey,
-    SIDEBAR_GROUPS
+    FEATURE_ITEMS
 } from '@/constants/features'
+import { persistFeatureKey, readInitialFeatureKey } from '@/utils/featureKeyPersistence'
 
-export function formatTodayCn () {
-    const d = new Date()
-    const mon = d.getMonth() + 1
-    const day = d.getDate()
-    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
-    return {
-        dateLine: `${mon}月${day}日`,
-        weekdayLine: `${weekdays[d.getDay()]} · 今日运势`
-    }
+function navIconDomId (key: FeatureKey) {
+    return `feature-nav-${key}`
 }
 
 export function readKeyFromRouter (): FeatureKey {
-    try {
-        const p = Taro.getCurrentInstance()?.router?.params?.key
-        if (p && isFeatureKey(p)) return p
-    } catch {
-        /* noop */
-    }
-    return 'qian'
+    return readInitialFeatureKey()
 }
 
 export function useFeatureState () {
-    const [activeKey, setActiveKey] = useState<FeatureKey>(readKeyFromRouter)
+    const [activeKey, setActiveKey] = useState<FeatureKey>(readInitialFeatureKey)
 
     const syncFeatureKey = useCallback((raw?: string) => {
         if (raw && isFeatureKey(raw)) {
@@ -41,28 +38,25 @@ export function useFeatureState () {
     }, [])
 
     const active = useMemo(() => getFeatureByKey(activeKey), [activeKey])
-    const today = useMemo(() => formatTodayCn(), [])
 
     const selectFeature = useCallback((key: FeatureKey) => {
         setActiveKey((prev) => (prev === key ? prev : key))
     }, [])
 
+    useEffect(() => {
+        persistFeatureKey(activeKey)
+    }, [activeKey])
+
     const goHome = useCallback(() => {
         void Taro.reLaunch({ url: '/pages/index/index' })
     }, [])
 
-    const onPrimaryAction = useCallback(() => {
-        void Taro.showToast({ title: `${active.title} 即将开放`, icon: 'none' })
-    }, [active.title])
-
     return {
         activeKey,
         active,
-        today,
         selectFeature,
         syncFeatureKey,
-        goHome,
-        onPrimaryAction
+        goHome
     }
 }
 
@@ -72,6 +66,8 @@ interface FeatureSidebarProps {
     onGoHome: () => void
     drawerMode?: boolean
     pcMode?: boolean
+    collapsed?: boolean
+    onToggleCollapse?: () => void
 }
 
 export function FeatureSidebar ({
@@ -79,81 +75,177 @@ export function FeatureSidebar ({
     onSelect,
     onGoHome,
     drawerMode = false,
-    pcMode = false
+    pcMode = false,
+    collapsed = false,
+    onToggleCollapse
 }: FeatureSidebarProps) {
+    const [hoveredNavKey, setHoveredNavKey] = useState<FeatureKey | null>(null)
+    const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 })
+
+    const showNavTooltip = useCallback((key: FeatureKey) => {
+        Taro.createSelectorQuery()
+            .select(`#${navIconDomId(key)}`)
+            .boundingClientRect()
+            .exec((res) => {
+                const rect = res?.[0] as { top?: number; height?: number; right?: number } | undefined
+                if (!rect?.height) return
+                setTooltipPos({
+                    top: rect.top! + rect.height / 2,
+                    left: rect.right! + 10
+                })
+                setHoveredNavKey(key)
+            })
+    }, [])
+
+    const hideNavTooltip = useCallback(() => {
+        setHoveredNavKey(null)
+    }, [])
+
+    useEffect(() => {
+        if (!pcMode || !collapsed || typeof document === 'undefined') {
+            setHoveredNavKey(null)
+            return
+        }
+
+        let disposed = false
+        const cleanups: Array<() => void> = []
+
+        const bindHover = () => {
+            if (disposed) return
+            FEATURE_ITEMS.forEach((item) => {
+                const el = document.getElementById(navIconDomId(item.key))
+                if (!el) return
+                const onEnter = () => showNavTooltip(item.key)
+                const onLeave = () => hideNavTooltip()
+                el.addEventListener('mouseenter', onEnter)
+                el.addEventListener('mouseleave', onLeave)
+                cleanups.push(() => {
+                    el.removeEventListener('mouseenter', onEnter)
+                    el.removeEventListener('mouseleave', onLeave)
+                })
+            })
+        }
+
+        const timer = window.setTimeout(bindHover, 0)
+
+        return () => {
+            disposed = true
+            window.clearTimeout(timer)
+            cleanups.forEach((fn) => fn())
+        }
+    }, [pcMode, collapsed, showNavTooltip, hideNavTooltip])
+
     const shellClassName = [
         'feature-page__sidebar-shell',
-        pcMode ? 'feature-page__sidebar-shell--pc' : ''
+        pcMode ? 'feature-page__sidebar-shell--pc' : '',
+        pcMode && collapsed ? 'feature-page__sidebar-shell--collapsed' : ''
     ]
         .filter(Boolean)
         .join(' ')
+
+    const hoveredNavTitle = hoveredNavKey ? getFeatureByKey(hoveredNavKey).title : ''
 
     return (
         <View className={shellClassName}>
             <View className='feature-page__sidebar-top'>
                 <View className='feature-page__sidebar-toolbar'>
-                    <View
-                        className={`feature-page__brand ${pcMode ? 'feature-page__brand--pc' : ''}`}
-                        onClick={(e) => {
-                            e.stopPropagation?.()
-                            onGoHome()
-                        }}
-                    >
-                        <View className={`feature-page__brand-mark ${pcMode ? 'feature-page__brand-mark--pc' : ''}`}>
-                            <Text className='feature-page__brand-mark-char'>易</Text>
+                    {(!pcMode || !collapsed) && (
+                        <View
+                            className={`feature-page__brand ${pcMode ? 'feature-page__brand--pc' : ''}`}
+                            onClick={(e) => {
+                                e.stopPropagation?.()
+                                onGoHome()
+                            }}
+                        >
+                            <View className={`feature-page__brand-mark ${pcMode ? 'feature-page__brand-mark--pc' : ''}`}>
+                                <Text className='feature-page__brand-mark-char'>易</Text>
+                            </View>
+                            <View className={`feature-page__brand-copy ${pcMode ? 'feature-page__brand-copy--pc' : ''}`}>
+                                {!pcMode && <Text className='feature-page__brand-logo'>易AI</Text>}
+                                {/* <Text className='feature-page__brand-tag'>易学参阅 · AI 相伴</Text> */}
+                            </View>
                         </View>
-                        <View className={`feature-page__brand-copy ${pcMode ? 'feature-page__brand-copy--pc' : ''}`}>
-                            {!pcMode && <Text className='feature-page__brand-logo'>易鉴</Text>}
-                            <Text className='feature-page__brand-tag'>易学参阅 · AI 相伴</Text>
+                    )}
+                    {pcMode && onToggleCollapse && (
+                        <View
+                            className='feature-page__sidebar-toggle'
+                            onClick={(e) => {
+                                e.stopPropagation?.()
+                                onToggleCollapse()
+                            }}
+                        >
+                            <FeatureIcon
+                                className='feature-page__sidebar-toggle-icon'
+                                src={foldIcon}
+                            />
                         </View>
-                    </View>
+                    )}
                 </View>
-                <View className={`feature-page__sidebar-rule ${pcMode ? 'feature-page__sidebar-rule--pc' : ''}`} />
+                {(pcMode || !collapsed) && (
+                    <View
+                        className={`feature-page__sidebar-rule ${pcMode ? 'feature-page__sidebar-rule--pc' : ''} ${pcMode && collapsed ? 'feature-page__sidebar-rule--invisible' : ''}`}
+                    />
+                )}
             </View>
 
             <View className='feature-page__sidebar-body'>
-                {SIDEBAR_GROUPS.map((group) => (
-                    <View key={group.sectionTitle} className='feature-page__nav-section'>
-                        <Text className='feature-page__nav-section-title'>{group.sectionTitle}</Text>
-                        {group.keys.map((key) => {
-                            const item = getFeatureByKey(key)
-                            const isActive = activeKey === key
-                            return (
-                                <View
-                                    key={key}
-                                    className={`feature-page__nav-item ${isActive ? 'feature-page__nav-item--active' : ''} ${pcMode ? 'feature-page__nav-item--pc' : ''}`}
-                                    onClick={() => onSelect(key)}
-                                >
-                                    <View
-                                        className={`feature-page__nav-icon-box ${pcMode ? 'feature-page__nav-icon-box--pc' : ''} ${isActive ? 'feature-page__nav-icon-box--active' : ''}`}
-                                    >
-                                        <Text className='feature-page__nav-icon'>{item.icon}</Text>
+                {FEATURE_ITEMS.map((item) => {
+                    const isActive = activeKey === item.key
+                    return (
+                        <View
+                            key={item.key}
+                            className={`feature-page__nav-item ${isActive ? 'feature-page__nav-item--active' : ''} ${pcMode ? 'feature-page__nav-item--pc' : ''}`}
+                            onClick={() => onSelect(item.key)}
+                        >
+                            <View
+                                id={pcMode && collapsed ? navIconDomId(item.key) : undefined}
+                                className={`feature-page__nav-icon-box ${pcMode ? 'feature-page__nav-icon-box--pc' : ''}`}
+                            >
+                                <FeatureIcon
+                                    className='feature-page__nav-icon'
+                                    src={item.icon}
+                                    scale={item.iconScale}
+                                />
+                            </View>
+                            {!collapsed && (
+                                <View className='feature-page__nav-text'>
+                                    <View className='feature-page__nav-title-row'>
+                                        <Text className='feature-page__nav-title'>{item.title}</Text>
                                     </View>
-                                    <View className='feature-page__nav-text'>
-                                        <View className='feature-page__nav-title-row'>
-                                            <Text className='feature-page__nav-title'>{item.title}</Text>
-                                            {item.badge === 'HOT' && (
-                                                <Text className='feature-page__chip feature-page__chip--hot'>热门</Text>
-                                            )}
-                                            {item.badge === 'NEW' && (
-                                                <Text className='feature-page__chip feature-page__chip--new'>新</Text>
-                                            )}
-                                        </View>
-                                        <Text className='feature-page__nav-desc'>{item.desc}</Text>
-                                    </View>
+                                    {/* <Text className='feature-page__nav-desc'>{item.desc}</Text> */}
                                 </View>
-                            )
-                        })}
-                    </View>
-                ))}
+                            )}
+                        </View>
+                    )
+                })}
             </View>
 
-            <View className='feature-page__sidebar-rule feature-page__sidebar-rule--dock' />
+            {!collapsed && (
+                <View className='feature-page__sidebar-rule feature-page__sidebar-rule--dock' />
+            )}
 
             {!drawerMode && (
-                <View className={`feature-page__sidebar-footer ${pcMode ? 'feature-page__sidebar-footer--pc' : ''}`}>
-                    <UserMenu dock='sidebar-inline' uiMode='pc' />
+                <View className={`feature-page__sidebar-footer ${pcMode ? 'feature-page__sidebar-footer--pc' : ''} ${collapsed ? 'feature-page__sidebar-footer--collapsed' : ''}`}>
+                    <UserMenu
+                        dock='sidebar-inline'
+                        uiMode='pc'
+                        collapsed={collapsed}
+                    />
                 </View>
+            )}
+
+            {typeof document !== 'undefined' && pcMode && collapsed && hoveredNavKey && createPortal(
+                <div
+                    className='feature-page__nav-tooltip--fixed'
+                    style={{
+                        top: `${tooltipPos.top}px`,
+                        left: `${tooltipPos.left}px`,
+                        transform: 'translateY(-50%)'
+                    }}
+                >
+                    <span className='feature-page__nav-tooltip-text'>{hoveredNavTitle}</span>
+                </div>,
+                document.body
             )}
         </View>
     )
@@ -161,14 +253,10 @@ export function FeatureSidebar ({
 
 interface FeatureMainBlockProps {
     activeKey: FeatureKey
-    onPrimaryAction: () => void
-    today: { dateLine: string; weekdayLine: string }
 }
 
 export function FeatureMainBlock ({
-    activeKey,
-    onPrimaryAction,
-    today
+    activeKey
 }: FeatureMainBlockProps) {
     const active = getFeatureByKey(activeKey)
 
@@ -177,21 +265,43 @@ export function FeatureMainBlock ({
             <View className='feature-page__main-inner'>
                 {activeKey === 'qian' ? (
                     <View className='feature-page__detail feature-page__detail--qian'>
-                        <LotteryPanel today={today} />
+                        <LotteryPanel />
+                    </View>
+                ) : activeKey === 'huangli' ? (
+                    <View className='feature-page__detail feature-page__detail--huangli'>
+                        <HuangliPanel />
+                    </View>
+                ) : activeKey === 'liuyao' ? (
+                    <View className='feature-page__detail feature-page__detail--liuyao'>
+                        <LiuyaoPanel />
+                    </View>
+                ) : activeKey === 'bazi' ? (
+                    <View className='feature-page__detail feature-page__detail--bazi'>
+                        <BaziPanel />
+                    </View>
+                ) : activeKey === 'ziwei' ? (
+                    <View className='feature-page__detail feature-page__detail--meihua'>
+                        <MeihuaPanel />
+                    </View>
+                ) : activeKey === 'zhangwen' ? (
+                    <View className='feature-page__detail feature-page__detail--zhangwen'>
+                        <PalmPanel />
+                    </View>
+                ) : activeKey === 'mianxiang' ? (
+                    <View className='feature-page__detail feature-page__detail--mianxiang'>
+                        <FacePanel />
                     </View>
                 ) : (
                     <View className='feature-page__detail feature-page__detail--generic'>
                         <View className='feature-page__hero feature-page__hero--sm'>
-                            <Text className='feature-page__hero-emoji'>{active.icon}</Text>
+                            <FeatureIcon
+                                className='feature-page__hero-icon'
+                                src={active.icon}
+                                scale={active.iconScale}
+                            />
                         </View>
                         <Text className='feature-page__detail-title'>{active.title}</Text>
-                        <Text className='feature-page__detail-desc'>{active.desc}</Text>
-                        <Text className='feature-page__detail-hint'>
-                            在此可进行{active.title}相关推演与解读，功能完善中。
-                        </Text>
-                        <View className='feature-page__cta' onClick={onPrimaryAction}>
-                            <Text className='feature-page__cta-txt'>开始使用</Text>
-                        </View>
+                        <Text className='feature-page__detail-soon'>敬请期待中</Text>
                     </View>
                 )}
             </View>

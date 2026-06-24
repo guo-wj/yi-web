@@ -1,14 +1,22 @@
 import Taro from '@tarojs/taro'
 
 import { getApiBaseUrl } from '@/config/apiBase'
+import { buildAuthHeaders } from '@/services/http'
 
 /** 与 yiBackend POST /api/lottery/draw 对齐 */
+
+export interface LotteryAspect {
+    label: string
+    value: string
+}
 
 export interface LotterySlip {
     id: number
     tier: string
     title: string
     poem: string
+    /** 签位，如「午宫」 */
+    palace?: string
 }
 
 export interface LotteryDrawResponse {
@@ -16,6 +24,8 @@ export interface LotteryDrawResponse {
     lunar_summary: string
     slip: LotterySlip
     interpretation: string
+    /** 分项运势，缺省时前端展示占位文案 */
+    aspects?: LotteryAspect[]
 }
 
 export interface LotteryDrawRequest {
@@ -43,9 +53,7 @@ export async function postLotteryDraw (
     const res = await Taro.request<LotteryDrawResponse>({
         url,
         method: 'POST',
-        header: {
-            'Content-Type': 'application/json'
-        },
+        header: buildAuthHeaders(),
         data: body
     })
 

@@ -1,0 +1,68 @@
+// PC 深棕金主题 — feature 页与首页共用
+
+$pc-sidebar-bg: linear-gradient(180deg, #1a0f05 0%, #100804 100%);
+$pc-main-bg:
+    radial-gradient(circle at 50% 0%, rgba(198, 160, 96, 0.09) 0%, transparent 26%),
+    linear-gradient(180deg, #2d1a0e 0%, #1f120a 50%, #120904 100%);
+$pc-lottery-bg: radial-gradient(120% 90% at 50% 32%, #2d1a0e 0%, #1a0f08 42%, #120904 100%);
+
+$pc-sidebar-border: rgba(198, 160, 96, 0.05);
+$pc-sidebar-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.35), 4px 0 28px rgba(0, 0, 0, 0.4);
+
+$pc-surface: rgba(35, 20, 11, 0.92);
+$pc-surface-soft: rgba(198, 160, 96, 0.05);
+$pc-surface-strong: rgba(198, 160, 96, 0.09);
+$pc-border: rgba(198, 160, 96, 0.1);
+$pc-rule: rgba(198, 160, 96, 0.12);
+
+$pc-text-strong: #f3efe7;
+$pc-text-primary: rgba(243, 239, 231, 0.9);
+$pc-text-secondary: rgba(214, 206, 193, 0.76);
+$pc-text-tertiary: rgba(180, 160, 138, 0.62);
+
+$pc-accent: #c6a060;
+$pc-accent-strong: #a88249;
+$pc-accent-soft: rgba(198, 160, 96, 0.12);
+$pc-tab-text-default: #f0e6d0;
+
+$pc-brand-bg: linear-gradient(155deg, #d7bf8d 0%, #b99157 52%, #7c5b33 100%);
+$pc-chip-hot: linear-gradient(135deg, #c7a164, #a07a42);
+$pc-chip-new: linear-gradient(135deg, #6d8674, #516458);
+$pc-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+$pc-pill-div: rgba(201, 192, 177, 0.24);
+
+// 首页卡片
+$pc-card-bg: linear-gradient(165deg, rgba(255, 240, 210, 0.06) 0%, rgba(45, 26, 14, 0.88) 45%, rgba(30, 18, 10, 0.92) 100%);
+$pc-card-border: rgba(198, 160, 96, 0.12);
+$pc-card-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+$pc-card-hover-shadow: 0 14px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+$pc-icon-ring-bg: rgba(26, 15, 5, 0.65);
+$pc-icon-ring-border: rgba(198, 160, 96, 0.22);
+$pc-footer-bg: rgba(18, 9, 4, 0.88);
+
+@mixin pc-brown-gold-vars {
+    --pc-main-bg: #{$pc-main-bg};
+    --pc-page-bg: #{$pc-main-bg};
+    --pc-sidebar-bg: #{$pc-sidebar-bg};
+    --pc-sidebar-border: #{$pc-sidebar-border};
+    --pc-surface: #{$pc-surface};
+    --pc-surface-soft: #{$pc-surface-soft};
+    --pc-surface-strong: #{$pc-surface-strong};
+    --pc-border: #{$pc-border};
+    --pc-rule: #{$pc-rule};
+    --pc-text-strong: #{$pc-text-strong};
+    --pc-text-primary: #{$pc-text-primary};
+    --pc-text-secondary: #{$pc-text-secondary};
+    --pc-text-tertiary: #{$pc-text-tertiary};
+    --pc-accent: #{$pc-accent};
+    --pc-accent-strong: #{$pc-accent-strong};
+    --pc-accent-soft: #{$pc-accent-soft};
+    --pc-tab-text-default: #{$pc-tab-text-default};
+    --pc-tab-text-active: var(--pc-accent);
+    --pc-tab-text-hover: var(--pc-text-secondary);
+    --pc-brand-bg: #{$pc-brand-bg};
+    --pc-chip-hot: #{$pc-chip-hot};
+    --pc-chip-new: #{$pc-chip-new};
+    --pc-shadow: #{$pc-shadow};
+    --pc-pill-div: #{$pc-pill-div};
+}

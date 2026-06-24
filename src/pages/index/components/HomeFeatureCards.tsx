@@ -1,4 +1,5 @@
 import { View, Text, Navigator } from '@tarojs/components'
+import FeatureIcon from '@/components/FeatureIcon'
 import { FEATURE_ITEMS } from '@/constants/features'
 
 interface HomeFeatureCardsProps {
@@ -16,7 +17,11 @@ export default function HomeFeatureCards ({ pageMode }: HomeFeatureCardsProps) {
                     hoverClass='home-page__card--hover'
                 >
                     <View className='home-page__card-icon-ring'>
-                        <Text className='home-page__card-icon'>{item.icon}</Text>
+                        <FeatureIcon
+                            className='home-page__card-icon'
+                            src={item.icon}
+                            scale={item.iconScale}
+                        />
                     </View>
                     <View className='home-page__card-body'>
                         <View className='home-page__card-title-row'>

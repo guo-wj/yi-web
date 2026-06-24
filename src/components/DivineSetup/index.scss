@@ -1,0 +1,432 @@
+.dv-setup {
+    /* ---- light tokens ---- */
+    --dv-brush: 'ZCOOL XiaoWei', 'Noto Serif SC', 'Songti SC', serif;
+    --dv-gold: #a9802f;
+    --dv-gold-soft: #c2974a;
+    --dv-gold-bright: #d8b25e;
+    --dv-ink: #2b241b;
+    --dv-ink-soft: #6a5d49;
+    --dv-ink-faint: #9c8e76;
+    --dv-line: rgba(120, 95, 45, 0.16);
+    --dv-surface: #fffdf8;
+    --dv-surface-shadow: 0 12px 32px -12px rgba(70, 52, 22, 0.12);
+    --dv-active-bg: rgba(169, 128, 47, 0.13);
+    --dv-shadow-lg: rgba(70, 52, 22, 0.32);
+    --dv-bg-soft: #f6f1e6;
+    --dv-mode-active-bg: #fffdf8;
+    --dv-input-bg: rgba(255, 252, 245, 0.95);
+    --dv-input-border: rgba(120, 95, 45, 0.22);
+    --dv-input-ink: #2b241b;
+    --dv-input-placeholder: #9c8e76;
+    --dv-cta-bg: linear-gradient(180deg, #f0d18a, #d9af55 60%, #c2923c);
+    --dv-cta-shadow:
+        0 10px 26px -8px rgba(216, 170, 80, 0.55),
+        0 2px 0 rgba(255, 255, 255, 0.4) inset;
+    --dv-cta-ink: #3a230a;
+
+    width: min(100%, 680px);
+    margin: clamp(20px, 4vh, 36px) auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding-bottom: 32px;
+    box-sizing: border-box;
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* ---- divider ---- */
+    &__divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+    }
+
+    &__divider-rule {
+        width: 48px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--dv-gold) 60%, transparent);
+        opacity: 0.6;
+    }
+
+    &__divider-txt {
+        font-family: var(--dv-brush);
+        font-size: 16px;
+        letter-spacing: 0.3em;
+        text-indent: 0.3em;
+        color: var(--dv-gold);
+    }
+
+    /* ---- prompts marquee ---- */
+    &__marquee {
+        width: min(100%, 760px);
+        margin: 0 auto;
+        overflow: hidden;
+        position: relative;
+        -webkit-mask: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+        mask: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+    }
+
+    &__marquee-track {
+        display: flex;
+        flex-wrap: nowrap;
+        width: max-content;
+        padding: 4px 0;
+        animation: dv-marquee 32s linear infinite;
+
+        &:hover {
+            animation-play-state: paused;
+        }
+    }
+
+    &__chip {
+        flex: none;
+        white-space: nowrap;
+        margin-right: 14px;
+        padding: 13px 26px;
+        border-radius: 999px;
+        border: 1px solid var(--dv-line);
+        background: var(--dv-surface);
+        cursor: pointer;
+        text-align: center;
+        transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s, color 0.22s;
+
+        &:hover {
+            border-color: var(--dv-gold-soft);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px -12px var(--dv-shadow-lg);
+        }
+
+        &--active {
+            background: var(--dv-active-bg);
+            border-color: var(--dv-gold-soft);
+            box-shadow: inset 0 0 0 1px var(--dv-gold-soft);
+        }
+    }
+
+    &__chip-txt {
+        font-size: 16px;
+        letter-spacing: 0.08em;
+        color: var(--dv-ink-soft);
+        white-space: nowrap;
+    }
+
+    &__chip--active &__chip-txt {
+        color: var(--dv-gold);
+    }
+
+    /* ---- question input ---- */
+    &__input-wrap {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        width: 100%;
+        padding: 14px 18px 14px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--dv-input-border);
+        background: var(--dv-input-bg);
+        box-shadow: var(--dv-surface-shadow);
+        box-sizing: border-box;
+
+        taro-textarea-core {
+            flex: 1;
+            min-width: 0;
+            display: block;
+            min-height: 28px;
+            max-height: 84px;
+            background: transparent;
+            overflow-y: auto;
+        }
+
+        taro-textarea,
+        .taro-textarea {
+            width: 100%;
+            max-height: 84px;
+            background: transparent !important;
+        }
+
+        // H5 实际输入在 taro-textarea-core 内层 textarea，需单独命中文字与 placeholder
+        textarea,
+        .taro-textarea {
+            flex: 1;
+            min-width: 0;
+            width: 100%;
+            min-height: 28px;
+            max-height: 84px;
+            padding: 0;
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.6;
+            letter-spacing: 0.04em;
+            text-align: left !important;
+            color: var(--dv-input-ink) !important;
+            -webkit-text-fill-color: var(--dv-input-ink);
+            background: transparent !important;
+            box-sizing: border-box;
+            overflow-y: auto;
+            resize: none;
+            word-break: break-word;
+            white-space: pre-wrap;
+            border: none;
+            outline: none;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(169, 128, 47, 0.35) transparent;
+
+            &::placeholder {
+                color: var(--dv-input-placeholder) !important;
+                -webkit-text-fill-color: var(--dv-input-placeholder);
+                opacity: 1 !important;
+            }
+
+            &::-webkit-input-placeholder {
+                color: var(--dv-input-placeholder) !important;
+                -webkit-text-fill-color: var(--dv-input-placeholder);
+                opacity: 1 !important;
+            }
+
+            &::-webkit-scrollbar {
+                width: 3px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: rgba(169, 128, 47, 0.35);
+                border-radius: 2px;
+            }
+        }
+    }
+
+    &__input-badge {
+        flex: none;
+        width: 38px;
+        height: 38px;
+        margin-top: 0;
+        border-radius: 10px;
+        border: 1px solid var(--dv-gold-soft);
+        background: rgba(169, 128, 47, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--dv-gold);
+    }
+
+    &__input,
+    taro-textarea-core textarea {
+        flex: 1;
+        min-width: 0;
+        width: 100%;
+        min-height: 28px;
+        max-height: 84px;
+        padding: 0;
+        font-size: 15px;
+        line-height: 1.6;
+        letter-spacing: 0.04em;
+        text-align: left !important;
+        color: var(--dv-input-ink) !important;
+        -webkit-text-fill-color: var(--dv-input-ink);
+        background: transparent !important;
+        box-sizing: border-box;
+        overflow-y: auto;
+        resize: none;
+        word-break: break-word;
+        white-space: pre-wrap;
+        border: none;
+        outline: none;
+
+        &::placeholder {
+            color: var(--dv-input-placeholder) !important;
+            -webkit-text-fill-color: var(--dv-input-placeholder);
+            opacity: 1 !important;
+        }
+
+        &::-webkit-input-placeholder {
+            color: var(--dv-input-placeholder) !important;
+            -webkit-text-fill-color: var(--dv-input-placeholder);
+            opacity: 1 !important;
+        }
+    }
+
+    &__input-ph {
+        color: var(--dv-input-placeholder);
+        font-size: 15px;
+        text-align: left;
+    }
+
+    /* ---- method segment ---- */
+    &__mode-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+    }
+
+    &__mode-label {
+        flex: none;
+        font-size: 13px;
+        letter-spacing: 0.2em;
+        color: var(--dv-ink-faint);
+    }
+
+    &__seg {
+        position: relative;
+        display: flex;
+        width: min(100%, 300px);
+        padding: 5px;
+        border-radius: 14px;
+        border: 1px solid var(--dv-line);
+        background: var(--dv-bg-soft);
+        box-sizing: border-box;
+    }
+
+    &__seg-thumb {
+        position: absolute;
+        z-index: 1;
+        top: 5px;
+        left: 5px;
+        height: calc(100% - 10px);
+        border-radius: 10px;
+        background: var(--dv-mode-active-bg);
+        box-shadow: 0 3px 12px -5px var(--dv-shadow-lg), inset 0 0 0 1px var(--dv-gold-soft);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    &__seg-opt {
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        min-width: 0;
+        padding: 11px 0;
+        border-radius: 10px;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        cursor: pointer;
+    }
+
+    &__seg-t {
+        font-size: 16px;
+        letter-spacing: 0.14em;
+        color: var(--dv-ink-faint);
+        font-weight: 600;
+        transition: color 0.25s;
+    }
+
+    &__seg-opt--active &__seg-t {
+        color: var(--dv-gold);
+    }
+
+    &__seg-d {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: var(--dv-ink-faint);
+        opacity: 0.8;
+        transition: color 0.25s;
+    }
+
+    &__seg-opt--active &__seg-d {
+        color: var(--dv-gold);
+    }
+
+    /* ---- cta ---- */
+    &__cta {
+        width: 100%;
+        max-width: 640px;
+        align-self: center;
+        padding: 18px 24px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--dv-cta-bg);
+        box-shadow: var(--dv-cta-shadow);
+        cursor: pointer;
+        transition: transform 0.18s, filter 0.18s;
+
+        &:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.03);
+        }
+
+        &:active {
+            transform: translateY(1px) scale(0.995);
+        }
+
+        &--disabled {
+            opacity: 0.55;
+            pointer-events: none;
+            cursor: default;
+        }
+    }
+
+    &__cta-txt {
+        font-family: var(--dv-brush);
+        font-size: 20px;
+        font-weight: 400;
+        letter-spacing: 0.3em;
+        text-indent: 0.3em;
+        color: var(--dv-cta-ink);
+    }
+
+    &__hint {
+        display: block;
+        text-align: center;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        color: var(--dv-ink-faint);
+        margin-top: -8px;
+    }
+}
+
+/* ---- dark ---- */
+.feature-shell--theme-dark .dv-setup {
+    --dv-gold: #d3ad5c;
+    --dv-gold-soft: #e0c277;
+    --dv-gold-bright: #f0d491;
+    --dv-ink: #ede3cf;
+    --dv-ink-soft: #c4b596;
+    --dv-ink-faint: #7a6f5a;
+    --dv-line: rgba(214, 180, 110, 0.15);
+    --dv-surface: #1e1a13;
+    --dv-surface-shadow: 0 16px 40px -26px rgba(0, 0, 0, 0.6);
+    --dv-active-bg: rgba(214, 180, 110, 0.13);
+    --dv-shadow-lg: rgba(0, 0, 0, 0.6);
+    --dv-bg-soft: #181410;
+    --dv-mode-active-bg: #1e1a13;
+    --dv-input-bg: #1e1a13;
+    --dv-input-border: rgba(214, 180, 110, 0.22);
+    --dv-input-ink: #ede3cf;
+    --dv-input-placeholder: #6f6450;
+    --dv-cta-bg: linear-gradient(90deg, #a88030 0%, #e8c882 48%, #a88030 100%);
+    --dv-cta-shadow: 0 10px 28px -6px rgba(201, 160, 80, 0.42);
+    --dv-cta-ink: #2a1808;
+
+    .dv-setup__input-badge {
+        background: rgba(214, 180, 110, 0.08);
+        color: var(--dv-gold-bright);
+    }
+}
+
+@keyframes dv-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@media (max-width: 720px) {
+    .dv-setup__chip-txt { font-size: 12px; }
+}
+
+@media (max-width: 540px) {
+    .dv-setup__mode-row { flex-direction: column; gap: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dv-setup__marquee-track { animation: none; }
+}
