@@ -14,8 +14,48 @@ export interface FaceAnalyzeRequest {
     slots: FaceSlot[]
 }
 
+export type FaceStopKey = 'upper' | 'middle' | 'lower'
+export type FaceOrganKey = 'brow' | 'eye' | 'nose' | 'mouth' | 'ear'
+
+export interface FaceStopDetail {
+    key: FaceStopKey
+    name_cn: string
+    /** 部位与主运，如 发际至眉 · 主早年 */
+    region: string
+    /** 2-4 字特征词 */
+    attribute: string
+    /** 形质参考分 1-5 */
+    score: number
+    description: string
+}
+
+export interface FaceOrganDetail {
+    key: FaceOrganKey
+    name_cn: string
+    /** 图标单字：眉眼鼻口耳 */
+    icon_text: string
+    /** 传统官名，如 保寿官 */
+    office: string
+    /** 两个主题词 */
+    keywords: string[]
+    /** 旺|盛|匀|平|弱 */
+    status: string
+    description: string
+}
+
 export interface FaceAnalyzeResponse {
+    /** 面相解读正文（Markdown，兼容旧版） */
     content: string
+    /** 五行面型，如 木形面 */
+    face_type: string
+    /** 气色，如 明润 */
+    complexion: string
+    /** 面相综述 */
+    overview: string
+    /** 三停结构化解读 */
+    stops: FaceStopDetail[]
+    /** 五官结构化解读 */
+    organs: FaceOrganDetail[]
     summary?: string | null
     summaries?: string[] | null
 }

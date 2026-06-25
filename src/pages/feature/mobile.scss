@@ -19,18 +19,36 @@ $nav-icon-size: 22px;
         sans-serif;
 }
 
+@mixin hide-mobile-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+        background: transparent;
+    }
+}
+
+$mobile-topbar-row-h: 56px;
+
 .feature-page-mobile {
     @include font-sans;
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
     min-height: 100vh;
+    overflow: hidden;
     background: $bg-page;
     color: $text-title;
 
     &__topbar {
-        flex-shrink: 0;
-        position: sticky;
+        position: fixed;
         top: 0;
+        left: 0;
+        right: 0;
         z-index: 210;
         background: $bg-sidebar;
         border-bottom: 1px solid $border;
@@ -39,8 +57,9 @@ $nav-icon-size: 22px;
     &__topbar-row {
         display: flex;
         align-items: center;
-        min-height: 72px;
-        padding: 12px calc(80px + env(safe-area-inset-right)) 14px 16px;
+        min-height: $mobile-topbar-row-h;
+        padding: 8px calc(14px + env(safe-area-inset-right)) 8px calc(14px + env(safe-area-inset-left));
+        box-sizing: border-box;
     }
 
     &__menu-btn {
@@ -48,10 +67,10 @@ $nav-icon-size: 22px;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 56px;
-        height: 56px;
-        margin-right: 8px;
-        border-radius: 14px;
+        width: 44px;
+        height: 44px;
+        margin-right: 6px;
+        border-radius: 11px;
 
         &:active {
             background: rgba(74, 63, 53, 0.07);
@@ -59,7 +78,7 @@ $nav-icon-size: 22px;
     }
 
     &__menu-icon {
-        font-size: 38px;
+        font-size: 28px;
         line-height: 1;
         color: $text-title;
     }
@@ -68,10 +87,38 @@ $nav-icon-size: 22px;
         flex: 1;
         min-width: 0;
         text-align: center;
-        font-size: 22px;
+        font-size: 19px;
         font-weight: 700;
         letter-spacing: 0.14em;
         color: $text-title;
+        line-height: 1.2;
+    }
+
+    &__topbar-user {
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 44px;
+        height: 44px;
+        margin-left: 6px;
+
+        .home__user {
+            position: relative;
+            right: auto;
+            top: auto;
+            transform: none;
+        }
+    }
+
+    &__body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
     }
 
     &__drawer-mask {
@@ -87,12 +134,13 @@ $nav-icon-size: 22px;
         top: 0;
         bottom: 0;
         z-index: 400;
-        width: min(380px, 92vw);
+        width: min(300px, 78vw);
         padding: calc(16px + env(safe-area-inset-top)) 16px 24px;
         padding-bottom: calc(24px + env(safe-area-inset-bottom));
         background: $bg-sidebar;
         border-right: 1px solid $border;
         overflow-y: auto;
+        @include hide-mobile-scrollbar;
         transform: translateX(-102%);
         transition: transform 0.28s cubic-bezier(0.33, 1, 0.68, 1);
 
@@ -250,6 +298,7 @@ $nav-icon-size: 22px;
     .feature-page__nav-text {
         flex: 1;
         min-width: 0;
+        text-align: left;
     }
 
     .feature-page__nav-title-row {
@@ -264,6 +313,7 @@ $nav-icon-size: 22px;
         font-weight: 700;
         color: $text-title;
         line-height: 1.35;
+        text-align: left;
     }
 
     .feature-page__nav-desc {
@@ -298,12 +348,18 @@ $nav-icon-size: 22px;
         flex-direction: column;
         align-items: center;
         min-height: 0;
+        height: 100%;
+        max-width: 100%;
+        overflow: hidden;
         padding: 16px 18px 40px;
     }
 
     .feature-page__main-inner {
         width: 100%;
         max-width: 100%;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -314,24 +370,38 @@ $nav-icon-size: 22px;
         flex-direction: column;
         align-items: center;
         width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
         text-align: center;
 
         // 老黄历卡片移动端铺满、去掉外层留白
         &--huangli {
             text-align: left;
+            overflow: hidden;
+            border-radius: 0;
+            flex: 1;
+            height: 100%;
+            min-height: 0;
             width: 100%;
+
+            .huangli-m {
+                flex: 1;
+                min-height: 0;
+                width: 100%;
+            }
         }
 
         // 灵签暖暗 stage 铺满，移动端去掉外层留白
         &--qian {
             text-align: left;
-            overflow: visible;
+            overflow: hidden;
             border-radius: 0;
             flex: 1;
             height: 100%;
-            min-height: calc(100vh - 120px);
+            min-height: 0;
 
-            .lottery-panel {
+            .lottery-panel,
+            .lottery-m {
                 flex: 1;
                 min-height: 0;
                 width: 100%;
@@ -341,11 +411,11 @@ $nav-icon-size: 22px;
         // 六爻起卦铺满
         &--liuyao {
             text-align: left;
-            overflow: visible;
+            overflow: hidden;
             border-radius: 0;
             flex: 1;
             height: 100%;
-            min-height: calc(100vh - 120px);
+            min-height: 0;
 
             .liuyao-panel {
                 flex: 1;
@@ -357,13 +427,49 @@ $nav-icon-size: 22px;
         // 八字命理铺满
         &--bazi {
             text-align: left;
-            overflow: visible;
+            overflow: hidden;
             border-radius: 0;
             flex: 1;
             height: 100%;
-            min-height: calc(100vh - 120px);
+            min-height: 0;
 
-            .bazi-panel {
+            .bazi-panel,
+            .bazi-m {
+                flex: 1;
+                min-height: 0;
+                width: 100%;
+            }
+        }
+
+        // 梅花易数铺满
+        &--meihua {
+            text-align: left;
+            overflow: hidden;
+            border-radius: 0;
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+
+            .meihua-panel {
+                flex: 1;
+                min-height: 0;
+                width: 100%;
+            }
+        }
+
+        // 掌纹 / 面相铺满，须知等正文左对齐
+        &--zhangwen,
+        &--mianxiang {
+            text-align: left;
+            overflow: hidden;
+            border-radius: 0;
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+            width: 100%;
+
+            .palm-m,
+            .face-m {
                 flex: 1;
                 min-height: 0;
                 width: 100%;
@@ -441,5 +547,166 @@ $nav-icon-size: 22px;
         letter-spacing: 0.12em;
         color: #fff;
         text-align: center;
+    }
+
+    /* 移动端：统一禁止 panel 横向滚动，隐藏纵向滚动条，收敛宽按钮字距 */
+    .bazi-m__scroll,
+    .palm-m__scroll,
+    .face-m__scroll,
+    .huangli-m__scroll,
+    .lottery-m__scroll,
+    .lottery-m__sheet-body,
+    .liuyao-panel__scroll,
+    .meihua-panel__scroll {
+        overflow-x: hidden;
+        @include hide-mobile-scrollbar;
+    }
+
+    .dv-setup,
+    .dv-setup__marquee,
+    .dv-setup__input-wrap,
+    .dv-setup__seg {
+        max-width: 100%;
+    }
+
+    .dv-setup__cta,
+    .liuyao-panel__cta,
+    .palm-m__submit,
+    .face-m__submit,
+    .bazi-m__submit,
+    .lottery-m__cta,
+    .lottery-m__actions {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .dv-setup__cta,
+    .liuyao-panel__cta,
+    .palm-m__submit,
+    .face-m__submit,
+    .bazi-m__submit,
+    .lottery-m__cta {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .dv-setup__cta-txt,
+    .liuyao-panel__cta-txt,
+    .palm-m__submit-txt,
+    .face-m__submit-txt,
+    .bazi-m__submit-txt,
+    .lottery-m__cta-txt {
+        letter-spacing: 0.12em;
+        text-indent: 0;
+        padding-left: 0.12em;
+    }
+}
+
+/* ===================== 暗黑模式 · 移动端外壳 ===================== */
+$d-bg: #14110c;
+$d-surface: #1e1a13;
+$d-border: rgba(214, 180, 110, 0.15);
+$d-title: #ede3cf;
+$d-body: #aa9c80;
+$d-muted: #6f6450;
+$d-gold: #d3ad5c;
+
+.feature-page-mobile--theme-dark {
+    background: $d-bg;
+    color: $d-title;
+
+    .feature-page-mobile__topbar {
+        background: $d-surface;
+        border-bottom-color: $d-border;
+    }
+
+    .feature-page-mobile__menu-btn:active {
+        background: rgba(214, 180, 110, 0.1);
+    }
+
+    .feature-page-mobile__menu-icon,
+    .feature-page-mobile__topbar-title {
+        color: $d-title;
+    }
+
+    .feature-page-mobile__drawer-mask {
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+    .feature-page-mobile__drawer {
+        background: $d-surface;
+        border-right-color: $d-border;
+    }
+
+    .feature-page__sidebar-top {
+        background: $d-surface;
+    }
+
+    .feature-page__sidebar-rule {
+        background: rgba(214, 180, 110, 0.16);
+    }
+
+    .feature-page__brand:active,
+    .feature-page__nav-item:active {
+        background: rgba(214, 180, 110, 0.08);
+    }
+
+    .feature-page__brand-logo {
+        color: $d-title;
+    }
+
+    .feature-page__nav-section-title,
+    .feature-page__nav-desc,
+    .feature-page__brand-tag {
+        color: $d-muted;
+    }
+
+    .feature-page__nav-title {
+        color: $d-title;
+    }
+
+    .feature-page__nav-icon {
+        background-color: $d-body;
+    }
+
+    .feature-page__nav-item--active {
+        background: rgba(214, 180, 110, 0.12);
+
+        .feature-page__nav-title {
+            color: $d-gold;
+        }
+
+        .feature-page__nav-icon {
+            background-color: $d-gold;
+        }
+    }
+
+    .feature-page__hero {
+        border-color: rgba(214, 180, 110, 0.12);
+        background: linear-gradient(165deg, #221d15 0%, #1b1610 50%, #14110c 100%);
+    }
+
+    .feature-page__hero-icon {
+        background-color: $d-gold;
+    }
+
+    .feature-page__detail-title {
+        color: $d-title;
+    }
+
+    .feature-page__detail-desc,
+    .feature-page__detail-soon,
+    .feature-page__detail-hint {
+        color: $d-muted;
+    }
+}
+
+/* 暗黑模式下 Markdown 正文可读性（仅移动端，不影响 PC） */
+.feature-page-mobile--theme-dark {
+    .md-view,
+    .md-view__h,
+    .md-view__strong {
+        color: #d8c9ad;
     }
 }

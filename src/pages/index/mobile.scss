@@ -20,6 +20,7 @@ $radius-card: 18px;
 .home-page--mobile {
     box-sizing: border-box;
     min-height: 100vh;
+    overflow-x: hidden;
     @include font-sans;
     background: $bg-page;
     color: $text-title;
@@ -31,7 +32,7 @@ $radius-card: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 18px calc(86px + env(safe-area-inset-right)) 16px 20px;
+        padding: 18px calc(52px + env(safe-area-inset-right)) 16px 20px;
     }
 
     &__header-inner {

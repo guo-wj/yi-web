@@ -21,6 +21,11 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
             "@tarojs/plugin-generator"
         ],
         defineConstants: {
+            ...(process.env.NODE_ENV === 'development'
+                ? {
+                    TARO_APP_API_URL: JSON.stringify(process.env.TARO_APP_API_URL || 'http://127.0.0.1:8000')
+                }
+                : {})
         },
         copy: {
             patterns: [

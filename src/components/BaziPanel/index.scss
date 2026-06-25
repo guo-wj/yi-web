@@ -585,6 +585,9 @@
         background: var(--bz-active-bg);
         cursor: pointer;
         transition: transform 0.16s;
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
         &:active {
             transform: scale(0.98);
@@ -595,7 +598,8 @@
         font-family: var(--bz-brush);
         font-size: 17px;
         letter-spacing: 0.26em;
-        padding-left: 0.26em;
+        text-align: center;
+        margin-right: -0.26em;
         color: var(--bz-gold);
     }
 }

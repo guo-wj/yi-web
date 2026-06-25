@@ -2,13 +2,11 @@
 
 import Taro from '@tarojs/taro'
 
-const DEFAULT_API_BASE = '/api'
-
 function stripTrailingSlash (s: string): string {
     return s.replace(/\/+$/, '')
 }
 
-function readProcessEnv (key: 'NODE_ENV' | 'TARO_APP_API_BASE'): string | undefined {
+function readProcessEnv (key: 'NODE_ENV' | 'TARO_APP_API_BASE' | 'TARO_APP_API_URL'): string | undefined {
     try {
         if (typeof process !== 'undefined' && process.env) {
             const value = process.env[key]
@@ -30,30 +28,57 @@ function shouldUseH5DevProxy (): boolean {
 
     // 优先用页面地址判断，避免浏览器无 process 时抛错
     if (typeof window !== 'undefined' && window.location) {
-        const { hostname, port } = window.location
+        const { hostname } = window.location
         if (/^(localhost|127\.0\.0\.1)$/i.test(hostname)) return true
-        if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(hostname) && port === '10086') {
-            return true
-        }
+        // 局域网调试（如 10.x.x.x:10087）同样走 devServer 代理
+        if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(hostname)) return true
     }
 
     return readProcessEnv('NODE_ENV') === 'development'
 }
 
+function isLocalBackendHost (url: string): boolean {
+    try {
+        const { hostname } = new URL(url.includes('://') ? url : `http://${url}`)
+        return /^(localhost|127\.0\.0\.1)$/i.test(hostname)
+    } catch {
+        return false
+    }
+}
+
 /**
- * - 已配置 `TARO_APP_API_BASE` 时优先使用（生产 / 小程序真机联调等）。
- * - H5 开发：走相对路径 `''`，由 webpack devServer 将 `/api` 代理到 yi-back-end。
- * - 否则回退 `/api`。
+ * API 根地址（不含 /api 前缀；接口 path 已自带 `/api/...`）。
+ * - 已配置 `TARO_APP_API_BASE`：生产 / 小程序真机直连，如 `https://your-api.example.com`
+ * - H5 开发 + 本地 `TARO_APP_API_URL`：直连 `http://127.0.0.1:8000`，避免 devServer 代理被系统 HTTP 代理劫持
+ * - H5 开发 + 远程 `TARO_APP_API_URL`：返回 `''`，由 devServer 将 `/api` 代理到远程
  */
 export function getApiBaseUrl (): string {
     const configured = readProcessEnv('TARO_APP_API_BASE')
     if (configured && configured.trim() !== '') {
-        return stripTrailingSlash(configured.trim())
+        const base = stripTrailingSlash(configured.trim())
+        // 兼容误配 `/api`，避免叠成 `/api/api/...`
+        if (base === '/api') return ''
+        return base
+    }
+
+    const devBackend = readProcessEnv('TARO_APP_API_URL')
+    if (shouldUseH5DevProxy() && devBackend && devBackend.trim() !== '') {
+        const base = stripTrailingSlash(devBackend.trim())
+        if (isLocalBackendHost(base)) {
+            return base
+        }
+        return ''
     }
 
     if (shouldUseH5DevProxy()) {
         return ''
     }
 
-    return DEFAULT_API_BASE
+    return ''
+}
+
+/** 拼接完整接口 URL，path 须以 `/api/` 开头 */
+export function buildApiUrl (path: string): string {
+    const normalized = path.startsWith('/') ? path : `/${path}`
+    return `${getApiBaseUrl()}${normalized}`
 }

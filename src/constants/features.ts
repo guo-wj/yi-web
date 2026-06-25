@@ -39,8 +39,7 @@ export const FEATURE_ITEMS: FeatureItem[] = [
         title: '今日灵签',
         desc: 'AI 解签问运，一日一签',
         sub: '静心摇签 · 灵签指引',
-        icon: iconQian,
-        iconScale: 1.16
+        icon: iconQian
     },
     {
         key: 'liuyao',

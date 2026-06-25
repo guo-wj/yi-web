@@ -70,6 +70,7 @@
         z-index: 2;
         width: 100%;
         height: 100%;
+        overflow-x: hidden;
         overflow-y: auto;
         padding: 0 32px 48px;
         box-sizing: border-box;
@@ -134,9 +135,10 @@
 
         &--cast {
             width: 100%;
-            max-width: 640px;
+            max-width: 100%;
             align-self: center;
             margin-top: 30px;
+            box-sizing: border-box;
         }
     }
 
@@ -710,7 +712,8 @@
 }
 
 /* ---- 暗黑模式 ---- */
-.feature-shell--theme-dark .feature-shell__panel--flush .liuyao-panel {
+.feature-shell--theme-dark .feature-shell__panel--flush .liuyao-panel,
+.feature-page-mobile--theme-dark .liuyao-panel {
     background: transparent;
 
     &::after {
@@ -718,7 +721,8 @@
     }
 }
 
-.feature-shell--theme-dark .liuyao-panel {
+.feature-shell--theme-dark .liuyao-panel,
+.feature-page-mobile--theme-dark .liuyao-panel {
     --ly-bg: transparent;
     --ly-vignette: none;
     --ly-title: #f2e4c2;
@@ -780,15 +784,37 @@
 @media (max-width: 540px) {
     .liuyao-panel {
         &__scroll {
-            padding: 0 18px 40px;
+            padding: 0 16px 40px;
         }
 
         &__title { font-size: 25px; }
+        &__subtitle {
+            letter-spacing: 0.14em;
+            padding-left: 0.14em;
+        }
         &__coins { gap: 16px; }
         &__coin { width: 66px; height: 66px; }
         &__cchar { font-size: 14px; }
         &__q-text { font-size: 16px; }
         &__hex-name { font-size: 26px; }
+
+        &__cta {
+            max-width: 100%;
+            box-sizing: border-box;
+            padding-left: 16px;
+            padding-right: 16px;
+
+            &--cast {
+                margin-top: 24px;
+            }
+        }
+
+        &__cta-txt {
+            font-size: 18px;
+            letter-spacing: 0.12em;
+            text-indent: 0;
+            padding-left: 0.12em;
+        }
     }
 }
 

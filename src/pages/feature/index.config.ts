@@ -1,4 +1,4 @@
 export default definePageConfig({
-    navigationBarTitleText: '功能',
+    navigationBarTitleText: '易Ai',
     navigationStyle: 'custom'
 })

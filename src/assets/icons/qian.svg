@@ -1,12 +1,1 @@
-<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-  <!-- 筒身：单一轮廓，左右等宽 -->
-  <path fill="#000" fill-rule="evenodd" d="M252 392a36 36 0 0 1 36-36h448a36 36 0 0 1 36 36v488a36 36 0 0 1-36 36H288a36 36 0 0 1-36-36V392zm52 52a8 8 0 0 0-8 8v368a8 8 0 0 0 8 8h416a8 8 0 0 0 8-8V452a8 8 0 0 0-8-8H304z"/>
-  <!-- 筒口横线：仅顶部内沿，不额外加宽侧壁 -->
-  <path fill="#000" fill-rule="evenodd" d="M304 372h416v20H304v-20zm52 8h312v4H356v-4z"/>
-  <!-- 签条 -->
-  <path fill="#000" fill-rule="evenodd" d="M316 120h36v208h-36V120zm10 10h16v188h-16V130z"/>
-  <path fill="#000" fill-rule="evenodd" d="M494 72h36v256h-36V72zm10 10h16v236h-16V82z"/>
-  <path fill="#000" fill-rule="evenodd" d="M672 120h36v208h-36V120zm10 10h16v188h-16V130z"/>
-  <!-- 箍纹 -->
-  <path fill="#000" fill-rule="evenodd" d="M320 568h384v32H320v-32zm12 12h360v8H332v-8zm0 112h384v32H320v-32zm12 12h360v8H332v-8z"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12.5h10v5.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><line x1="6.4" y1="12.5" x2="17.6" y2="12.5"/><line x1="10" y1="12.5" x2="9" y2="3.4"/><line x1="12" y1="12.5" x2="12" y2="2.6"/><line x1="14" y1="12.5" x2="15" y2="3.8"/></svg>

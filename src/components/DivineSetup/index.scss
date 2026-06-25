@@ -24,7 +24,8 @@
         0 2px 0 rgba(255, 255, 255, 0.4) inset;
     --dv-cta-ink: #3a230a;
 
-    width: min(100%, 680px);
+    width: 100%;
+    max-width: 680px;
     margin: clamp(20px, 4vh, 36px) auto 0;
     display: flex;
     flex-direction: column;
@@ -63,7 +64,8 @@
 
     /* ---- prompts marquee ---- */
     &__marquee {
-        width: min(100%, 760px);
+        width: 100%;
+        max-width: 100%;
         margin: 0 auto;
         overflow: hidden;
         position: relative;
@@ -338,8 +340,9 @@
     /* ---- cta ---- */
     &__cta {
         width: 100%;
-        max-width: 640px;
+        max-width: 100%;
         align-self: center;
+        box-sizing: border-box;
         padding: 18px 24px;
         border-radius: 12px;
         display: flex;
@@ -386,7 +389,8 @@
 }
 
 /* ---- dark ---- */
-.feature-shell--theme-dark .dv-setup {
+.feature-shell--theme-dark .dv-setup,
+.feature-page-mobile--theme-dark .dv-setup {
     --dv-gold: #d3ad5c;
     --dv-gold-soft: #e0c277;
     --dv-gold-bright: #f0d491;
@@ -424,7 +428,46 @@
 }
 
 @media (max-width: 540px) {
+    .dv-setup {
+        width: 100%;
+        max-width: 100%;
+        margin-top: 16px;
+        gap: 20px;
+        padding-bottom: 24px;
+    }
+
+    .dv-setup__chip {
+        margin-right: 10px;
+        padding: 10px 16px;
+    }
+
+    .dv-setup__chip-txt {
+        font-size: 13px;
+        letter-spacing: 0.04em;
+    }
+
     .dv-setup__mode-row { flex-direction: column; gap: 12px; }
+
+    .dv-setup__seg {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .dv-setup__seg-t {
+        font-size: 15px;
+        letter-spacing: 0.08em;
+    }
+
+    .dv-setup__cta {
+        padding: 15px 16px;
+    }
+
+    .dv-setup__cta-txt {
+        font-size: 18px;
+        letter-spacing: 0.12em;
+        text-indent: 0;
+        padding-left: 0.12em;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

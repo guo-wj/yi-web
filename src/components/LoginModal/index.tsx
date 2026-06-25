@@ -1,4 +1,4 @@
-import { View, Text, Input } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
@@ -19,10 +19,6 @@ import { openAlertModal } from '@/utils/confirmModal'
 import './index.scss'
 
 type AccountChannel = 'phone' | 'email'
-
-interface InputDetail {
-    detail: { value: string }
-}
 
 function resolveAccountType (value: string): AccountChannel | null {
     const trimmed = value.trim()
@@ -169,10 +165,6 @@ function LoginModalForm ({
                     <Text>×</Text>
                 </View>
 
-                <View className='login-modal__emblem'>
-                    <Text className='login-modal__emblem-char'>易</Text>
-                </View>
-
                 <Text className='login-modal__title'>
                     {mode === 'login' ? '欢迎回来' : '开始您的命理探索之旅'}
                 </Text>
@@ -204,27 +196,28 @@ function LoginModalForm ({
                         {mode === 'login' ? '👤' : channel === 'phone' ? '👤' : '✉️'}
                     </Text>
                     {mode === 'login' ? (
-                        <Input
+                        <input
                             className='login-modal__input'
                             type='text'
-                            maxlength={80}
+                            maxLength={80}
                             placeholder='请输入手机号或邮箱'
-                            placeholderClass='login-modal__placeholder'
+                            autoComplete='username'
                             value={account}
-                            onInput={(e: InputDetail) => setAccount(e.detail.value)}
+                            onChange={(e) => setAccount(e.target.value)}
                         />
                     ) : (
-                        <Input
+                        <input
                             className='login-modal__input'
-                            type={channel === 'phone' ? 'number' : 'text'}
-                            maxlength={channel === 'phone' ? 11 : 80}
+                            type={channel === 'phone' ? 'tel' : 'email'}
+                            inputMode={channel === 'phone' ? 'numeric' : 'email'}
+                            maxLength={channel === 'phone' ? 11 : 80}
                             placeholder={channel === 'phone' ? '请输入手机号' : '请输入邮箱'}
-                            placeholderClass='login-modal__placeholder'
+                            autoComplete={channel === 'phone' ? 'tel' : 'email'}
                             value={channel === 'phone' ? phone : email}
-                            onInput={(e: InputDetail) => (
+                            onChange={(e) => (
                                 channel === 'phone'
-                                    ? setPhone(e.detail.value)
-                                    : setEmail(e.detail.value)
+                                    ? setPhone(e.target.value)
+                                    : setEmail(e.target.value)
                             )}
                         />
                     )}
@@ -232,13 +225,13 @@ function LoginModalForm ({
 
                 <View className='login-modal__field'>
                     <Text className='login-modal__field-icon'>🔒</Text>
-                    <Input
+                    <input
                         className='login-modal__input'
-                        password={!showPassword}
+                        type={showPassword ? 'text' : 'password'}
                         placeholder='请输入密码'
-                        placeholderClass='login-modal__placeholder'
+                        autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                         value={password}
-                        onInput={(e: InputDetail) => setPassword(e.detail.value)}
+                        onChange={(e) => setPassword(e.target.value)}
                     />
                     <View
                         className='login-modal__eye'
@@ -252,13 +245,13 @@ function LoginModalForm ({
                     <>
                         <View className='login-modal__field'>
                             <Text className='login-modal__field-icon'>🔒</Text>
-                            <Input
+                            <input
                                 className='login-modal__input'
-                                password={!showConfirmPassword}
+                                type={showConfirmPassword ? 'text' : 'password'}
                                 placeholder='请再次输入密码'
-                                placeholderClass='login-modal__placeholder'
+                                autoComplete='new-password'
                                 value={confirmPassword}
-                                onInput={(e: InputDetail) => setConfirmPassword(e.detail.value)}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
                             />
                             <View
                                 className='login-modal__eye'
@@ -271,12 +264,13 @@ function LoginModalForm ({
                         <View className='login-modal__invite-label'>邀请码（选填）</View>
                         <View className='login-modal__field'>
                             <Text className='login-modal__field-icon'>🎁</Text>
-                            <Input
+                            <input
                                 className='login-modal__input'
+                                type='text'
                                 placeholder='积分奖励可兑换解读或礼物'
-                                placeholderClass='login-modal__placeholder'
+                                autoComplete='off'
                                 value={inviteCode}
-                                onInput={(e: InputDetail) => setInviteCode(e.detail.value)}
+                                onChange={(e) => setInviteCode(e.target.value)}
                             />
                         </View>
                         <Text className='login-modal__invite-hint'>
@@ -324,10 +318,6 @@ function LoginModalForm ({
                     >
                         隐私政策
                     </Text>
-                </View>
-
-                <View className='login-modal__brand-foot'>
-                    <Text>易AI</Text>
                 </View>
             </View>
 
