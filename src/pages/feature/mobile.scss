@@ -5,6 +5,7 @@ $text-title: #4a3f35;
 $text-body: #8c8279;
 $text-muted: #a89888;
 $gold-deep: #9a7d58;
+$gold-hover: #b89a72;
 $cta-bg: linear-gradient(145deg, #c4a574, #9a7d58);
 $nav-icon-size: 22px;
 
@@ -147,6 +148,12 @@ $mobile-topbar-row-h: 56px;
         &--open {
             transform: translateX(0);
         }
+
+        .feature-page__sidebar-shell {
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+        }
     }
 
     .feature-page__sidebar-top {
@@ -170,6 +177,40 @@ $mobile-topbar-row-h: 56px;
     .feature-page__sidebar-body {
         flex: 1;
         min-height: 0;
+    }
+
+    .feature-page__nav-dock {
+        flex-shrink: 0;
+        margin-top: auto;
+        padding-top: 4px;
+        border-top: 1px solid rgba(74, 63, 53, 0.12);
+    }
+
+    .feature-page__nav-item--member {
+        margin-bottom: 0;
+
+        .feature-page__nav-title {
+            color: $text-body;
+            font-weight: 600;
+        }
+
+        .feature-page__nav-icon {
+            background-color: $text-body;
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                background: rgba(154, 125, 88, 0.08);
+
+                .feature-page__nav-title {
+                    color: $gold-hover;
+                }
+
+                .feature-page__nav-icon {
+                    background-color: $gold-hover;
+                }
+            }
+        }
     }
 
     .feature-page__sidebar-footer {
@@ -261,6 +302,22 @@ $mobile-topbar-row-h: 56px;
         margin-bottom: 8px;
         border-radius: 14px;
         cursor: pointer;
+        transition: background 0.18s, color 0.18s;
+
+        @media (hover: hover) {
+            &:not(.feature-page__nav-item--active):hover {
+                background: rgba(154, 125, 88, 0.05);
+
+                .feature-page__nav-title {
+                    color: $gold-hover;
+                    font-weight: 700;
+                }
+
+                .feature-page__nav-icon {
+                    background-color: $gold-hover;
+                }
+            }
+        }
 
         &:active {
             background: rgba(74, 63, 53, 0.06);
@@ -475,6 +532,23 @@ $mobile-topbar-row-h: 56px;
                 width: 100%;
             }
         }
+
+        // 会员中心铺满
+        &--member {
+            text-align: left;
+            overflow: hidden;
+            border-radius: 0;
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+            width: 100%;
+
+            .mc {
+                flex: 1;
+                min-height: 0;
+                width: 100%;
+            }
+        }
     }
 
     .feature-page__hero {
@@ -611,6 +685,7 @@ $d-title: #ede3cf;
 $d-body: #aa9c80;
 $d-muted: #6f6450;
 $d-gold: #d3ad5c;
+$d-gold-hover: #c4a574;
 
 .feature-page-mobile--theme-dark {
     background: $d-bg;
@@ -679,6 +754,21 @@ $d-gold: #d3ad5c;
 
         .feature-page__nav-icon {
             background-color: $d-gold;
+        }
+    }
+
+    @media (hover: hover) {
+        .feature-page__nav-item:not(.feature-page__nav-item--active):hover {
+            background: rgba(214, 180, 110, 0.06);
+
+            .feature-page__nav-title {
+                color: $d-gold-hover;
+                font-weight: 700;
+            }
+
+            .feature-page__nav-icon {
+                background-color: $d-gold-hover;
+            }
         }
     }
 

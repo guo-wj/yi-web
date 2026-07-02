@@ -1,13 +1,21 @@
-import { View, Text } from '@tarojs/components'
+import { View, Text, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import coinBackImg from '@/assets/images/back.png'
+import coinFrontImg from '@/assets/images/front.png'
+
 import DivineSetup, { type DivineMethodOption } from '@/components/DivineSetup'
 import MarkdownView from '@/components/MarkdownView'
+import PanelBackButton from '@/components/PanelBackButton'
 import { LIUYAO_PROMPTS } from '@/constants/liuyaoPrompts'
+import { fetchPointsQuota, type PointsQuota } from '@/services/pointsApi'
 import { ensureLoggedIn } from '@/utils/requireAuth'
+import { isLoggedIn } from '@/utils/auth'
+import { ensurePoints, refundOnFailure } from '@/utils/ensurePoints'
 import {
     postLiuyaoCast,
+    postLiuyaoInterpret,
     streamInterpretationText,
     type LiuyaoCastResponse,
     type LiuyaoGua
@@ -24,7 +32,7 @@ import {
 
 import './index.scss'
 
-type Phase = 'setup' | 'casting' | 'done' | 'reading'
+type Phase = 'setup' | 'casting' | 'done' | 'result'
 type ShakeMode = 'manual' | 'auto'
 type CoinFace = 'zi' | 'bei'
 
@@ -117,14 +125,36 @@ export default function LiuyaoPanel () {
     const [lastYaoShow, setLastYaoShow] = useState(false)
     const [castResult, setCastResult] = useState<LiuyaoCastResponse | null>(null)
     const [castingApi, setCastingApi] = useState(false)
+    const [interpreting, setInterpreting] = useState(false)
     const [streamText, setStreamText] = useState('')
     const [streaming, setStreaming] = useState(false)
+    const [quota, setQuota] = useState<PointsQuota | null>(null)
+    const [hasInterpretation, setHasInterpretation] = useState(false)
 
-    const castingRef = useRef(false)
+    const interpretingRef = useRef(false)
     const abortRef = useRef<AbortController | null>(null)
     const coinElRefs = useRef<(HTMLElement | null)[]>([null, null, null])
     const coinInnerRefs = useRef<(HTMLElement | null)[]>([null, null, null])
     const coinAngles = useRef<number[]>([0, 0, 0])
+    const castingRef = useRef(false)
+
+    useEffect(() => {
+        if (!isLoggedIn()) {
+            setQuota(null)
+            return
+        }
+        void fetchPointsQuota('liuyao').then(setQuota).catch(() => {})
+    }, [])
+
+    const refreshQuota = useCallback(() => {
+        if (!isLoggedIn()) return
+        void fetchPointsQuota('liuyao').then(setQuota).catch(() => {})
+    }, [])
+
+    const castRequestBody = useCallback(() => ({
+        question: question.trim(),
+        yao_values: lines.map((l) => l.value)
+    }), [question, lines])
 
     const castOne = useCallback(async () => {
         if (castingRef.current || lines.length >= 6) return
@@ -208,20 +238,13 @@ export default function LiuyaoPanel () {
         abortRef.current = ac
 
         try {
-            const result = await postLiuyaoCast({
-                question: question.trim(),
-                yao_values: lines.map((l) => l.value)
-            })
+            const result = await postLiuyaoCast(castRequestBody())
             if (ac.signal.aborted) return
 
             setCastResult(result)
-            setPhase('reading')
-            setStreaming(true)
             setStreamText('')
-
-            await streamInterpretationText(result.interpretation, (chunk) => {
-                setStreamText((prev) => prev + chunk)
-            }, ac.signal)
+            setHasInterpretation(false)
+            setPhase('result')
         } catch (e) {
             if (!ac.signal.aborted) {
                 const msg = e instanceof Error ? e.message : '生成卦象失败'
@@ -229,9 +252,54 @@ export default function LiuyaoPanel () {
             }
         } finally {
             setCastingApi(false)
+        }
+    }, [lines, castingApi, castRequestBody])
+
+    const onInterpret = useCallback(async () => {
+        if (!castResult || interpretingRef.current || hasInterpretation) return
+        if (!ensureLoggedIn()) return
+
+        let txId: number | undefined
+        try {
+            const { quoteForFeature } = await import('@/hooks/usePoints')
+            const quote = await quoteForFeature({ feature: 'liuyao' })
+            const skipConfirm = quote.uses_free_quota
+
+            const points = await ensurePoints({
+                feature: 'liuyao',
+                idempotency_key: `liuyao:interpret:${lines.map((l) => l.value).join('')}:${Date.now()}`,
+                skipConfirm
+            })
+            if (!points) return
+
+            interpretingRef.current = true
+            setInterpreting(true)
+
+            txId = points.transaction_id
+
+            const resp = await postLiuyaoInterpret(castRequestBody())
+            if (abortRef.current?.signal.aborted) return
+
+            setHasInterpretation(true)
+            setStreaming(true)
+            setStreamText('')
+
+            await streamInterpretationText(resp.interpretation, (chunk) => {
+                setStreamText((prev) => prev + chunk)
+            }, abortRef.current?.signal)
+            refreshQuota()
+        } catch (e) {
+            await refundOnFailure(txId)
+            if (!abortRef.current?.signal.aborted) {
+                const msg = e instanceof Error ? e.message : '解卦失败'
+                void Taro.showToast({ title: msg.length > 20 ? '解卦失败' : msg, icon: 'none' })
+            }
+        } finally {
+            interpretingRef.current = false
+            setInterpreting(false)
             setStreaming(false)
         }
-    }, [lines, question, castingApi])
+    }, [castResult, hasInterpretation, castRequestBody, lines, refreshQuota])
 
     const resetAll = useCallback(() => {
         abortRef.current?.abort()
@@ -245,8 +313,31 @@ export default function LiuyaoPanel () {
         setStreamText('')
         setStreaming(false)
         setCastingApi(false)
+        setInterpreting(false)
+        setHasInterpretation(false)
         setShaking(false)
         castingRef.current = false
+    }, [])
+
+    const canGoBack = phase !== 'setup'
+
+    const goBack = useCallback(() => {
+        abortRef.current?.abort()
+        interpretingRef.current = false
+        setInterpreting(false)
+        setStreaming(false)
+        setStreamText('')
+        setCastResult(null)
+        setHasInterpretation(false)
+        setLines([])
+        setCoinFaces([null, null, null])
+        setCoinsDone(false)
+        setLastYao('')
+        setLastYaoShow(false)
+        setCastingApi(false)
+        setShaking(false)
+        castingRef.current = false
+        setPhase('setup')
     }, [])
 
     // 自下而上倒序展示：上爻在最上
@@ -256,12 +347,18 @@ export default function LiuyaoPanel () {
         return rows
     }, [lines])
 
-    const counterNo = Math.min(lines.length + 1, 6)
+    // 已完成 N 爻显示 N（未起为 0）；摇卦中显示正在摇的第 N 爻
+    const counterNo = useMemo(() => {
+        if (lines.length >= 6) return 6
+        if (shaking) return lines.length + 1
+        return lines.length
+    }, [lines.length, shaking])
     const inSession = phase === 'casting' || phase === 'done'
 
     return (
         <View className='liuyao-panel'>
             <View className='liuyao-panel__scroll'>
+                {canGoBack && <PanelBackButton onClick={goBack} />}
                 <View className='liuyao-panel__head'>
                     <Text className='liuyao-panel__title'>六爻起卦</Text>
                     <Text className='liuyao-panel__subtitle'>三枚铜钱，六爻成卦，问天地之机变</Text>
@@ -288,7 +385,7 @@ export default function LiuyaoPanel () {
                         <View className='liuyao-panel__q-card'>
                             <Text className='liuyao-panel__q-tag'>所问</Text>
                             <Text className='liuyao-panel__q-text'>{question.trim()}</Text>
-                            <View className='liuyao-panel__q-edit' onClick={resetAll}>
+                            <View className='liuyao-panel__q-edit' onClick={goBack}>
                                 <Text>改</Text>
                             </View>
                         </View>
@@ -314,15 +411,18 @@ export default function LiuyaoPanel () {
                                                             ref={(el) => { coinInnerRefs.current[i] = el as unknown as HTMLElement | null }}
                                                         >
                                                             <View className='liuyao-panel__cface liuyao-panel__cface--zi'>
-                                                                <View className='liuyao-panel__hole' />
-                                                                <Text className='liuyao-panel__cchar liuyao-panel__cchar--t'>天</Text>
-                                                                <Text className='liuyao-panel__cchar liuyao-panel__cchar--b'>下</Text>
-                                                                <Text className='liuyao-panel__cchar liuyao-panel__cchar--r'>太</Text>
-                                                                <Text className='liuyao-panel__cchar liuyao-panel__cchar--l'>平</Text>
+                                                                <Image
+                                                                    className='liuyao-panel__coin-img'
+                                                                    src={coinFrontImg}
+                                                                    mode='aspectFill'
+                                                                />
                                                             </View>
                                                             <View className='liuyao-panel__cface liuyao-panel__cface--bei'>
-                                                                <View className='liuyao-panel__hole' />
-                                                                <View className='liuyao-panel__bei-mark' />
+                                                                <Image
+                                                                    className='liuyao-panel__coin-img'
+                                                                    src={coinBackImg}
+                                                                    mode='aspectFill'
+                                                                />
                                                             </View>
                                                         </View>
                                                     </View>
@@ -338,7 +438,13 @@ export default function LiuyaoPanel () {
                                 </View>
                                 <View className='liuyao-panel__cast-meta'>
                                     <Text className='liuyao-panel__counter'>
-                                        第 <Text className='liuyao-panel__counter-n'>{counterNo}</Text> / 6 爻
+                                        {counterNo === 0
+                                            ? '待摇初爻'
+                                            : (
+                                                <>
+                                                    第 <Text className='liuyao-panel__counter-n'>{counterNo}</Text> / 6 爻
+                                                </>
+                                            )}
                                     </Text>
                                     <Text
                                         className={`liuyao-panel__last-yao ${lastYaoShow ? 'liuyao-panel__last-yao--show' : ''}`}
@@ -411,12 +517,18 @@ export default function LiuyaoPanel () {
                     </View>
                 )}
 
-                {phase === 'reading' && castResult && (
+                {phase === 'result' && castResult && (
                     <View className='liuyao-panel__result'>
                         <View className='liuyao-panel__res-q'>
                             <Text className='liuyao-panel__q-tag'>所问</Text>
                             <Text className='liuyao-panel__res-q-text'>{question.trim()}</Text>
                         </View>
+
+                        {quota && quota.free_remaining > 0 && (
+                            <Text className='liuyao-panel__quota'>
+                                今日免费 AI 解卦剩余 {quota.free_remaining} 次
+                            </Text>
+                        )}
 
                         <View className='liuyao-panel__hex-cards'>
                             <HexCard role='本卦' gua={castResult.ben_gua} lines={castResult.lines} />
@@ -428,21 +540,34 @@ export default function LiuyaoPanel () {
                             )}
                         </View>
 
-                        <View className='liuyao-panel__reading'>
-                            <View className='liuyao-panel__reading-head'>
-                                <Text className='liuyao-panel__reading-title'>机 断</Text>
-                                <Text className='liuyao-panel__reading-pill'>{streaming ? '推演中…' : '玄机已断'}</Text>
+                        {!hasInterpretation && !streaming && (
+                            <View
+                                className={`liuyao-panel__cta liuyao-panel__cta--cast ${interpreting ? 'liuyao-panel__cta--disabled' : ''}`}
+                                onClick={() => void onInterpret()}
+                            >
+                                <Text className='liuyao-panel__cta-txt'>
+                                    {interpreting ? '解卦中…' : 'AI 解 卦'}
+                                </Text>
                             </View>
-                            {streamText
-                                ? <MarkdownView className='liuyao-panel__reading-md' content={streamText} />
-                                : (
-                                    <Text className='liuyao-panel__reading-wait'>
-                                        {streaming ? '卦象洞开，解语将至…' : '暂无解卦内容'}
-                                    </Text>
-                                )}
-                        </View>
+                        )}
 
-                        {!streaming && (
+                        {(hasInterpretation || streaming || streamText) && (
+                            <View className='liuyao-panel__reading'>
+                                <View className='liuyao-panel__reading-head'>
+                                    <Text className='liuyao-panel__reading-title'>机 断</Text>
+                                    <Text className='liuyao-panel__reading-pill'>{streaming ? '推演中…' : '玄机已断'}</Text>
+                                </View>
+                                {streamText
+                                    ? <MarkdownView className='liuyao-panel__reading-md' content={streamText} />
+                                    : (
+                                        <Text className='liuyao-panel__reading-wait'>
+                                            {streaming ? '卦象洞开，解语将至…' : '暂无解卦内容'}
+                                        </Text>
+                                    )}
+                            </View>
+                        )}
+
+                        {!streaming && !interpreting && (
                             <View className='liuyao-panel__ghost-btn' onClick={resetAll}>
                                 <Text className='liuyao-panel__ghost-txt'>重 新 起 卦</Text>
                             </View>

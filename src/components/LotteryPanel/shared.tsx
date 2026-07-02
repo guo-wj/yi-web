@@ -1,18 +1,20 @@
 import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { isLoggedIn } from '@/utils/auth'
+import { fetchPointsQuota, type PointsQuota } from '@/services/pointsApi'
+
 import { ensureLoggedIn } from '@/utils/requireAuth'
+import { ensurePoints, refundOnFailure } from '@/utils/ensurePoints'
 import {
     postLotteryDraw,
-    type LotteryDrawResponse
+    postLotteryInterpret,
+    type LotterySlipResult
 } from '@/services/lotteryApi'
 
-// 摇签最短时长：接口秒回也至少让晃动播这么久；接口慢则晃动循环等它。
 export const SHAKE_MIN_MS = 1150
-// 签飞出筒（sway）到定格的时长，与 keyframes 对齐。
 export const SWAY_MS = 1500
 
-// idle 待机 / shaking 摇签+请求中 / drawn 签正飞出 / settled 签定格可点
 export type Phase = 'idle' | 'shaking' | 'drawn' | 'settled'
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
@@ -36,7 +38,6 @@ export function formatSlipHeading (id: number): string {
     return `第${numberToChinese(id)}签`
 }
 
-// 把签诗按换行/句读拆成若干竖排列
 export function splitPoem (poem: string): string[] {
     return poem
         .split(/[\n，。、；！？,.;!?]+/)
@@ -44,14 +45,34 @@ export function splitPoem (poem: string): string[] {
         .filter(Boolean)
 }
 
+async function refreshQuota (setter: (q: PointsQuota | null) => void) {
+    if (!isLoggedIn()) {
+        setter(null)
+        return
+    }
+    try {
+        const q = await fetchPointsQuota('qian')
+        setter(q)
+    } catch {
+        /* noop */
+    }
+}
+
 /** 抽签面板的全部状态与交互逻辑，PC 与移动端视图共用 */
 export function useLottery () {
     const [phase, setPhase] = useState<Phase>('idle')
-    const [result, setResult] = useState<LotteryDrawResponse | null>(null)
+    const [result, setResult] = useState<LotterySlipResult | null>(null)
     const [openSheet, setOpenSheet] = useState(false)
+    const [quota, setQuota] = useState<PointsQuota | null>(null)
+    const [interpreting, setInterpreting] = useState(false)
 
     const timers = useRef<ReturnType<typeof setTimeout>[]>([])
     const drawingRef = useRef(false)
+    const interpretingRef = useRef(false)
+
+    useEffect(() => {
+        void refreshQuota(setQuota)
+    }, [])
 
     const clearTimers = useCallback(() => {
         timers.current.forEach(clearTimeout)
@@ -68,8 +89,8 @@ export function useLottery () {
         setOpenSheet(false)
         setResult(null)
         setPhase('shaking')
+
         try {
-            // 接口与最短摇签并行；接口慢则晃动动画循环等它返回。
             const [data] = await Promise.all([
                 postLotteryDraw({}),
                 sleep(SHAKE_MIN_MS)
@@ -89,12 +110,71 @@ export function useLottery () {
         }
     }, [phase, clearTimers])
 
+    const onInterpret = useCallback(async () => {
+        if (!result || interpretingRef.current) return
+        if (!ensureLoggedIn()) return
+
+        if (result.interpretation) {
+            setOpenSheet(true)
+            return
+        }
+
+        let txId: number | undefined
+        try {
+            const { quoteForFeature } = await import('@/hooks/usePoints')
+            const quote = await quoteForFeature({ feature: 'qian' })
+            const skipConfirm = quote.uses_free_quota
+
+            const points = await ensurePoints({
+                feature: 'qian',
+                idempotency_key: `qian:interpret:${result.slip.id}:${Date.now()}`,
+                skipConfirm
+            })
+            if (!points) return
+
+            interpretingRef.current = true
+            setInterpreting(true)
+
+            txId = points.transaction_id
+
+            const resp = await postLotteryInterpret({
+                slip_id: result.slip.id,
+                solar_date: result.solar_date
+            })
+
+            setResult((prev) => prev ? { ...prev, interpretation: resp.interpretation } : prev)
+            setOpenSheet(true)
+            void refreshQuota(setQuota)
+        } catch (e) {
+            await refundOnFailure(txId)
+            const msg = e instanceof Error ? e.message : '解签失败'
+            void Taro.showToast({
+                title: msg.length > 20 ? '解签失败' : msg,
+                icon: 'none'
+            })
+        } finally {
+            interpretingRef.current = false
+            setInterpreting(false)
+        }
+    }, [result])
+
     const reset = useCallback(() => {
         clearTimers()
         setOpenSheet(false)
         setResult(null)
+        setInterpreting(false)
         setPhase('idle')
     }, [clearTimers])
 
-    return { phase, result, openSheet, setOpenSheet, onDraw, reset }
+    return {
+        phase,
+        result,
+        openSheet,
+        setOpenSheet,
+        onDraw,
+        onInterpret,
+        reset,
+        quota,
+        interpreting
+    }
 }

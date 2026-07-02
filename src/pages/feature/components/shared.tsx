@@ -11,14 +11,27 @@ import BaziPanel from '@/components/BaziPanel'
 import MeihuaPanel from '@/components/MeihuaPanel'
 import PalmPanel from '@/components/PalmPanel'
 import FacePanel from '@/components/FacePanel'
+import MemberPanel from '@/components/MemberPanel'
 import foldIcon from '@/assets/icons/fold.svg'
 import {
     type FeatureKey,
     getFeatureByKey,
     isFeatureKey,
-    FEATURE_ITEMS
+    FEATURE_ITEMS,
+    MEMBER_FEATURE
 } from '@/constants/features'
+import { selectMemberTab, registerMemberNavHandler } from '@/utils/memberNav'
+import type { MemberPanelTabKey } from '@/components/MemberPanel'
 import { persistFeatureKey, readInitialFeatureKey } from '@/utils/featureKeyPersistence'
+
+function parseMemberTab (raw?: string): MemberPanelTabKey | undefined {
+    if (!raw) return undefined
+    if (raw === 'ledger') return 'tx'
+    if (['overview', 'checkin', 'tx', 'recharge', 'member'].includes(raw)) {
+        return raw as MemberPanelTabKey
+    }
+    return undefined
+}
 
 function navIconDomId (key: FeatureKey) {
     return `feature-nav-${key}`
@@ -30,10 +43,14 @@ export function readKeyFromRouter (): FeatureKey {
 
 export function useFeatureState () {
     const [activeKey, setActiveKey] = useState<FeatureKey>(readInitialFeatureKey)
+    const [memberTab, setMemberTab] = useState<MemberPanelTabKey | undefined>()
 
-    const syncFeatureKey = useCallback((raw?: string) => {
+    const syncFeatureKey = useCallback((raw?: string, tab?: string) => {
         if (raw && isFeatureKey(raw)) {
             setActiveKey(raw)
+            if (raw === 'member') {
+                setMemberTab(parseMemberTab(tab))
+            }
         }
     }, [])
 
@@ -47,6 +64,15 @@ export function useFeatureState () {
         persistFeatureKey(activeKey)
     }, [activeKey])
 
+    useEffect(() => {
+        return registerMemberNavHandler((tab) => {
+            selectMemberTab((key) => {
+                setActiveKey(key)
+                if (tab) setMemberTab(tab)
+            }, tab)
+        })
+    }, [])
+
     const goHome = useCallback(() => {
         void Taro.reLaunch({ url: '/pages/index/index' })
     }, [])
@@ -54,6 +80,7 @@ export function useFeatureState () {
     return {
         activeKey,
         active,
+        memberTab,
         selectFeature,
         syncFeatureKey,
         goHome
@@ -68,6 +95,7 @@ interface FeatureSidebarProps {
     pcMode?: boolean
     collapsed?: boolean
     onToggleCollapse?: () => void
+    onNavigateAway?: () => void
 }
 
 export function FeatureSidebar ({
@@ -77,7 +105,8 @@ export function FeatureSidebar ({
     drawerMode = false,
     pcMode = false,
     collapsed = false,
-    onToggleCollapse
+    onToggleCollapse,
+    onNavigateAway
 }: FeatureSidebarProps) {
     const [hoveredNavKey, setHoveredNavKey] = useState<FeatureKey | null>(null)
     const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 })
@@ -134,6 +163,10 @@ export function FeatureSidebar ({
             cleanups.forEach((fn) => fn())
         }
     }, [pcMode, collapsed, showNavTooltip, hideNavTooltip])
+
+    const onMemberNav = useCallback(() => {
+        selectMemberTab(onSelect, undefined, onNavigateAway)
+    }, [onSelect, onNavigateAway])
 
     const shellClassName = [
         'feature-page__sidebar-shell',
@@ -220,6 +253,27 @@ export function FeatureSidebar ({
                 })}
             </View>
 
+            <View className='feature-page__nav-dock'>
+                <View
+                    className={`feature-page__nav-item feature-page__nav-item--member ${pcMode ? 'feature-page__nav-item--pc' : ''}`}
+                    onClick={onMemberNav}
+                >
+                    <View className={`feature-page__nav-icon-box ${pcMode ? 'feature-page__nav-icon-box--pc' : ''}`}>
+                        <FeatureIcon
+                            className='feature-page__nav-icon'
+                            src={MEMBER_FEATURE.icon}
+                        />
+                    </View>
+                    {!collapsed && (
+                        <View className='feature-page__nav-text'>
+                            <View className='feature-page__nav-title-row'>
+                                <Text className='feature-page__nav-title'>{MEMBER_FEATURE.title}</Text>
+                            </View>
+                        </View>
+                    )}
+                </View>
+            </View>
+
             {!collapsed && (
                 <View className='feature-page__sidebar-rule feature-page__sidebar-rule--dock' />
             )}
@@ -253,10 +307,12 @@ export function FeatureSidebar ({
 
 interface FeatureMainBlockProps {
     activeKey: FeatureKey
+    memberTab?: MemberPanelTabKey
 }
 
 export function FeatureMainBlock ({
-    activeKey
+    activeKey,
+    memberTab
 }: FeatureMainBlockProps) {
     const active = getFeatureByKey(activeKey)
 
@@ -290,6 +346,10 @@ export function FeatureMainBlock ({
                 ) : activeKey === 'mianxiang' ? (
                     <View className='feature-page__detail feature-page__detail--mianxiang'>
                         <FacePanel />
+                    </View>
+                ) : activeKey === 'member' ? (
+                    <View className='feature-page__detail feature-page__detail--member'>
+                        <MemberPanel embedded initialTab={memberTab} />
                     </View>
                 ) : (
                     <View className='feature-page__detail feature-page__detail--generic'>

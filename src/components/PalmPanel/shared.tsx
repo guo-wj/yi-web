@@ -1,11 +1,16 @@
 import Taro from '@tarojs/taro'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { fetchPointsQuota, type PointsQuota } from '@/services/pointsApi'
 import { ensureLoggedIn } from '@/utils/requireAuth'
+import { isLoggedIn } from '@/utils/auth'
+import { ensurePoints, refundOnFailure } from '@/utils/ensurePoints'
 import { openAlertModal } from '@/utils/confirmModal'
 import {
-    postPalmAnalyze,
+    postPalmExtract,
+    postPalmInterpret,
     type PalmAnalyzeResponse,
+    type PalmExtractResponse,
     type PalmLineKey
 } from '@/services/palmApi'
 
@@ -62,13 +67,30 @@ export function usePalmPanel () {
     const [rightPath, setRightPath] = useState<string | null>(null)
     const [loadingStage, setLoadingStage] = useState<LoadingStage>('idle')
     const [result, setResult] = useState<PalmAnalyzeResponse | null>(null)
+    const [quota, setQuota] = useState<PointsQuota | null>(null)
 
     const abortRef = useRef<AbortController | null>(null)
+    const extractRef = useRef<PalmExtractResponse | null>(null)
+    const interpretingRef = useRef(false)
+
+    useEffect(() => {
+        if (!isLoggedIn()) {
+            setQuota(null)
+            return
+        }
+        void fetchPointsQuota('palm').then(setQuota).catch(() => {})
+    }, [])
+
+    const refreshQuota = useCallback(() => {
+        if (!isLoggedIn()) return
+        void fetchPointsQuota('palm').then(setQuota).catch(() => {})
+    }, [])
 
     const handCount = (leftPath ? 1 : 0) + (rightPath ? 1 : 0)
     const ready = handCount === 2
     const loading = loadingStage !== 'idle'
     const interpreting = loadingStage === 'interpret'
+    const hasFullReading = Boolean(result?.lines?.length)
 
     const hintText = handCount === 0
         ? '请上传左右手掌纹，双呈则参验更精'
@@ -104,46 +126,87 @@ export function usePalmPanel () {
 
         setLoadingStage('extract')
         setResult(null)
+        extractRef.current = null
 
-        let hasExtracted = false
         try {
-            const resp = await postPalmAnalyze(leftPath!, rightPath!, {
-                onExtracted: (data) => {
-                    if (ac.signal.aborted) return
-                    hasExtracted = true
-                    setResult({
-                        content: '',
-                        overview: '',
-                        lines: [],
-                        mounts: [],
-                        palm_type: data.palm_type,
-                        complexion: data.complexion,
-                        primary_hand: data.primary_hand,
-                        left_summary: data.left_summary,
-                        right_summary: data.right_summary
-                    })
-                    setPhase('reading')
-                    setLoadingStage('interpret')
-                }
-            })
+            const extracted = await postPalmExtract(leftPath!, rightPath!)
             if (ac.signal.aborted) return
 
-            setResult(resp)
+            extractRef.current = extracted
+            setResult({
+                content: '',
+                overview: '',
+                lines: [],
+                mounts: [],
+                palm_type: extracted.palm_type,
+                complexion: extracted.complexion,
+                primary_hand: extracted.primary_hand,
+                left_summary: extracted.left_summary,
+                right_summary: extracted.right_summary
+            })
             setPhase('reading')
         } catch (e) {
             if (!ac.signal.aborted) {
-                const msg = e instanceof Error ? e.message : '解析失败'
+                const msg = e instanceof Error ? e.message : '识别失败'
                 if (msg.length > 20) {
-                    openAlertModal({ title: '解析失败', content: msg })
+                    openAlertModal({ title: '识别失败', content: msg })
                 } else {
                     void Taro.showToast({ title: msg, icon: 'none' })
                 }
-                setPhase(hasExtracted ? 'reading' : 'upload')
             }
         } finally {
             setLoadingStage('idle')
         }
     }, [validate, loading, leftPath, rightPath])
+
+    const onInterpret = useCallback(async () => {
+        const extracted = extractRef.current
+        if (!extracted || interpretingRef.current || hasFullReading) return
+        if (!ensureLoggedIn()) return
+
+        let txId: number | undefined
+        try {
+            const { quoteForFeature } = await import('@/hooks/usePoints')
+            const quote = await quoteForFeature({ feature: 'palm' })
+            const skipConfirm = quote.uses_free_quota
+
+            const points = await ensurePoints({
+                feature: 'palm',
+                idempotency_key: `palm:interpret:${Date.now()}`,
+                skipConfirm
+            })
+            if (!points) return
+
+            interpretingRef.current = true
+            setLoadingStage('interpret')
+
+            txId = points.transaction_id
+
+            const interpreted = await postPalmInterpret({
+                left_features: extracted.left_features,
+                right_features: extracted.right_features,
+                primary_hand: extracted.primary_hand
+            })
+
+            setResult({
+                ...interpreted,
+                left_summary: extracted.left_summary,
+                right_summary: extracted.right_summary
+            })
+            refreshQuota()
+        } catch (e) {
+            await refundOnFailure(txId)
+            const msg = e instanceof Error ? e.message : '解读失败'
+            if (msg.length > 20) {
+                openAlertModal({ title: '解读失败', content: msg })
+            } else {
+                void Taro.showToast({ title: msg, icon: 'none' })
+            }
+        } finally {
+            interpretingRef.current = false
+            setLoadingStage('idle')
+        }
+    }, [hasFullReading, refreshQuota])
 
     const reset = useCallback(() => {
         abortRef.current?.abort()
@@ -152,13 +215,24 @@ export function usePalmPanel () {
         setRightPath(null)
         setResult(null)
         setLoadingStage('idle')
+        extractRef.current = null
+    }, [])
+
+    const canGoBack = phase === 'reading'
+
+    const goBack = useCallback(() => {
+        abortRef.current?.abort()
+        interpretingRef.current = false
+        setPhase('upload')
+        setResult(null)
+        setLoadingStage('idle')
     }, [])
 
     const submitLabel = loadingStage === 'extract'
         ? '正 在 识 别 掌 象 …'
         : loadingStage === 'interpret'
             ? '正 在 参 详 解 读 …'
-            : '开 始 解 析'
+            : (phase === 'reading' && !hasFullReading ? 'AI 参 详 解 读' : '开 始 识 别')
 
     const lead = result
         ? (result.primary_hand === 'right' ? '右手为主' : '左手为主')
@@ -171,16 +245,21 @@ export function usePalmPanel () {
         rightPath,
         loadingStage,
         result,
+        quota,
         handCount,
         ready,
         loading,
         interpreting,
+        hasFullReading,
         hintText,
         submitLabel,
         lead,
         hands,
         chooseHand,
         submit,
-        reset
+        onInterpret,
+        reset,
+        canGoBack,
+        goBack
     }
 }

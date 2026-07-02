@@ -8,12 +8,12 @@ import {
     splitPoem,
     useLottery
 } from './shared'
-import type { LotteryDrawResponse } from '@/services/lotteryApi'
+import type { LotterySlipResult } from '@/services/lotteryApi'
 
 import './mobile.scss'
 
 export default function LotteryPanelMobile () {
-    const { phase, result, openSheet, setOpenSheet, onDraw, reset } = useLottery()
+    const { phase, result, openSheet, setOpenSheet, onDraw, onInterpret, reset, quota, interpreting } = useLottery()
 
     const drawnVisible = phase === 'drawn' || phase === 'settled'
     const drawnClass = [
@@ -32,6 +32,9 @@ export default function LotteryPanelMobile () {
                 <View className='lottery-m__titleblock'>
                     <Text className='lottery-m__title'>灵签一动</Text>
                     <Text className='lottery-m__subtitle'>静心凝神，摇签即得今日指引</Text>
+                    {quota && quota.free_remaining > 0 && (
+                        <Text className='lottery-m__quota'>今日免费 AI 解签剩余 {quota.free_remaining} 次</Text>
+                    )}
                 </View>
 
                 <View className='lottery-m__canister-stage'>
@@ -84,9 +87,11 @@ export default function LotteryPanelMobile () {
                     <View className='lottery-m__actions'>
                         <View
                             className='lottery-m__action lottery-m__action--primary'
-                            onClick={() => setOpenSheet(true)}
+                            onClick={() => void onInterpret()}
                         >
-                            <Text className='lottery-m__action-txt lottery-m__action-txt--primary'>解签</Text>
+                            <Text className='lottery-m__action-txt lottery-m__action-txt--primary'>
+                                {interpreting ? '解签中…' : '解签'}
+                            </Text>
                         </View>
                         <View className='lottery-m__action' onClick={reset}>
                             <Text className='lottery-m__action-txt'>再抽一次</Text>
@@ -98,6 +103,7 @@ export default function LotteryPanelMobile () {
             {openSheet && result && (
                 <ResultSheet
                     result={result}
+                    interpreting={interpreting}
                     onClose={() => setOpenSheet(false)}
                 />
             )}
@@ -106,11 +112,12 @@ export default function LotteryPanelMobile () {
 }
 
 interface ResultSheetProps {
-    result: LotteryDrawResponse
+    result: LotterySlipResult
+    interpreting: boolean
     onClose: () => void
 }
 
-function ResultSheet ({ result, onClose }: ResultSheetProps) {
+function ResultSheet ({ result, interpreting, onClose }: ResultSheetProps) {
     const cols = useMemo(() => splitPoem(result.slip.poem), [result.slip.poem])
 
     return (
@@ -145,7 +152,13 @@ function ResultSheet ({ result, onClose }: ResultSheetProps) {
                         <View className='lottery-m__sect-h'>
                             <Text className='lottery-m__sect-h-txt'>解 曰</Text>
                         </View>
-                        <MarkdownView className='lottery-m__sect-md' content={result.interpretation} />
+                        {result.interpretation
+                            ? <MarkdownView className='lottery-m__sect-md' content={result.interpretation} />
+                            : (
+                                <Text className='lottery-m__sect-pending'>
+                                    {interpreting ? 'AI 正在解签，请稍候…' : '点击解签获取 AI 解读'}
+                                </Text>
+                            )}
                     </View>
 
                     <Text className='lottery-m__sheet-note'>云开月出照前程，莫向签文问死生。心若安然，处处是好程</Text>

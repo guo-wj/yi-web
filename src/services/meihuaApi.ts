@@ -17,6 +17,13 @@ export interface MeihuaDivineRequest {
     method: 'time' | 'number'
     question: string
     number?: number
+    /** 时间起卦：客户端本地公历时刻，与界面时钟一致 */
+    client_time?: string
+}
+
+function formatClientDateTime (d: Date): string {
+    const pad = (n: number) => (n < 10 ? `0${n}` : String(n))
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
 /** 起数成卦结果（不含解读），秒级返回，供前端演数动画与卦象展示 */
@@ -44,6 +51,12 @@ function parseDetail (data: unknown): string | null {
     return typeof d === 'string' ? d : null
 }
 
+/** 时间起卦请求体：附带点击起卦时的本地时刻 */
+export function buildMeihuaCastBody (body: MeihuaDivineRequest): MeihuaDivineRequest {
+    if (body.method !== 'time') return body
+    return { ...body, client_time: formatClientDateTime(new Date()) }
+}
+
 /** 仅起数成卦（不含解读），用于即时演数动画与卦象展示 */
 export async function postMeihuaCast (body: MeihuaDivineRequest): Promise<MeihuaCastResponse> {
     const url = `${getApiBaseUrl()}/api/meihua/cast`
@@ -51,7 +64,7 @@ export async function postMeihuaCast (body: MeihuaDivineRequest): Promise<Meihua
         url,
         method: 'POST',
         header: buildAuthHeaders(),
-        data: body
+        data: buildMeihuaCastBody(body)
     })
 
     const status = res.statusCode ?? 0
@@ -72,7 +85,7 @@ export async function postMeihuaDivine (body: MeihuaDivineRequest): Promise<Meih
         url,
         method: 'POST',
         header: buildAuthHeaders(),
-        data: body
+        data: buildMeihuaCastBody(body)
     })
 
     const status = res.statusCode ?? 0

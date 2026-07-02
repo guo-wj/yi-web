@@ -1,6 +1,5 @@
-/** 个人中心浮层菜单项（外观单独处理） */
+/** 个人中心浮层菜单项（外观单独处理；会员中心已移至侧栏） */
 export const USER_MENU_ROWS = [
-    { key: 'member', label: '会员中心', chevron: true },
     { key: 'contact', label: '联系客服', chevron: false }
 ] as const
 

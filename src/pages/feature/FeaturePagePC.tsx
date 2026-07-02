@@ -12,7 +12,9 @@ import MeihuaPanel from '@/components/MeihuaPanel'
 import PalmPanel from '@/components/PalmPanel'
 import FacePanel from '@/components/FacePanel'
 import pinIcon from '@/assets/icons/pin.svg'
-import { FEATURE_ITEMS, getFeatureByKey } from '@/constants/features'
+import { FEATURE_ITEMS, getFeatureByKey, MEMBER_FEATURE } from '@/constants/features'
+import { selectMemberTab } from '@/utils/memberNav'
+import MemberPanel from '@/components/MemberPanel'
 import { useFeatureState } from './components/shared'
 import {
     getShellSettingsState,
@@ -39,11 +41,12 @@ export default function FeaturePagePC () {
         getShellSettingsState
     )
     const [rail, setRail] = useState<ShellRail>(readStoredRail)
-    const { activeKey, selectFeature, syncFeatureKey } = useFeatureState()
+    const { activeKey, memberTab, selectFeature, syncFeatureKey } = useFeatureState()
 
     useLoad((options) => {
         const raw = options?.key as string | undefined
-        syncFeatureKey(raw)
+        const tab = options?.tab as string | undefined
+        syncFeatureKey(raw, tab)
     })
 
     useEffect(() => {
@@ -84,6 +87,21 @@ export default function FeaturePagePC () {
                             <Text className='feature-shell__nav-label'>{item.title}</Text>
                         </View>
                     ))}
+                </View>
+
+                <View className='feature-shell__nav-dock'>
+                    <View
+                        className='feature-shell__nav-item feature-shell__nav-item--member'
+                        onClick={() => selectMemberTab(selectFeature)}
+                    >
+                        <View className='feature-shell__nav-icon-box'>
+                            <FeatureIcon
+                                className='feature-shell__nav-icon'
+                                src={MEMBER_FEATURE.icon}
+                            />
+                        </View>
+                        <Text className='feature-shell__nav-label'>{MEMBER_FEATURE.title}</Text>
+                    </View>
                 </View>
             </View>
 
@@ -136,6 +154,10 @@ export default function FeaturePagePC () {
                     ) : activeKey === 'mianxiang' ? (
                         <View className='feature-shell__panel feature-shell__panel--flush'>
                             <FacePanel />
+                        </View>
+                    ) : activeKey === 'member' ? (
+                        <View className='feature-shell__panel feature-shell__panel--flush'>
+                            <MemberPanel embedded initialTab={memberTab} />
                         </View>
                     ) : (
                         <View className='feature-shell__panel feature-shell__soon'>

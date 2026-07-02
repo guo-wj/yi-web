@@ -79,6 +79,14 @@
         line-height: 1.5;
     }
 
+    &__quota {
+        display: block;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #a9802f;
+        letter-spacing: 0.08em;
+    }
+
     /* ---- canister stage ---- */
     &__canister-stage {
         position: relative;
@@ -529,6 +537,16 @@
 
     &__sect-md {
         margin-top: 2px;
+    }
+
+    &__sect-pending {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+        line-height: 1.7;
+        color: #9c8e76;
+        text-align: center;
+        padding: 12px 0;
     }
 
     &__sheet-note {

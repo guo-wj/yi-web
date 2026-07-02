@@ -174,12 +174,12 @@
         cursor: pointer;
         transition: background 0.2s, color 0.2s;
 
-        &:hover {
-            background: var(--active-bg);
-            color: var(--ink);
+        &:hover:not(.feature-shell__nav-item--active) {
+            background: rgba(169, 128, 47, 0.07);
+            color: var(--gold-soft);
 
             .feature-shell__nav-icon {
-                background-color: var(--ink);
+                background-color: var(--gold-soft);
             }
         }
 
@@ -187,12 +187,10 @@
             color: var(--gold);
             background: var(--active-bg);
             box-shadow: inset 0 0 0 1px var(--line-strong);
+            cursor: default;
+            font-weight: 500;
 
             .feature-shell__nav-icon {
-                background-color: var(--gold);
-            }
-
-            &:hover .feature-shell__nav-icon {
                 background-color: var(--gold);
             }
         }
@@ -219,6 +217,30 @@
         letter-spacing: 0.14em;
         font-weight: 500;
         white-space: nowrap;
+    }
+
+    &__nav-dock {
+        flex: none;
+        margin-top: auto;
+        padding: 10px 12px 18px;
+        border-top: 1px solid var(--line);
+    }
+
+    &__nav-item--member {
+        color: var(--ink-soft);
+
+        .feature-shell__nav-icon {
+            background-color: var(--ink-soft);
+        }
+
+        &:hover {
+            background: rgba(169, 128, 47, 0.07);
+            color: var(--gold-soft);
+
+            .feature-shell__nav-icon {
+                background-color: var(--gold-soft);
+            }
+        }
     }
 
     &__topbar-user {
@@ -421,7 +443,8 @@
 
         .lottery-panel,
         .liuyao-panel,
-        .bazi-panel {
+        .bazi-panel,
+        .mc {
             flex: 1;
             min-height: 0;
             width: 100%;

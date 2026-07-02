@@ -8,6 +8,7 @@ import {
     StopGlyph,
     useFacePanel
 } from './shared'
+import PanelBackButton from '@/components/PanelBackButton'
 
 import './index.scss'
 
@@ -18,14 +19,20 @@ export default function FacePanelPC () {
         loading,
         result,
         uploadTags,
+        quota,
         uploadedCount,
         ready,
+        hasFullReading,
         hintText,
         lead,
+        submitLabel,
         chooseSlot,
         clearSlot,
         submit,
-        reset
+        onInterpret,
+        reset,
+        canGoBack,
+        goBack
     } = useFacePanel()
 
     const renderDrop = (index: number) => {
@@ -67,6 +74,7 @@ export default function FacePanelPC () {
     return (
         <View className='face-panel'>
             <View className='face-panel__scroll'>
+                {canGoBack && <PanelBackButton onClick={goBack} />}
                 <View className='face-panel__head'>
                     <Text className='face-panel__title'>面相解析</Text>
                     <Text className='face-panel__subtitle'>五官气色 · 三停九部 · 参详解读</Text>
@@ -91,9 +99,7 @@ export default function FacePanelPC () {
                             className={`face-panel__submit ${(!ready || loading) ? 'face-panel__submit--disabled' : ''}`}
                             onClick={() => void submit()}
                         >
-                            <Text className='face-panel__submit-txt'>
-                                {loading ? '正 在 解 析 …' : '开 始 解 析'}
-                            </Text>
+                            <Text className='face-panel__submit-txt'>{submitLabel}</Text>
                         </View>
                         <Text className='face-panel__form-hint'>
                             已上传 {uploadedCount} / {MAX_IMAGES} 张 · {hintText}
@@ -111,6 +117,12 @@ export default function FacePanelPC () {
                             {!!result.face_type && <Text className='face-panel__s-pill'>面型 · {result.face_type}</Text>}
                             {!!result.complexion && <Text className='face-panel__s-pill'>气色 · {result.complexion}</Text>}
                         </View>
+
+                        {quota && quota.free_remaining > 0 && (
+                            <Text className='face-panel__quota'>
+                                今日免费 AI 解读剩余 {quota.free_remaining} 次
+                            </Text>
+                        )}
 
                         {/* 面相综述 */}
                         <View className='face-panel__card face-panel__overview-card'>
@@ -189,6 +201,12 @@ export default function FacePanelPC () {
                                     ))}
                                 </View>
                             </>
+                        )}
+
+                        {!hasFullReading && !loading && (
+                            <View className='face-panel__submit' onClick={() => void onInterpret()}>
+                                <Text className='face-panel__submit-txt'>{submitLabel}</Text>
+                            </View>
                         )}
 
                         <View className='face-panel__btn-back' onClick={reset}>

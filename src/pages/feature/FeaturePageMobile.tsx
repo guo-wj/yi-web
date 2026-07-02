@@ -23,6 +23,7 @@ export default function FeaturePageMobile () {
     )
     const {
         activeKey,
+        memberTab,
         selectFeature,
         syncFeatureKey,
         goHome
@@ -31,7 +32,8 @@ export default function FeaturePageMobile () {
 
     useLoad((options) => {
         const raw = options?.key as string | undefined
-        syncFeatureKey(raw)
+        const tab = options?.tab as string | undefined
+        syncFeatureKey(raw, tab)
     })
 
     const closeDrawer = useCallback(() => setDrawerOpen(false), [])
@@ -80,6 +82,7 @@ export default function FeaturePageMobile () {
                         closeDrawer()
                         goHome()
                     }}
+                    onNavigateAway={closeDrawer}
                     drawerMode
                 />
             </View>
@@ -88,7 +91,7 @@ export default function FeaturePageMobile () {
                 className='feature-page-mobile__body'
                 style={{ paddingTop: topbarInset }}
             >
-                <FeatureMainBlock activeKey={activeKey} />
+                <FeatureMainBlock activeKey={activeKey} memberTab={memberTab} />
             </View>
         </View>
     )

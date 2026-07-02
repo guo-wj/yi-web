@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
     BAZI_CALENDARS,
@@ -12,10 +12,19 @@ import {
     type BaziGender,
     type BaziOrientation
 } from '@/constants/baziOptions'
+import { fetchPointsQuota, type PointsQuota } from '@/services/pointsApi'
 import { ensureLoggedIn } from '@/utils/requireAuth'
-import { postBaziAnalyze, streamBaziText, type BaziAnalyzeResponse } from '@/services/baziApi'
+import { isLoggedIn } from '@/utils/auth'
+import { ensurePoints, refundOnFailure } from '@/utils/ensurePoints'
+import {
+    postBaziChart,
+    postBaziInterpret,
+    streamBaziText,
+    type BaziAnalyzeRequest,
+    type BaziChartResponse
+} from '@/services/baziApi'
 
-export type Phase = 'form' | 'reading'
+export type Phase = 'form' | 'chart' | 'reading'
 
 function buildRequest (opts: {
     gender: BaziGender
@@ -26,7 +35,7 @@ function buildRequest (opts: {
     birthplace: string
     orientation: BaziOrientation
     focuses: BaziFocus[]
-}) {
+}): BaziAnalyzeRequest {
     const parsed = parseBirthDate(opts.birthDate)
     if (!parsed) throw new Error('出生日期格式无效')
 
@@ -60,11 +69,28 @@ export function useBazi () {
     const [orientation, setOrientation] = useState<BaziOrientation | null>(BAZI_ORIENTATIONS[0])
     const [focuses, setFocuses] = useState<BaziFocus[]>([])
     const [loading, setLoading] = useState(false)
+    const [interpreting, setInterpreting] = useState(false)
     const [streaming, setStreaming] = useState(false)
     const [streamText, setStreamText] = useState('')
-    const [result, setResult] = useState<BaziAnalyzeResponse | null>(null)
+    const [result, setResult] = useState<BaziChartResponse | null>(null)
+    const [quota, setQuota] = useState<PointsQuota | null>(null)
 
     const abortRef = useRef<AbortController | null>(null)
+    const requestRef = useRef<BaziAnalyzeRequest | null>(null)
+    const interpretingRef = useRef(false)
+
+    useEffect(() => {
+        if (!isLoggedIn()) {
+            setQuota(null)
+            return
+        }
+        void fetchPointsQuota('bazi').then(setQuota).catch(() => {})
+    }, [])
+
+    const refreshQuota = useCallback(() => {
+        if (!isLoggedIn()) return
+        void fetchPointsQuota('bazi').then(setQuota).catch(() => {})
+    }, [])
 
     const calendarLabel = BAZI_CALENDARS.find((c) => c.key === calendar)?.label ?? '阳历'
 
@@ -94,6 +120,17 @@ export function useBazi () {
         return null
     }, [gender, birthDate, shichenIndex, birthplace, orientation, focuses])
 
+    const buildPayload = useCallback(() => buildRequest({
+        gender: gender!,
+        calendar,
+        birthDate,
+        isLeapMonth,
+        shichenIndex: shichenIndex!,
+        birthplace,
+        orientation: orientation!,
+        focuses
+    }), [gender, calendar, birthDate, isLeapMonth, shichenIndex, birthplace, orientation, focuses])
+
     const submit = useCallback(async () => {
         const err = validate()
         if (err) {
@@ -113,37 +150,77 @@ export function useBazi () {
         setResult(null)
 
         try {
-            const payload = buildRequest({
-                gender: gender!,
-                calendar,
-                birthDate,
-                isLeapMonth,
-                shichenIndex: shichenIndex!,
-                birthplace,
-                orientation: orientation!,
-                focuses
-            })
+            const payload = buildPayload()
+            requestRef.current = payload
 
-            const resp = await postBaziAnalyze(payload)
+            const resp = await postBaziChart(payload)
             if (ac.signal.aborted) return
 
             setResult(resp)
+            setPhase('chart')
+        } catch (e) {
+            if (!ac.signal.aborted) {
+                const msg = e instanceof Error ? e.message : '排盘失败'
+                void Taro.showToast({ title: msg.length > 18 ? '排盘失败' : msg, icon: 'none' })
+            }
+        } finally {
+            setLoading(false)
+        }
+    }, [validate, loading, buildPayload])
+
+    const onInterpret = useCallback(async () => {
+        const payload = requestRef.current
+        if (!payload || !result || interpretingRef.current || streamText) return
+        if (!ensureLoggedIn()) return
+
+        abortRef.current?.abort()
+        const ac = new AbortController()
+        abortRef.current = ac
+
+        let txId: number | undefined
+        try {
+            const focusCount = payload.focus.length
+            const { quoteForFeature } = await import('@/hooks/usePoints')
+            const quote = await quoteForFeature({ feature: 'bazi', focus_count: focusCount })
+            const skipConfirm = quote.uses_free_quota
+
+            const points = await ensurePoints({
+                feature: 'bazi',
+                focus_count: focusCount,
+                idempotency_key: `bazi:interpret:${payload.birth_year}:${payload.birth_hour}:${focusCount}:${Date.now()}`,
+                meta: { focus_count: focusCount },
+                skipConfirm
+            })
+            if (!points) return
+
+            interpretingRef.current = true
+            setInterpreting(true)
+
+            txId = points.transaction_id
+
+            const resp = await postBaziInterpret(payload)
+            if (ac.signal.aborted) return
+
             setPhase('reading')
             setStreaming(true)
+            setStreamText('')
 
             await streamBaziText(resp.content, (chunk) => {
                 setStreamText((prev) => prev + chunk)
             }, ac.signal)
+            refreshQuota()
         } catch (e) {
+            await refundOnFailure(txId)
             if (!ac.signal.aborted) {
-                const msg = e instanceof Error ? e.message : '生成失败'
-                void Taro.showToast({ title: msg.length > 18 ? '生成失败' : msg, icon: 'none' })
+                const msg = e instanceof Error ? e.message : '断语失败'
+                void Taro.showToast({ title: msg.length > 18 ? '断语失败' : msg, icon: 'none' })
             }
         } finally {
-            setLoading(false)
+            interpretingRef.current = false
+            setInterpreting(false)
             setStreaming(false)
         }
-    }, [validate, loading, birthDate, shichenIndex, gender, calendar, isLeapMonth, birthplace, orientation, focuses])
+    }, [result, streamText, refreshQuota])
 
     const reset = useCallback(() => {
         abortRef.current?.abort()
@@ -152,7 +229,23 @@ export function useBazi () {
         setStreamText('')
         setStreaming(false)
         setLoading(false)
+        setInterpreting(false)
+        requestRef.current = null
     }, [])
+
+    const canGoBack = phase !== 'form'
+
+    const goBack = useCallback(() => {
+        abortRef.current?.abort()
+        setInterpreting(false)
+        setStreaming(false)
+        if (phase === 'reading') {
+            setPhase('chart')
+        } else if (phase === 'chart') {
+            setPhase('form')
+            setLoading(false)
+        }
+    }, [phase])
 
     const subjectPills = result
         ? [
@@ -174,9 +267,9 @@ export function useBazi () {
         birthplace, setBirthplace,
         orientation, setOrientation,
         focuses,
-        loading, streaming, streamText, result,
+        loading, interpreting, streaming, streamText, result, quota,
         calendarLabel, subjectPills,
         toggleFocus, selectShi, selectShiUnknown,
-        submit, reset
+        submit, onInterpret, reset, canGoBack, goBack
     }
 }

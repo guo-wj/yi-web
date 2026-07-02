@@ -43,7 +43,28 @@ export interface FaceOrganDetail {
     description: string
 }
 
-export interface FaceAnalyzeResponse {
+export interface FaceExtractResponse {
+    face_type: string
+    complexion: string
+    summary: string
+    summaries: string[]
+    features: Record<string, unknown>
+}
+
+export interface FaceInterpretRequest {
+    features: Record<string, unknown>
+}
+
+export interface FaceStructuredBody {
+    content: string
+    face_type: string
+    complexion: string
+    overview: string
+    stops: FaceStopDetail[]
+    organs: FaceOrganDetail[]
+}
+
+export interface FaceAnalyzeResponse extends FaceStructuredBody {
     /** 面相解读正文（Markdown，兼容旧版） */
     content: string
     /** 五行面型，如 木形面 */
@@ -60,6 +81,8 @@ export interface FaceAnalyzeResponse {
     summaries?: string[] | null
 }
 
+const FACE_EXTRACT_TIMEOUT_MS = 120_000
+const FACE_INTERPRET_TIMEOUT_MS = 90_000
 const FACE_REQUEST_TIMEOUT_MS = 180_000
 
 function parseApiError (data: unknown, status: number): string {
@@ -129,6 +152,60 @@ async function pathToDataUrl (path: string): Promise<string> {
     })
 }
 
+async function postFaceJson<T> (
+    path: '/extract' | '/interpret' | '/analyze',
+    data: unknown,
+    timeout: number
+): Promise<T> {
+    const url = `${getApiBaseUrl()}/api/face${path}`
+    const res = await Taro.request<T>({
+        url,
+        method: 'POST',
+        header: buildAuthHeaders(),
+        data,
+        timeout
+    })
+
+    const status = res.statusCode ?? 0
+    if (status < 200 || status >= 300) {
+        throw new Error(parseApiError(res.data, status))
+    }
+
+    if (!res.data || typeof res.data !== 'object') {
+        throw new Error('返回数据格式异常')
+    }
+
+    return res.data
+}
+
+async function buildFacePayload (
+    imagePaths: string[],
+    slots: FaceSlot[]
+): Promise<FaceAnalyzeRequest> {
+    const faces = await Promise.all(imagePaths.map(pathToDataUrl))
+    return { faces, slots }
+}
+
+export async function postFaceExtract (
+    imagePaths: string[],
+    slots: FaceSlot[]
+): Promise<FaceExtractResponse> {
+    if (imagePaths.length < 1 || imagePaths.length > 3) {
+        throw new Error('请上传 1～3 张面部图片')
+    }
+    if (slots.length !== imagePaths.length) {
+        throw new Error('图片与槽位数量不一致')
+    }
+    const data = await buildFacePayload(imagePaths, slots)
+    return postFaceJson<FaceExtractResponse>('/extract', data, FACE_EXTRACT_TIMEOUT_MS)
+}
+
+export async function postFaceInterpret (
+    body: FaceInterpretRequest
+): Promise<FaceStructuredBody> {
+    return postFaceJson<FaceStructuredBody>('/interpret', body, FACE_INTERPRET_TIMEOUT_MS)
+}
+
 export async function postFaceAnalyze (
     imagePaths: string[],
     slots: FaceSlot[]
@@ -140,27 +217,9 @@ export async function postFaceAnalyze (
         throw new Error('图片与槽位数量不一致')
     }
 
-    const faces = await Promise.all(imagePaths.map(pathToDataUrl))
+    const data = await buildFacePayload(imagePaths, slots)
 
-    const url = `${getApiBaseUrl()}/api/face/analyze`
-    const res = await Taro.request<FaceAnalyzeResponse>({
-        url,
-        method: 'POST',
-        header: buildAuthHeaders(),
-        data: { faces, slots } satisfies FaceAnalyzeRequest,
-        timeout: FACE_REQUEST_TIMEOUT_MS
-    })
-
-    const status = res.statusCode ?? 0
-    if (status < 200 || status >= 300) {
-        throw new Error(parseApiError(res.data, status))
-    }
-
-    if (!res.data || typeof res.data !== 'object' || typeof res.data.content !== 'string') {
-        throw new Error('返回数据格式异常')
-    }
-
-    return res.data
+    return postFaceJson<FaceAnalyzeResponse>('/analyze', data, FACE_REQUEST_TIMEOUT_MS)
 }
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))

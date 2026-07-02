@@ -252,6 +252,14 @@ $popover-logout-dark: #d05749;
     @include avatar-letter-type;
 }
 
+.home__popover-points {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #a9802f;
+    line-height: 1.4;
+}
+
 .home__popover {
     @include popover-root-default;
 

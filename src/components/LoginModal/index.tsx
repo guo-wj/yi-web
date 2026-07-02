@@ -108,6 +108,7 @@ function LoginModalForm ({
                 })
 
             setAuth(data.token, data.user)
+            void import('@/hooks/usePoints').then(({ refreshPointsBalance }) => refreshPointsBalance())
             void Taro.showToast({
                 title: mode === 'login' ? '登录成功' : '注册成功',
                 icon: 'success'

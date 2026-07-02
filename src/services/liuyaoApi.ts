@@ -3,7 +3,7 @@ import Taro from '@tarojs/taro'
 import { getApiBaseUrl } from '@/config/apiBase'
 import { buildAuthHeaders } from '@/services/http'
 
-/** 与 yiBackend POST /api/liuyao/cast 对齐 */
+/** 与 yiBackend POST /api/liuyao/* 对齐 */
 
 export interface LiuyaoGua {
     number: number
@@ -36,6 +36,9 @@ export interface LiuyaoCastResponse {
     bian_gua: LiuyaoGua | null
     /** 动爻爻位（1~6，自下而上） */
     moving_positions: number[]
+}
+
+export interface LiuyaoInterpretResponse {
     interpretation: string
 }
 
@@ -45,7 +48,7 @@ function parseDetail (data: unknown): string | null {
     return typeof d === 'string' ? d : null
 }
 
-/** 提交六爻，由后端推算本卦/变卦并生成解卦 */
+/** 起卦（不含 AI 解读） */
 export async function postLiuyaoCast (body: LiuyaoCastRequest): Promise<LiuyaoCastResponse> {
     const url = `${getApiBaseUrl()}/api/liuyao/cast`
     const res = await Taro.request<LiuyaoCastResponse>({
@@ -61,6 +64,28 @@ export async function postLiuyaoCast (body: LiuyaoCastRequest): Promise<LiuyaoCa
     }
 
     if (!res.data || typeof res.data !== 'object' || !('ben_gua' in res.data)) {
+        throw new Error('返回数据格式异常')
+    }
+
+    return res.data
+}
+
+/** AI 解卦（需先 consume 积分） */
+export async function postLiuyaoInterpret (body: LiuyaoCastRequest): Promise<LiuyaoInterpretResponse> {
+    const url = `${getApiBaseUrl()}/api/liuyao/interpret`
+    const res = await Taro.request<LiuyaoInterpretResponse>({
+        url,
+        method: 'POST',
+        header: buildAuthHeaders(),
+        data: body
+    })
+
+    const status = res.statusCode ?? 0
+    if (status < 200 || status >= 300) {
+        throw new Error(parseDetail(res.data) ?? `请求失败（${status}）`)
+    }
+
+    if (!res.data || typeof res.data !== 'object' || !('interpretation' in res.data)) {
         throw new Error('返回数据格式异常')
     }
 

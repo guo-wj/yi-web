@@ -235,10 +235,6 @@ export default function UserMenu ({
     const onMenuRow = useCallback(
         (key: UserMenuRowKey) => {
             closeMenu()
-            if (key === 'member') {
-                void Taro.showToast({ title: '会员中心即将开放', icon: 'none' })
-                return
-            }
             if (key === 'contact') {
                 openContactModal()
             }

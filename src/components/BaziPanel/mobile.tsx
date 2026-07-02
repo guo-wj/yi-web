@@ -1,6 +1,7 @@
 import { View, Text, Input } from '@tarojs/components'
 
 import MarkdownView from '@/components/MarkdownView'
+import PanelBackButton from '@/components/PanelBackButton'
 import {
     BAZI_CALENDARS,
     BAZI_FOCUS_OPTIONS,
@@ -23,15 +24,16 @@ export default function BaziPanelMobile () {
         birthplace, setBirthplace,
         orientation, setOrientation,
         focuses,
-        loading, streaming, streamText, result,
+        loading, interpreting, streaming, streamText, result, quota,
         subjectPills,
         toggleFocus, selectShi, selectShiUnknown,
-        submit, reset
+        submit, onInterpret, reset, canGoBack, goBack
     } = useBazi()
 
     return (
         <View className='bazi-m'>
             <View className='bazi-m__scroll'>
+                {canGoBack && <PanelBackButton onClick={goBack} />}
                 <View className='bazi-m__head'>
                     <Text className='bazi-m__title'>八字命理</Text>
                     <Text className='bazi-m__subtitle'>四柱排盘 · 五行格局 · 运势参详</Text>
@@ -185,7 +187,7 @@ export default function BaziPanelMobile () {
                     </View>
                 )}
 
-                {phase === 'reading' && result && (
+                {(phase === 'chart' || phase === 'reading') && result && (
                     <View className='bazi-m__reading'>
                         <View className='bazi-m__subject'>
                             <Text className='bazi-m__s-pill bazi-m__s-pill--lead'>命主</Text>
@@ -193,6 +195,12 @@ export default function BaziPanelMobile () {
                                 <Text key={i} className='bazi-m__s-pill'>{p.txt}</Text>
                             ))}
                         </View>
+
+                        {quota && quota.free_remaining > 0 && (
+                            <Text className='bazi-m__quota'>
+                                今日免费 AI 断语剩余 {quota.free_remaining} 次
+                            </Text>
+                        )}
 
                         <View className='bazi-m__card bazi-m__pillars-card'>
                             <View className='bazi-m__pc-head'>
@@ -207,20 +215,6 @@ export default function BaziPanelMobile () {
                             )}
                         </View>
 
-                        <View className='bazi-m__card bazi-m__reading-box'>
-                            <View className='bazi-m__reading-head'>
-                                <Text className='bazi-m__reading-title'>命 理 详 批</Text>
-                                {streaming && <View className='bazi-m__stream-dot' />}
-                            </View>
-                            {streamText
-                                ? <MarkdownView className='bazi-m__reading-md' content={streamText} />
-                                : (
-                                    <Text className='bazi-m__reading-wait'>
-                                        {streaming ? '命盘洞开，批语将至…' : '暂无内容'}
-                                    </Text>
-                                )}
-                        </View>
-
                         {!!result.focus.length && (
                             <View className='bazi-m__focus-echo'>
                                 <Text className='bazi-m__fe-label'>重点参详</Text>
@@ -230,7 +224,34 @@ export default function BaziPanelMobile () {
                             </View>
                         )}
 
-                        {!streaming && (
+                        {phase === 'chart' && !streamText && (
+                            <View
+                                className={`bazi-m__submit ${interpreting ? 'bazi-m__submit--disabled' : ''}`}
+                                onClick={() => void onInterpret()}
+                            >
+                                <Text className='bazi-m__submit-txt'>
+                                    {interpreting ? '断语生成中…' : 'AI 命理断语'}
+                                </Text>
+                            </View>
+                        )}
+
+                        {phase === 'reading' && (
+                            <View className='bazi-m__card bazi-m__reading-box'>
+                                <View className='bazi-m__reading-head'>
+                                    <Text className='bazi-m__reading-title'>命 理 详 批</Text>
+                                    {streaming && <View className='bazi-m__stream-dot' />}
+                                </View>
+                                {streamText
+                                    ? <MarkdownView className='bazi-m__reading-md' content={streamText} />
+                                    : (
+                                        <Text className='bazi-m__reading-wait'>
+                                            {streaming ? '命盘洞开，批语将至…' : '暂无内容'}
+                                        </Text>
+                                    )}
+                            </View>
+                        )}
+
+                        {!streaming && !interpreting && (
                             <View className='bazi-m__btn-back' onClick={reset}>
                                 <Text className='bazi-m__btn-back-txt'>重 新 填 写</Text>
                             </View>
@@ -246,7 +267,7 @@ export default function BaziPanelMobile () {
                         onClick={() => void submit()}
                     >
                         <Text className='bazi-m__submit-txt'>
-                            {loading ? '命理生成中…' : '查看我的命理'}
+                            {loading ? '排盘中…' : '查看命盘'}
                         </Text>
                     </View>
                 </View>

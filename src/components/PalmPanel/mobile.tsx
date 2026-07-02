@@ -7,6 +7,7 @@ import {
     usePalmPanel,
     type HandSide
 } from './shared'
+import PanelBackButton from '@/components/PanelBackButton'
 
 import './mobile.scss'
 
@@ -16,16 +17,21 @@ export default function PalmPanelMobile () {
         leftPath,
         rightPath,
         result,
+        quota,
         ready,
         loading,
         interpreting,
+        hasFullReading,
         hintText,
         submitLabel,
         lead,
         hands,
         chooseHand,
         submit,
-        reset
+        onInterpret,
+        reset,
+        canGoBack,
+        goBack
     } = usePalmPanel()
 
     const renderDrop = (side: HandSide, path: string | null, cap: string, tag: string) => (
@@ -57,6 +63,7 @@ export default function PalmPanelMobile () {
     return (
         <View className='palm-m'>
             <View className='palm-m__scroll'>
+                {canGoBack && <PanelBackButton onClick={goBack} />}
                 <View className='palm-m__head'>
                     <Text className='palm-m__title'>掌纹解析</Text>
                     <Text className='palm-m__subtitle'>左右掌纹 · 三线五丘 · 参详解读</Text>
@@ -90,6 +97,12 @@ export default function PalmPanelMobile () {
                             {!!result.palm_type && <Text className='palm-m__s-pill'>掌型 · {result.palm_type}</Text>}
                             {!!result.complexion && <Text className='palm-m__s-pill'>气色 · {result.complexion}</Text>}
                         </View>
+
+                        {quota && quota.free_remaining > 0 && (
+                            <Text className='palm-m__quota'>
+                                今日免费 AI 解读剩余 {quota.free_remaining} 次
+                            </Text>
+                        )}
 
                         {interpreting && !result.overview && (
                             <View className='palm-m__card palm-m__loading-card'>
@@ -170,6 +183,12 @@ export default function PalmPanelMobile () {
                                     ))}
                                 </View>
                             </>
+                        )}
+
+                        {!hasFullReading && !loading && (
+                            <View className='palm-m__submit' onClick={() => void onInterpret()}>
+                                <Text className='palm-m__submit-txt'>{submitLabel}</Text>
+                            </View>
                         )}
 
                         <View className='palm-m__btn-back' onClick={reset}>

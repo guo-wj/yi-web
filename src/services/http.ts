@@ -65,6 +65,20 @@ export async function apiRequest<T> (
     }
 
     const status = res.statusCode ?? 0
+    if (status === 402) {
+        const detail = res.data && typeof res.data === 'object'
+            ? (res.data as { detail?: unknown }).detail
+            : null
+        if (detail && typeof detail === 'object') {
+            const d = detail as { message?: string; required?: number; balance?: number }
+            const msg = typeof d.message === 'string' ? d.message : '积分不足'
+            const err = new Error(msg) as Error & { code?: string; required?: number; balance?: number }
+            err.code = 'INSUFFICIENT_POINTS'
+            if (typeof d.required === 'number') err.required = d.required
+            if (typeof d.balance === 'number') err.balance = d.balance
+            throw err
+        }
+    }
     if (status < 200 || status >= 300) {
         throw new Error(parseApiDetail(res.data) ?? `${fallbackError}（${status}）`)
     }

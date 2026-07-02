@@ -1,0 +1,42 @@
+/* 与会员中心 member-page__back 同款字符，面板内略大、略低 */
+.panel-back {
+    align-self: stretch;
+    box-sizing: border-box;
+    width: 100%;
+    padding-top: 16px;
+
+    &__btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        font-size: 36px;
+        line-height: 1;
+        color: #a9802f;
+        cursor: pointer;
+        transition: transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.18s, filter 0.22s;
+
+        @media (hover: hover) {
+            &:hover {
+                transform: translateY(-3px);
+                filter: drop-shadow(0 4px 8px rgba(169, 128, 47, 0.28));
+            }
+        }
+
+        &:active {
+            transform: translateY(-1px);
+            opacity: 0.76;
+        }
+    }
+}
+
+.feature-page-mobile--theme-dark .panel-back__btn {
+    color: #d3ad5c;
+
+    @media (hover: hover) {
+        &:hover {
+            filter: drop-shadow(0 4px 10px rgba(214, 180, 110, 0.32));
+        }
+    }
+}

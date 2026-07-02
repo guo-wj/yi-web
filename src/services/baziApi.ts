@@ -18,12 +18,19 @@ export interface BaziAnalyzeRequest {
     focus: string[]
 }
 
-export interface BaziAnalyzeResponse {
+export interface BaziChartResponse {
     birth_solar: string
     birth_hour_label: string
     lunar_summary: string
     pillars_hint: string
     focus: string[]
+}
+
+export interface BaziAnalyzeResponse extends BaziChartResponse {
+    content: string
+}
+
+export interface BaziInterpretResponse {
     content: string
 }
 
@@ -42,6 +49,48 @@ function parseApiError (data: unknown, status: number): string {
         if (msgs.length) return msgs.join('；')
     }
     return `请求失败（${status}）`
+}
+
+export async function postBaziChart (body: BaziAnalyzeRequest): Promise<BaziChartResponse> {
+    const url = `${getApiBaseUrl()}/api/bazi/chart`
+    const res = await Taro.request<BaziChartResponse>({
+        url,
+        method: 'POST',
+        header: buildAuthHeaders(),
+        data: body
+    })
+
+    const status = res.statusCode ?? 0
+    if (status < 200 || status >= 300) {
+        throw new Error(parseApiError(res.data, status))
+    }
+
+    if (!res.data || typeof res.data !== 'object' || !('pillars_hint' in res.data)) {
+        throw new Error('返回数据格式异常')
+    }
+
+    return res.data
+}
+
+export async function postBaziInterpret (body: BaziAnalyzeRequest): Promise<BaziInterpretResponse> {
+    const url = `${getApiBaseUrl()}/api/bazi/interpret`
+    const res = await Taro.request<BaziInterpretResponse>({
+        url,
+        method: 'POST',
+        header: buildAuthHeaders(),
+        data: body
+    })
+
+    const status = res.statusCode ?? 0
+    if (status < 200 || status >= 300) {
+        throw new Error(parseApiError(res.data, status))
+    }
+
+    if (!res.data || typeof res.data !== 'object' || !('content' in res.data)) {
+        throw new Error('返回数据格式异常')
+    }
+
+    return res.data
 }
 
 export async function postBaziAnalyze (body: BaziAnalyzeRequest): Promise<BaziAnalyzeResponse> {

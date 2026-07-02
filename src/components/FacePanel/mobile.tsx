@@ -8,6 +8,7 @@ import {
     StopGlyph,
     useFacePanel
 } from './shared'
+import PanelBackButton from '@/components/PanelBackButton'
 
 import './mobile.scss'
 
@@ -18,14 +19,20 @@ export default function FacePanelMobile () {
         loading,
         result,
         uploadTags,
+        quota,
         uploadedCount,
         ready,
+        hasFullReading,
         hintText,
         lead,
+        submitLabel,
         chooseSlot,
         clearSlot,
         submit,
-        reset
+        onInterpret,
+        reset,
+        canGoBack,
+        goBack
     } = useFacePanel()
 
     const renderDrop = (index: number) => {
@@ -66,6 +73,7 @@ export default function FacePanelMobile () {
     return (
         <View className='face-m'>
             <View className='face-m__scroll'>
+                {canGoBack && <PanelBackButton onClick={goBack} />}
                 <View className='face-m__head'>
                     <Text className='face-m__title'>面相解析</Text>
                     <Text className='face-m__subtitle'>五官气色 · 三停九部 · 参详解读</Text>
@@ -102,6 +110,12 @@ export default function FacePanelMobile () {
                             {!!result.face_type && <Text className='face-m__s-pill'>面型 · {result.face_type}</Text>}
                             {!!result.complexion && <Text className='face-m__s-pill'>气色 · {result.complexion}</Text>}
                         </View>
+
+                        {quota && quota.free_remaining > 0 && (
+                            <Text className='face-m__quota'>
+                                今日免费 AI 解读剩余 {quota.free_remaining} 次
+                            </Text>
+                        )}
 
                         {/* 面相综述 */}
                         <View className='face-m__card face-m__overview-card'>
@@ -179,6 +193,12 @@ export default function FacePanelMobile () {
                             </>
                         )}
 
+                        {!hasFullReading && !loading && (
+                            <View className='face-m__submit' onClick={() => void onInterpret()}>
+                                <Text className='face-m__submit-txt'>{submitLabel}</Text>
+                            </View>
+                        )}
+
                         <View className='face-m__btn-back' onClick={reset}>
                             <Text className='face-m__btn-back-txt'>重 新 上 传</Text>
                         </View>
@@ -192,9 +212,7 @@ export default function FacePanelMobile () {
                         className={`face-m__submit ${(!ready || loading) ? 'face-m__submit--disabled' : ''}`}
                         onClick={() => void submit()}
                     >
-                        <Text className='face-m__submit-txt'>
-                            {loading ? '正在解析…' : '开始解析'}
-                        </Text>
+                        <Text className='face-m__submit-txt'>{submitLabel}</Text>
                     </View>
                 </View>
             )}

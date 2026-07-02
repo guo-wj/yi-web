@@ -5,9 +5,10 @@ import iconZiwei from '@/assets/icons/ziwei.svg'
 import iconBazi from '@/assets/icons/bazi.svg'
 import iconHand from '@/assets/icons/hand.svg'
 import iconFace from '@/assets/icons/face.svg'
+import iconMember from '@/assets/icons/member.svg'
 // import iconTaluo from '@/assets/icons/taluo.svg' // 塔罗牌暂未开放
 
-export type FeatureKey = 'huangli' | 'qian' | 'liuyao' | 'ziwei' | 'bazi' | 'zhangwen' | 'mianxiang' // | 'taluo'
+export type FeatureKey = 'huangli' | 'qian' | 'liuyao' | 'ziwei' | 'bazi' | 'zhangwen' | 'mianxiang' | 'member' // | 'taluo'
 
 export type FeatureBadge = 'HOT' | 'NEW'
 
@@ -91,11 +92,21 @@ export const FEATURE_ITEMS: FeatureItem[] = [
     // }
 ]
 
+/** 侧栏底部固定入口（不在首页四宫格展示） */
+export const MEMBER_FEATURE: FeatureItem = {
+    key: 'member',
+    title: '会员中心',
+    desc: '积分充值 · 会员权益',
+    sub: '积分 · 权益 · 修行之资',
+    icon: iconMember
+}
+
 export function getFeatureByKey (key: string | undefined): FeatureItem {
+    if (key === 'member') return MEMBER_FEATURE
     const found = FEATURE_ITEMS.find((f) => f.key === key)
     return found ?? FEATURE_ITEMS[0]
 }
 
 export function isFeatureKey (key: string | undefined): key is FeatureKey {
-    return FEATURE_ITEMS.some((f) => f.key === key)
+    return key === 'member' || FEATURE_ITEMS.some((f) => f.key === key)
 }

@@ -4,18 +4,23 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import DivineSetup from '@/components/DivineSetup'
 import MarkdownView from '@/components/MarkdownView'
+import PanelBackButton from '@/components/PanelBackButton'
 import {
     MEIHUA_METHODS,
     MEIHUA_PROMPTS,
     type MeihuaMethod
 } from '@/constants/meihuaOptions'
 import { ensureLoggedIn } from '@/utils/requireAuth'
+import { isLoggedIn } from '@/utils/auth'
+import { fetchPointsQuota, type PointsQuota } from '@/services/pointsApi'
+import { ensurePoints, refundOnFailure } from '@/utils/ensurePoints'
 import { getAlmanacDay, type AlmanacResponse } from '@/services/almanacApi'
 import {
     postMeihuaCast,
     postMeihuaDivine,
     streamInterpretationText,
     type MeihuaCastResponse,
+    type MeihuaDivineRequest,
     type MeihuaGua
 } from '@/services/meihuaApi'
 
@@ -33,6 +38,14 @@ interface TileData {
 }
 
 const YAO_LABELS = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'] as const
+
+/** 动爻无八卦符号，用本卦该爻阴阳动变标记（与卦象区 ○/✕ 一致） */
+function movingLineMark (gua: MeihuaGua, line: number): string {
+    const bit = gua.bits[line - 1]
+    if (bit === 1) return '○'
+    if (bit === 0) return '✕'
+    return '动'
+}
 
 const SHICHEN_ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'] as const
 
@@ -173,14 +186,32 @@ export default function MeihuaPanel () {
     const [conjureSub, setConjureSub] = useState('观此刻之数，分定上下')
     const [buildRows, setBuildRows] = useState<BuildRow[]>([])
     const [buildShow, setBuildShow] = useState(false)
+    const [quota, setQuota] = useState<PointsQuota | null>(null)
+    const [castAnimDone, setCastAnimDone] = useState(false)
+    const [interpreting, setInterpreting] = useState(false)
 
     const abortRef = useRef<AbortController | null>(null)
     const castRunRef = useRef(0)
     const rollIvRef = useRef<number | null>(null)
     const resultRef = useRef<MeihuaCastResponse | null>(null)
+    const castBodyRef = useRef<MeihuaDivineRequest | null>(null)
     const interpretationRef = useRef<string | null>(null)
     const resultShownRef = useRef(false)
     const castBusyRef = useRef(false)
+    const interpretingRef = useRef(false)
+
+    useEffect(() => {
+        if (!isLoggedIn()) {
+            setQuota(null)
+            return
+        }
+        void fetchPointsQuota('meihua').then(setQuota).catch(() => {})
+    }, [])
+
+    const refreshQuota = useCallback(() => {
+        if (!isLoggedIn()) return
+        void fetchPointsQuota('meihua').then(setQuota).catch(() => {})
+    }, [])
 
     // 时间起卦预览：每秒更新的时钟
     useEffect(() => {
@@ -229,23 +260,50 @@ export default function MeihuaPanel () {
         ).finally(() => setStreaming(false))
     }, [])
 
-    const finishToResult = useCallback(() => {
-        if (resultShownRef.current) return
-        resultShownRef.current = true
-        castRunRef.current += 1
-        clearRoll()
-        setPhase('result')
-        // 解读已就绪则直接流式输出；否则置「推演中」，待 /divine 返回后再流
-        if (interpretationRef.current != null) {
-            startStream(interpretationRef.current)
-        } else {
-            setStreaming(true)
-            setStreamText('')
-        }
-    }, [clearRoll, startStream])
-
     const lockTile = useCallback((kind: TileKind, num: number | string, sym: string, tri: string) => {
         setTiles((prev) => ({ ...prev, [kind]: { display: String(num), state: 'locked', sym, tri } }))
+    }, [])
+
+    const snapTilesFromCast = useCallback((res: MeihuaCastResponse) => {
+        const upT = res.upper_trigram
+        const lowT = res.lower_trigram
+        const upN = PRENUM[upT] ?? 0
+        const lowN = PRENUM[lowT] ?? 0
+        const yao = res.moving_line
+        setTiles({
+            up: { display: String(upN), state: 'locked', sym: TRI_SYM[upT] ?? '', tri: `${upT}　${TRI_ELEM[upT] ?? ''}` },
+            low: { display: String(lowN), state: 'locked', sym: TRI_SYM[lowT] ?? '', tri: `${lowT}　${TRI_ELEM[lowT] ?? ''}` },
+            yao: {
+                display: String(yao),
+                state: 'locked',
+                sym: movingLineMark(res.ben_gua, yao),
+                tri: `第 ${yao} 爻 · 动`
+            }
+        })
+    }, [])
+
+    const finishToResult = useCallback(() => {
+        if (resultShownRef.current) return
+        castRunRef.current += 1
+        clearRoll()
+        if (resultRef.current) snapTilesFromCast(resultRef.current)
+        resultShownRef.current = true
+        setCastAnimDone(false)
+        setBuildShow(false)
+        setBuildRows([])
+        setPhase('result')
+        setStreaming(false)
+        setStreamText('')
+    }, [clearRoll, snapTilesFromCast])
+
+    const startRollInterval = useCallback(() => {
+        rollIvRef.current = window.setInterval(() => {
+            setTiles((prev) => ({
+                up: prev.up.state === 'rolling' ? { ...prev.up, display: String(rnd(8)) } : prev.up,
+                low: prev.low.state === 'rolling' ? { ...prev.low, display: String(rnd(8)) } : prev.low,
+                yao: prev.yao.state === 'rolling' ? { ...prev.yao, display: String(rnd(6)) } : prev.yao
+            }))
+        }, 50)
     }, [])
 
     const runCastAnimation = useCallback(async (res: MeihuaCastResponse) => {
@@ -254,50 +312,36 @@ export default function MeihuaPanel () {
         const upT = res.upper_trigram, lowT = res.lower_trigram
         const upN = PRENUM[upT] ?? 0, lowN = PRENUM[lowT] ?? 0
         const yao = res.moving_line
-        const lines = res.ben_gua.bits
-        const idx = yao - 1
 
-        const isTime = method === 'time'
-        const subSteps = isTime
+        const subSteps = method === 'time'
             ? ['年月日之数，定上卦', '并此刻时辰，定下卦', '总数除六，定动爻']
             : ['由心念之数，定上卦', '合此刻时辰，定下卦', '总数除六，定动爻']
         const setRolling = (kind: TileKind) =>
             setTiles((prev) => ({ ...prev, [kind]: { ...prev[kind], state: 'rolling' } }))
 
-        // 逐格依次揭晓：数字起卦本格滚动再定格，时间起卦取此刻之数直接亮出
         const reveal = async (kind: TileKind, sub: string, num: number, sym: string, tri: string) => {
             setConjureSub(sub)
-            if (isTime) {
-                await sleep(480)
-            } else {
-                setRolling(kind)
-                await sleep(760)
-            }
+            setRolling(kind)
+            await sleep(920)
             if (!alive()) return false
             lockTile(kind, num, sym, tri)
             return true
         }
 
-        await sleep(isTime ? 360 : 240); if (!alive()) return
+        await sleep(280)
+        if (!alive()) return
         if (!(await reveal('up', subSteps[0], upN, TRI_SYM[upT] ?? '', `${upT}　${TRI_ELEM[upT] ?? ''}`))) return
-        await sleep(300); if (!alive()) return
+        await sleep(320)
+        if (!alive()) return
         if (!(await reveal('low', subSteps[1], lowN, TRI_SYM[lowT] ?? '', `${lowT}　${TRI_ELEM[lowT] ?? ''}`))) return
-        await sleep(300); if (!alive()) return
-        if (!(await reveal('yao', subSteps[2], yao, '', `第 ${yao} 爻 · 动`))) return
+        await sleep(320)
+        if (!alive()) return
+        if (!(await reveal('yao', subSteps[2], yao, movingLineMark(res.ben_gua, yao), `第 ${yao} 爻 · 动`))) return
         clearRoll()
-        await sleep(520); if (!alive()) return
-
-        setBuildRows(lines.map(() => ({ filled: false, mark: '' })))
-        setBuildShow(true)
-        for (let s = 0; s < 6; s++) {
-            await sleep(150); if (!alive()) return
-            setBuildRows((prev) => prev.map((r, i) => (i === s ? { ...r, filled: true } : r)))
-        }
-        await sleep(220); if (!alive()) return
-        setBuildRows((prev) => prev.map((r, i) => (i === idx ? { ...r, mark: lines[idx] === 1 ? '○' : '✕' } : r)))
-        await sleep(820); if (!alive()) return
-        finishToResult()
-    }, [method, lockTile, clearRoll, finishToResult])
+        if (!alive()) return
+        setCastAnimDone(true)
+        setConjureSub('三数已定 · 点击下方「直接看卦」')
+    }, [method, lockTile, clearRoll])
 
     const cast = useCallback(async () => {
         const err = validate()
@@ -307,6 +351,12 @@ export default function MeihuaPanel () {
         }
         if (!ensureLoggedIn()) return
         if (castBusyRef.current) return
+
+        const body: MeihuaDivineRequest = method === 'number'
+            ? { method: 'number', question: question.trim(), number: Number(numberInput.trim()) }
+            : { method: 'time', question: question.trim() }
+        castBodyRef.current = body
+
         castBusyRef.current = true
 
         abortRef.current?.abort()
@@ -314,50 +364,23 @@ export default function MeihuaPanel () {
         abortRef.current = ac
         resultShownRef.current = false
         resultRef.current = null
+        interpretationRef.current = null
 
         const isTime = method === 'time'
-        interpretationRef.current = null
         setResult(null)
         setStreamText('')
         setStreaming(false)
         setBuildRows([])
         setBuildShow(false)
+        setCastAnimDone(false)
         setTiles(IDLE_TILES)
         setConjureSub(isTime ? '凝神，取此刻天地之数…' : '凝神，演心念之数…')
         setPhase('casting')
 
         clearRoll()
-        // 数字起卦：逐格滚动随机数（每次仅当前格滚动）；时间起卦取此刻之数，不滚动
-        if (!isTime) {
-            rollIvRef.current = window.setInterval(() => {
-                setTiles((prev) => ({
-                    up: prev.up.state === 'rolling' ? { ...prev.up, display: String(rnd(8)) } : prev.up,
-                    low: prev.low.state === 'rolling' ? { ...prev.low, display: String(rnd(8)) } : prev.low,
-                    yao: prev.yao.state === 'rolling' ? { ...prev.yao, display: String(rnd(6)) } : prev.yao
-                }))
-            }, 60)
-        }
-
-        const body = method === 'number'
-            ? { method: 'number' as const, question: question.trim(), number: Number(numberInput.trim()) }
-            : { method: 'time' as const, question: question.trim() }
-
-        // 解读（含 LLM，较慢）后台并行获取，返回后再流式输出
-        void postMeihuaDivine(body)
-            .then((full) => {
-                if (ac.signal.aborted) return
-                interpretationRef.current = full.interpretation
-                if (resultShownRef.current) startStream(full.interpretation)
-            })
-            .catch((e) => {
-                if (ac.signal.aborted) return
-                const msg = e instanceof Error ? e.message : '解读生成失败'
-                interpretationRef.current = `（${msg.length > 30 ? '解读生成失败，请稍后重试' : msg}）`
-                if (resultShownRef.current) startStream(interpretationRef.current)
-            })
+        startRollInterval()
 
         try {
-            // 起数成卦（无 LLM，秒级）→ 立即驱动演数动画与卦象展示
             const cast = await postMeihuaCast(body)
             if (ac.signal.aborted) return
             resultRef.current = cast
@@ -373,7 +396,48 @@ export default function MeihuaPanel () {
         } finally {
             castBusyRef.current = false
         }
-    }, [validate, method, question, numberInput, clearRoll, runCastAnimation, startStream])
+    }, [validate, method, question, numberInput, clearRoll, runCastAnimation, startRollInterval])
+
+    const onInterpret = useCallback(async () => {
+        const body = castBodyRef.current
+        if (!body || !result || interpretingRef.current || streamText) return
+        if (!ensureLoggedIn()) return
+
+        let txId: number | undefined
+        try {
+            const { quoteForFeature } = await import('@/hooks/usePoints')
+            const quote = await quoteForFeature({ feature: 'meihua' })
+            const skipConfirm = quote.uses_free_quota
+
+            const points = await ensurePoints({
+                feature: 'meihua',
+                idempotency_key: `meihua:interpret:${method}:${question.trim()}:${Date.now()}`,
+                skipConfirm
+            })
+            if (!points) return
+
+            interpretingRef.current = true
+            setInterpreting(true)
+
+            txId = points.transaction_id
+
+            const full = await postMeihuaDivine(body)
+            if (abortRef.current?.signal.aborted) return
+
+            interpretationRef.current = full.interpretation
+            startStream(full.interpretation)
+            refreshQuota()
+        } catch (e) {
+            await refundOnFailure(txId)
+            if (!abortRef.current?.signal.aborted) {
+                const msg = e instanceof Error ? e.message : '解卦失败'
+                void Taro.showToast({ title: msg.length > 20 ? '解卦失败' : msg, icon: 'none' })
+            }
+        } finally {
+            interpretingRef.current = false
+            setInterpreting(false)
+        }
+    }, [result, streamText, method, question, startStream, refreshQuota])
 
     const skipToResult = useCallback(() => {
         if (resultRef.current) finishToResult()
@@ -386,14 +450,40 @@ export default function MeihuaPanel () {
         resultShownRef.current = false
         resultRef.current = null
         interpretationRef.current = null
+        castBodyRef.current = null
         castBusyRef.current = false
+        interpretingRef.current = false
+        setInterpreting(false)
         setPhase('setup')
         setResult(null)
         setStreamText('')
         setStreaming(false)
         setBuildRows([])
         setBuildShow(false)
+        setCastAnimDone(false)
         setTiles(IDLE_TILES)
+    }, [clearRoll])
+
+    const canGoBack = phase !== 'setup'
+
+    const goBack = useCallback(() => {
+        abortRef.current?.abort()
+        castRunRef.current += 1
+        clearRoll()
+        castBusyRef.current = false
+        interpretingRef.current = false
+        setInterpreting(false)
+        setStreaming(false)
+        setStreamText('')
+        setBuildRows([])
+        setBuildShow(false)
+        setCastAnimDone(false)
+        setTiles(IDLE_TILES)
+        resultShownRef.current = false
+        resultRef.current = null
+        interpretationRef.current = null
+        setResult(null)
+        setPhase('setup')
     }, [clearRoll])
 
     const tile = useCallback((kind: TileKind, cap: string) => {
@@ -401,7 +491,14 @@ export default function MeihuaPanel () {
         return (
             <View className={`meihua-panel__tile meihua-panel__tile--${t.state} ${kind === 'yao' ? 'meihua-panel__tile--yao' : ''}`}>
                 <Text className='meihua-panel__tile-cap'>{cap}</Text>
-                <Text className='meihua-panel__tile-num'>{t.display}</Text>
+                <View className='meihua-panel__tile-num-wrap'>
+                    <Text
+                        key={t.state === 'rolling' ? `${kind}-${t.display}` : `${kind}-locked`}
+                        className={`meihua-panel__tile-num ${t.state === 'rolling' ? 'meihua-panel__tile-num--roll' : ''}`}
+                    >
+                        {t.display}
+                    </Text>
+                </View>
                 <Text className='meihua-panel__tile-sym'>{t.sym}</Text>
                 <Text className='meihua-panel__tile-tri'>{t.tri}</Text>
             </View>
@@ -423,6 +520,7 @@ export default function MeihuaPanel () {
     return (
         <View className='meihua-panel'>
             <View className='meihua-panel__scroll'>
+                {canGoBack && <PanelBackButton onClick={goBack} />}
                 <View className='meihua-panel__head'>
                     <Text className='meihua-panel__title'>梅花易数</Text>
                     <Text className='meihua-panel__subtitle'>先天起数 · 体用生克 · 观象玩占</Text>
@@ -465,7 +563,7 @@ export default function MeihuaPanel () {
                                         </Text>
                                     </Text>
                                     <Text className='meihua-panel__clock-note'>
-                                        点击起卦，以此刻农历年月日时之数，先天成卦
+                                        上、下卦取此刻农历年月日时；动爻另加分秒，每次起卦可不同
                                     </Text>
                                 </View>
                             </View>
@@ -503,7 +601,7 @@ export default function MeihuaPanel () {
                         <View className='meihua-panel__q-card'>
                             <Text className='meihua-panel__q-tag'>所问</Text>
                             <Text className='meihua-panel__q-text'>{question.trim()}</Text>
-                            <View className='meihua-panel__q-edit' onClick={reset}>
+                            <View className='meihua-panel__q-edit' onClick={goBack}>
                                 <Text>改</Text>
                             </View>
                         </View>
@@ -546,7 +644,10 @@ export default function MeihuaPanel () {
                             )}
 
                             <View className='meihua-panel__skip-row'>
-                                <View className='meihua-panel__btn-skip' onClick={skipToResult}>
+                                <View
+                                    className={`meihua-panel__btn-skip ${castAnimDone ? 'meihua-panel__btn-skip--ready' : ''}`}
+                                    onClick={skipToResult}
+                                >
                                     <Text className='meihua-panel__btn-skip-txt'>直接看卦</Text>
                                 </View>
                             </View>
@@ -560,6 +661,12 @@ export default function MeihuaPanel () {
                             <Text className='meihua-panel__q-tag'>所问</Text>
                             <Text className='meihua-panel__res-q-text'>{question.trim()}</Text>
                         </View>
+
+                        {quota && quota.free_remaining > 0 && (
+                            <Text className='meihua-panel__quota'>
+                                今日免费 AI 解卦剩余 {quota.free_remaining} 次
+                            </Text>
+                        )}
 
                         <View className='meihua-panel__basis'>
                             {basisRows.map(([k, v]) => (
@@ -605,7 +712,28 @@ export default function MeihuaPanel () {
                             <HexCard role='互　卦' gua={result.hu_gua} ghost />
                         </View>
 
-                        <View className='meihua-panel__reading'>
+                        {((!streamText && !streaming) || (!streaming && !interpreting)) && (
+                            <View className='meihua-panel__actions'>
+                                {!streamText && !streaming && (
+                                    <View
+                                        className={`meihua-panel__cta meihua-panel__cta--interpret ${interpreting ? 'meihua-panel__cta--disabled' : ''}`}
+                                        onClick={() => void onInterpret()}
+                                    >
+                                        <Text className='meihua-panel__cta-txt'>
+                                            {interpreting ? '解卦中…' : 'AI 解 卦'}
+                                        </Text>
+                                    </View>
+                                )}
+                                {!streaming && !interpreting && (
+                                    <View className='meihua-panel__ghost-btn' onClick={reset}>
+                                        <Text className='meihua-panel__ghost-txt'>重 新 起 卦</Text>
+                                    </View>
+                                )}
+                            </View>
+                        )}
+
+                        {(streamText || streaming) && (
+                            <View className='meihua-panel__reading'>
                             <View className='meihua-panel__reading-head'>
                                 <Text className='meihua-panel__reading-title'>解 曰</Text>
                                 <Text className='meihua-panel__reading-pill'>{streaming ? '推演中…' : '玄机已断'}</Text>
@@ -618,12 +746,8 @@ export default function MeihuaPanel () {
                                     </Text>
                                 )}
                         </View>
-
-                        {!streaming && (
-                            <View className='meihua-panel__ghost-btn' onClick={reset}>
-                                <Text className='meihua-panel__ghost-txt'>重 新 起 卦</Text>
-                            </View>
                         )}
+
                     </View>
                 )}
             </View>

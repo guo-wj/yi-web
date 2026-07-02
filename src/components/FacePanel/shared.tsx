@@ -1,11 +1,16 @@
 import Taro from '@tarojs/taro'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { fetchPointsQuota, type PointsQuota } from '@/services/pointsApi'
 import { ensureLoggedIn } from '@/utils/requireAuth'
+import { isLoggedIn } from '@/utils/auth'
+import { ensurePoints, refundOnFailure } from '@/utils/ensurePoints'
 import { openAlertModal } from '@/utils/confirmModal'
 import {
-    postFaceAnalyze,
+    postFaceExtract,
+    postFaceInterpret,
     type FaceAnalyzeResponse,
+    type FaceExtractResponse,
     type FaceSlot
 } from '@/services/faceApi'
 
@@ -85,14 +90,34 @@ export function StopGlyph ({ idx, className = 'face-panel__stop-svg' }: { idx: n
 export function useFacePanel () {
     const [phase, setPhase] = useState<Phase>('upload')
     const [paths, setPaths] = useState<(string | null)[]>([null, null, null])
-    const [loading, setLoading] = useState(false)
+    const [extracting, setExtracting] = useState(false)
+    const [interpreting, setInterpreting] = useState(false)
     const [result, setResult] = useState<FaceAnalyzeResponse | null>(null)
     const [uploadTags, setUploadTags] = useState<string[]>([])
+    const [quota, setQuota] = useState<PointsQuota | null>(null)
 
     const abortRef = useRef<AbortController | null>(null)
+    const extractRef = useRef<FaceExtractResponse | null>(null)
+    const uploadMetaRef = useRef<{ paths: string[]; slots: FaceSlot[] } | null>(null)
+    const interpretingRef = useRef(false)
+
+    useEffect(() => {
+        if (!isLoggedIn()) {
+            setQuota(null)
+            return
+        }
+        void fetchPointsQuota('face').then(setQuota).catch(() => {})
+    }, [])
+
+    const refreshQuota = useCallback(() => {
+        if (!isLoggedIn()) return
+        void fetchPointsQuota('face').then(setQuota).catch(() => {})
+    }, [])
 
     const uploadedCount = paths.filter(Boolean).length
     const ready = uploadedCount >= 1
+    const loading = extracting || interpreting
+    const hasFullReading = Boolean(result?.stops?.length)
 
     const hintText = uploadedCount === 0
         ? '正面照为主，侧面补充更精'
@@ -138,34 +163,90 @@ export function useFacePanel () {
         const uploads = collectUploads(paths)
         const imagePaths = uploads.map((item) => item.path)
         const slots = uploads.map((item) => item.slot)
+        uploadMetaRef.current = { paths: imagePaths, slots }
 
         abortRef.current?.abort()
         const ac = new AbortController()
         abortRef.current = ac
 
-        setLoading(true)
+        setExtracting(true)
         setResult(null)
+        extractRef.current = null
 
         try {
-            const resp = await postFaceAnalyze(imagePaths, slots)
+            const extracted = await postFaceExtract(imagePaths, slots)
             if (ac.signal.aborted) return
 
+            extractRef.current = extracted
             setUploadTags(uploads.map((item) => SLOT_DEFS[item.index]?.tag ?? item.label))
-            setResult(resp)
+            setResult({
+                content: '',
+                face_type: extracted.face_type,
+                complexion: extracted.complexion,
+                overview: extracted.summary,
+                stops: [],
+                organs: [],
+                summary: extracted.summary,
+                summaries: extracted.summaries
+            })
             setPhase('reading')
         } catch (e) {
             if (!ac.signal.aborted) {
-                const msg = e instanceof Error ? e.message : '解析失败'
+                const msg = e instanceof Error ? e.message : '识别失败'
                 if (msg.length > 20) {
-                    openAlertModal({ title: '解析失败', content: msg })
+                    openAlertModal({ title: '识别失败', content: msg })
                 } else {
                     void Taro.showToast({ title: msg, icon: 'none' })
                 }
             }
         } finally {
-            setLoading(false)
+            setExtracting(false)
         }
     }, [validate, loading, paths])
+
+    const onInterpret = useCallback(async () => {
+        const extracted = extractRef.current
+        if (!extracted || interpretingRef.current || hasFullReading) return
+        if (!ensureLoggedIn()) return
+
+        let txId: number | undefined
+        try {
+            const { quoteForFeature } = await import('@/hooks/usePoints')
+            const quote = await quoteForFeature({ feature: 'face' })
+            const skipConfirm = quote.uses_free_quota
+
+            const points = await ensurePoints({
+                feature: 'face',
+                idempotency_key: `face:interpret:${Date.now()}`,
+                skipConfirm
+            })
+            if (!points) return
+
+            interpretingRef.current = true
+            setInterpreting(true)
+
+            txId = points.transaction_id
+
+            const interpreted = await postFaceInterpret({ features: extracted.features })
+            setResult({
+                ...interpreted,
+                summary: extracted.summary,
+                summaries: extracted.summaries
+            })
+            refreshQuota()
+        } catch (e) {
+            await refundOnFailure(txId)
+            const msg = e instanceof Error ? e.message : '解读失败'
+            if (msg.length > 20) {
+                openAlertModal({ title: '解读失败', content: msg })
+            } else {
+                void Taro.showToast({ title: msg, icon: 'none' })
+            }
+        } finally {
+            interpretingRef.current = false
+            setInterpreting(false)
+        }
+    }, [hasFullReading, refreshQuota])
 
     const reset = useCallback(() => {
         abortRef.current?.abort()
@@ -173,22 +254,50 @@ export function useFacePanel () {
         setPaths([null, null, null])
         setUploadTags([])
         setResult(null)
-        setLoading(false)
+        setExtracting(false)
+        setInterpreting(false)
+        extractRef.current = null
+        uploadMetaRef.current = null
     }, [])
+
+    const canGoBack = phase === 'reading'
+
+    const goBack = useCallback(() => {
+        abortRef.current?.abort()
+        interpretingRef.current = false
+        setPhase('upload')
+        setResult(null)
+        setExtracting(false)
+        setInterpreting(false)
+    }, [])
+
+    const submitLabel = extracting
+        ? '正 在 识 别 面 象 …'
+        : interpreting
+            ? '正 在 参 详 解 读 …'
+            : (phase === 'reading' && !hasFullReading ? 'AI 参 详 解 读' : '开 始 识 别')
 
     return {
         phase,
         paths,
         loading,
+        extracting,
+        interpreting,
         result,
         uploadTags,
+        quota,
         uploadedCount,
         ready,
+        hasFullReading,
         hintText,
         lead,
+        submitLabel,
         chooseSlot,
         clearSlot,
         submit,
-        reset
+        onInterpret,
+        reset,
+        canGoBack,
+        goBack
     }
 }

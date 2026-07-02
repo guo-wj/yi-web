@@ -398,12 +398,29 @@
         color: var(--mh-ink-faint);
     }
 
+    &__tile-num-wrap {
+        height: 60px;
+        min-height: 60px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     &__tile-num {
         font-family: var(--mh-brush);
         font-size: 60px;
         line-height: 1;
         min-height: 60px;
         color: var(--mh-ink);
+    }
+
+    &__tile-num--roll {
+        animation: mh-num-drop 0.1s ease-out;
+    }
+
+    &__tile--rolling &__tile-num-wrap {
+        box-shadow: inset 0 -8px 12px -10px rgba(180, 140, 60, 0.35);
     }
 
     &__tile--idle &__tile-num {
@@ -431,10 +448,6 @@
         opacity: 1;
         transform: none;
         color: var(--mh-gold);
-    }
-
-    &__tile--yao &__tile-sym {
-        display: none;
     }
 
     &__tile-tri {
@@ -537,6 +550,16 @@
         color: var(--mh-gold);
     }
 
+    &__btn-skip--ready {
+        border-color: var(--mh-gold-soft);
+        background: var(--mh-active-bg);
+        box-shadow: 0 8px 24px -12px var(--mh-shadow-lg);
+
+        .meihua-panel__btn-skip-txt {
+            color: var(--mh-gold);
+        }
+    }
+
     /* ============ result ============ */
     &__res-q {
         align-self: center;
@@ -546,6 +569,49 @@
         margin-bottom: 26px;
         font-size: 18px;
         color: var(--mh-ink);
+    }
+
+    &__quota {
+        align-self: center;
+        margin: -14px 0 18px;
+        font-size: 14px;
+        color: var(--mh-muted, #8a7a6a);
+    }
+
+    &__actions {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        max-width: 420px;
+        margin: 28px auto 8px;
+        padding: 0 4px;
+        box-sizing: border-box;
+    }
+
+    &__cta {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        padding: 14px 20px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--mh-gold) 0%, var(--mh-gold-deep, #b8923a) 100%);
+        cursor: pointer;
+        text-align: center;
+        box-sizing: border-box;
+
+        &--disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    }
+
+    &__cta-txt {
+        font-family: var(--mh-brush);
+        font-size: 20px;
+        letter-spacing: 0.14em;
+        color: var(--mh-surface, #fff);
     }
 
     &__basis {
@@ -800,9 +866,28 @@
         border-radius: 999px;
     }
 
+    &__hex--ghost {
+        background: rgba(255, 251, 242, 0.96);
+        border-color: rgba(169, 128, 47, 0.22);
+        box-shadow: 0 12px 32px -24px var(--mh-shadow);
+    }
+
     &__hex--ghost &__hex-role {
-        color: var(--mh-ink-faint);
-        border-color: var(--mh-line-strong);
+        color: var(--mh-gold);
+        border-color: rgba(169, 128, 47, 0.38);
+        background: rgba(169, 128, 47, 0.07);
+    }
+
+    &__hex--ghost &__hex-name {
+        color: var(--mh-ink-soft);
+    }
+
+    &__hex--ghost &__hex-meta {
+        color: var(--mh-ink-soft);
+    }
+
+    &__hex--ghost &__hl-name {
+        color: rgba(169, 128, 47, 0.72);
     }
 
     &__hex-name {
@@ -856,7 +941,7 @@
     }
 
     &__hex--ghost &__hl-seg {
-        background: var(--mh-line-strong);
+        background: linear-gradient(180deg, rgba(216, 178, 94, 0.82), rgba(169, 128, 47, 0.9));
     }
 
     &__hex-line--moving &__hl-seg {
@@ -958,13 +1043,16 @@
     }
 
     &__ghost-btn {
-        margin-top: 30px;
-        align-self: center;
-        padding: 15px 40px;
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        padding: 14px 20px;
         border-radius: 14px;
         border: 1px solid var(--mh-gold-soft);
         background: var(--mh-active-bg);
         cursor: pointer;
+        text-align: center;
+        box-sizing: border-box;
         transition: background 0.2s, transform 0.16s;
 
         &:hover {
@@ -987,6 +1075,17 @@
 @keyframes mh-fade {
     from { opacity: 0; transform: translateY(14px); }
     to { opacity: 1; transform: none; }
+}
+
+@keyframes mh-num-drop {
+    from {
+        transform: translateY(-72%);
+        opacity: 0.35;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .feature-shell--theme-dark .meihua-panel,
@@ -1035,6 +1134,23 @@
         &__subtitle {
             letter-spacing: 0.14em;
             padding-left: 0.14em;
+        }
+
+        &__actions {
+            gap: 10px;
+            max-width: 100%;
+        }
+
+        &__cta-txt {
+            font-size: 17px;
+            letter-spacing: 0.1em;
+            text-indent: 0.1em;
+        }
+
+        &__ghost-txt {
+            font-size: 15px;
+            letter-spacing: 0.14em;
+            text-indent: 0.14em;
         }
     }
 }
