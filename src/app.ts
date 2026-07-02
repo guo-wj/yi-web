@@ -4,6 +4,7 @@ import { useLaunch } from '@tarojs/taro'
 import AuthGate from '@/components/AuthGate'
 
 import './app.scss'
+import '@/pages/index/mobile.scss'
 
 function App({ children }: PropsWithChildren<any>) {
     useLaunch(() => {

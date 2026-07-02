@@ -1,1 +1,7 @@
 /* 全局样式：H5 端已在 config 关闭 px→rem，此处勿再设置 html 字号以免与 flexible 脚本冲突 */
+
+.index-redirect {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #f7f7f7;
+}

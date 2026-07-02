@@ -20,7 +20,7 @@
     background: $pc-main-bg;
     color: $pc-text-strong;
 
-    &__header {
+    .home-page__header {
         width: 100%;
         max-width: 1180px;
         margin: 0 auto;
@@ -30,14 +30,14 @@
         padding: 22px 24px 20px;
     }
 
-    &__header-inner {
+    .home-page__header-inner {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 6px;
     }
 
-    &__brand {
+    .home-page__brand {
         font-size: 24px;
         font-weight: 600;
         letter-spacing: 0.32em;
@@ -46,14 +46,14 @@
         text-align: center;
     }
 
-    &__brand-tagline {
+    .home-page__brand-tagline {
         font-size: 13px;
         letter-spacing: 0.16em;
         color: $pc-text-secondary;
         text-align: center;
     }
 
-    &__main {
+    .home-page__main {
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -65,7 +65,7 @@
         padding: 8px 28px 40px;
     }
 
-    &__cards {
+    .home-page__cards {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         grid-auto-rows: auto;
@@ -74,7 +74,7 @@
         height: calc(100vh - 200px);
     }
 
-    &__card {
+    .home-page__card {
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
@@ -92,13 +92,13 @@
         transition: transform 0.22s ease, box-shadow 0.22s ease;
 
         &:hover,
-        &--hover {
+        &.home-page__card--hover {
             transform: translateY(-5px);
             box-shadow: $pc-card-hover-shadow;
         }
     }
 
-    &__card-icon-ring {
+    .home-page__card-icon-ring {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -112,13 +112,13 @@
             inset 0 1px 0 rgba(255, 255, 255, 0.06);
     }
 
-    &__card-icon {
+    .home-page__card-icon {
         width: 48px;
         height: 48px;
         background-color: $pc-accent;
     }
 
-    &__card-body {
+    .home-page__card-body {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -127,21 +127,21 @@
         max-width: 13rem;
     }
 
-    &__card-title-row {
+    .home-page__card-title-row {
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
         gap: 10px;
     }
 
-    &__card-title {
+    .home-page__card-title {
         font-size: 18px;
         font-weight: 600;
         letter-spacing: 0.08em;
         color: $pc-text-strong;
     }
 
-    &__card-desc {
+    .home-page__card-desc {
         font-size: 13px;
         line-height: 1.8;
         max-width: 14em;
@@ -153,11 +153,11 @@
         opacity: 0.9;
     }
 
-    &__card-arrow {
+    .home-page__card-arrow {
         display: none;
     }
 
-    &__footer {
+    .home-page__footer {
         position: fixed;
         left: 0;
         right: 0;
@@ -169,7 +169,7 @@
         backdrop-filter: blur(10px);
     }
 
-    &__footer-disclaimer {
+    .home-page__footer-disclaimer {
         display: block;
         max-width: 720px;
         margin: 0 auto;

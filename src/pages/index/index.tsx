@@ -1,20 +1,12 @@
-import Taro from '@tarojs/taro'
-import { useEffect } from 'react'
-import HomePageMobile from './HomePageMobile'
-import { isMobile } from '@/utils/device'
+import Taro, { useLoad } from '@tarojs/taro'
+import { View } from '@tarojs/components'
 
+/** 入口页统一跳转功能壳，避免首页异步 CSS 分片在部分环境下未加载 */
 export default function Index () {
-    const mobile = isMobile()
+    useLoad(() => {
+        void Taro.reLaunch({ url: '/pages/feature/index' })
+    })
 
-    useEffect(() => {
-        if (!mobile) {
-            void Taro.reLaunch({ url: '/pages/feature/index' })
-        }
-    }, [mobile])
-
-    if (!mobile) {
-        return null
-    }
-
-    return <HomePageMobile />
+    // 跳转完成前占位，避免 return null 白屏
+    return <View className='index-redirect' />
 }

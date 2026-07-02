@@ -253,39 +253,75 @@ export function FeatureSidebar ({
                 })}
             </View>
 
-            <View className='feature-page__nav-dock'>
-                <View
-                    className={`feature-page__nav-item feature-page__nav-item--member ${pcMode ? 'feature-page__nav-item--pc' : ''}`}
-                    onClick={onMemberNav}
-                >
-                    <View className={`feature-page__nav-icon-box ${pcMode ? 'feature-page__nav-icon-box--pc' : ''}`}>
-                        <FeatureIcon
-                            className='feature-page__nav-icon'
-                            src={MEMBER_FEATURE.icon}
-                        />
-                    </View>
-                    {!collapsed && (
+            {drawerMode ? (
+                <View className='feature-page__sidebar-dock-bar'>
+                    <View
+                        className='feature-page__nav-item feature-page__nav-item--member feature-page__nav-item--dock-inline'
+                        onClick={onMemberNav}
+                    >
+                        <View className='feature-page__nav-icon-box'>
+                            <FeatureIcon
+                                className='feature-page__nav-icon'
+                                src={MEMBER_FEATURE.icon}
+                            />
+                        </View>
                         <View className='feature-page__nav-text'>
                             <View className='feature-page__nav-title-row'>
                                 <Text className='feature-page__nav-title'>{MEMBER_FEATURE.title}</Text>
                             </View>
                         </View>
+                    </View>
+                    <View className='feature-page__sidebar-footer feature-page__sidebar-footer--drawer'>
+                        <UserMenu
+                            dock='sidebar-inline'
+                            uiMode='mobile'
+                            collapsed={false}
+                        />
+                    </View>
+                </View>
+            ) : (
+                <>
+                    <View className='feature-page__nav-dock'>
+                        <View
+                            className={`feature-page__nav-item feature-page__nav-item--member ${pcMode ? 'feature-page__nav-item--pc' : ''}`}
+                            onClick={onMemberNav}
+                        >
+                            <View className={`feature-page__nav-icon-box ${pcMode ? 'feature-page__nav-icon-box--pc' : ''}`}>
+                                <FeatureIcon
+                                    className='feature-page__nav-icon'
+                                    src={MEMBER_FEATURE.icon}
+                                />
+                            </View>
+                            {!collapsed && (
+                                <View className='feature-page__nav-text'>
+                                    <View className='feature-page__nav-title-row'>
+                                        <Text className='feature-page__nav-title'>{MEMBER_FEATURE.title}</Text>
+                                    </View>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+
+                    {!collapsed && (
+                        <View className='feature-page__sidebar-rule feature-page__sidebar-rule--dock' />
                     )}
-                </View>
-            </View>
 
-            {!collapsed && (
-                <View className='feature-page__sidebar-rule feature-page__sidebar-rule--dock' />
-            )}
-
-            {!drawerMode && (
-                <View className={`feature-page__sidebar-footer ${pcMode ? 'feature-page__sidebar-footer--pc' : ''} ${collapsed ? 'feature-page__sidebar-footer--collapsed' : ''}`}>
-                    <UserMenu
-                        dock='sidebar-inline'
-                        uiMode='pc'
-                        collapsed={collapsed}
-                    />
-                </View>
+                    {pcMode && (
+                        <View
+                            className={[
+                                'feature-page__sidebar-footer',
+                                'feature-page__sidebar-footer--pc',
+                                collapsed ? 'feature-page__sidebar-footer--collapsed' : ''
+                            ].filter(Boolean).join(' ')}
+                        >
+                            <UserMenu
+                                dock='sidebar-inline'
+                                uiMode='pc'
+                                collapsed={collapsed}
+                            />
+                        </View>
+                    )}
+                </>
             )}
 
             {typeof document !== 'undefined' && pcMode && collapsed && hoveredNavKey && createPortal(

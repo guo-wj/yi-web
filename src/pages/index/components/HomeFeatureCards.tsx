@@ -1,4 +1,5 @@
-import { View, Text, Navigator } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
+import Taro from '@tarojs/taro'
 import FeatureIcon from '@/components/FeatureIcon'
 import { FEATURE_ITEMS } from '@/constants/features'
 
@@ -10,11 +11,14 @@ export default function HomeFeatureCards ({ pageMode }: HomeFeatureCardsProps) {
     return (
         <View className='home-page__cards'>
             {FEATURE_ITEMS.map((item) => (
-                <Navigator
+                <View
                     key={item.key}
                     className={`home-page__card home-page__card--${pageMode}`}
-                    url={`/pages/feature/index?key=${encodeURIComponent(item.key)}`}
-                    hoverClass='home-page__card--hover'
+                    onClick={() => {
+                        void Taro.navigateTo({
+                            url: `/pages/feature/index?key=${encodeURIComponent(item.key)}`
+                        })
+                    }}
                 >
                     <View className='home-page__card-icon-ring'>
                         <FeatureIcon
@@ -41,7 +45,7 @@ export default function HomeFeatureCards ({ pageMode }: HomeFeatureCardsProps) {
                         <Text className='home-page__card-desc'>{item.desc}</Text>
                     </View>
                     <Text className='home-page__card-arrow'>›</Text>
-                </Navigator>
+                </View>
             ))}
         </View>
     )

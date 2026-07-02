@@ -1,7 +1,6 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import { useCallback, useState, useSyncExternalStore } from 'react'
-import UserMenu from '@/components/UserMenu'
 import { useStatusBarHeight } from '@/utils/useStatusBarHeight'
 import {
     getShellSettingsState,
@@ -56,9 +55,7 @@ export default function FeaturePageMobile () {
                         <Text className='feature-page-mobile__menu-icon'>☰</Text>
                     </View>
                     <Text className='feature-page-mobile__topbar-title'>易AI</Text>
-                    <View className='feature-page-mobile__topbar-user'>
-                        <UserMenu dock='topbar-inline' uiMode='mobile' />
-                    </View>
+                    <View className='feature-page-mobile__topbar-spacer' />
                 </View>
             </View>
 

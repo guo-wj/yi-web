@@ -95,21 +95,11 @@ $mobile-topbar-row-h: 56px;
         line-height: 1.2;
     }
 
-    &__topbar-user {
+    &__topbar-spacer {
         flex: none;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
         width: 44px;
         height: 44px;
         margin-left: 6px;
-
-        .home__user {
-            position: relative;
-            right: auto;
-            top: auto;
-            transform: none;
-        }
     }
 
     &__body {
@@ -186,6 +176,62 @@ $mobile-topbar-row-h: 56px;
         border-top: 1px solid rgba(74, 63, 53, 0.12);
     }
 
+    .feature-page__sidebar-dock-bar {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: auto;
+        padding: 25px 4px 6px;
+        border-top: 1px solid rgba(74, 63, 53, 0.12);
+
+        .feature-page__nav-item--dock-inline {
+            flex: none;
+            align-items: center;
+            margin-bottom: 0;
+            padding: 6px 8px;
+            min-width: 0;
+        }
+
+        .feature-page__nav-text {
+            min-width: 0;
+        }
+
+        .feature-page__nav-title {
+            white-space: nowrap;
+        }
+
+        .feature-page__sidebar-footer--drawer {
+            flex: 1;
+            min-width: 0;
+            justify-content: flex-end;
+            padding: 0;
+            margin: 0;
+
+            .home__user--embed {
+                width: auto;
+                justify-content: flex-end;
+            }
+
+            .home__user-trigger {
+                width: auto;
+                max-width: 100%;
+                justify-content: flex-end;
+            }
+
+            .home__user-meta {
+                display: none;
+            }
+
+            .home__avatar-face {
+                width: 40px;
+                height: 40px;
+                font-size: 40px;
+            }
+        }
+    }
+
     .feature-page__nav-item--member {
         margin-bottom: 0;
 
@@ -219,7 +265,6 @@ $mobile-topbar-row-h: 56px;
         justify-content: flex-end;
         width: 100%;
         padding: 6px 4px 2px;
-        margin-top: auto;
     }
 
     .feature-page__brand {
