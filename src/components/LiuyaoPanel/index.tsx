@@ -2,10 +2,12 @@ import { View, Text, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import PendingText from '@/components/LoadingDots'
 import coinBackImg from '@/assets/images/back.png'
 import coinFrontImg from '@/assets/images/front.png'
 
 import DivineSetup, { type DivineMethodOption } from '@/components/DivineSetup'
+import GuaPanel from '@/components/GuaPanel'
 import MarkdownView from '@/components/MarkdownView'
 import PanelBackButton from '@/components/PanelBackButton'
 import { LIUYAO_PROMPTS } from '@/constants/liuyaoPrompts'
@@ -17,17 +19,14 @@ import {
     postLiuyaoCast,
     postLiuyaoInterpret,
     streamInterpretationText,
-    type LiuyaoCastResponse,
-    type LiuyaoGua
+    type LiuyaoCastResponse
 } from '@/services/liuyaoApi'
 import {
-    isChanging,
     isYang,
     tossCoins,
     YAO_LABELS,
     YAO_TYPE_LABEL,
-    type YaoLine,
-    type YaoValue
+    type YaoLine
 } from '@/utils/liuyaoCoins'
 
 import './index.scss'
@@ -41,88 +40,20 @@ const AUTO_GAP_MS = 750
 const AUTO_FIRST_MS = 650
 
 const LIUYAO_MODES: DivineMethodOption[] = [
-    { key: 'manual', label: '手动摇卦', caption: '亲手摇六次' },
-    { key: 'auto', label: '自动摇卦', caption: '凝神一念成' }
+    { key: 'auto', label: '自动摇卦', caption: '凝神一念成' },
+    { key: 'manual', label: '手动摇卦', caption: '亲手摇六次' }
 ]
 
-const TRI_SYM: Record<string, string> = {
-    乾: '☰', 兑: '☱', 离: '☲', 震: '☳', 巽: '☴', 坎: '☵', 艮: '☶', 坤: '☷'
-}
-const TRI_ELEM: Record<string, string> = {
-    乾: '天', 兑: '泽', 离: '火', 震: '雷', 巽: '风', 坎: '水', 艮: '山', 坤: '地'
-}
-
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
-
-function yaoLabel (v: YaoValue): string {
-    return `${YAO_TYPE_LABEL[v]}${isChanging(v) ? ' · 动' : ''}`
-}
-
-function guaSym (gua: LiuyaoGua): string {
-    return `${TRI_SYM[gua.upper_trigram] ?? ''}${TRI_SYM[gua.lower_trigram] ?? ''}`
-}
-
-function guaFullName (gua: LiuyaoGua): string {
-    return `${TRI_ELEM[gua.upper_trigram] ?? ''}${TRI_ELEM[gua.lower_trigram] ?? ''}${gua.name}`
-}
-
-function HexCard ({
-    role,
-    gua,
-    lines
-}: {
-    role: string
-    gua: LiuyaoGua
-    lines?: LiuyaoCastResponse['lines']
-}) {
-    // 自下而上：bits[0] = 初爻
-    const rows = gua.bits.map((bit, i) => {
-        const ln = lines?.find((l) => l.position === i + 1)
-        const yang = ln ? ln.is_yang : bit === 1
-        const moving = ln ? ln.is_moving : false
-        return { yang, moving, mark: moving ? (yang ? '○' : '✕') : '' }
-    })
-
-    return (
-        <View className='liuyao-panel__hex'>
-            <Text className='liuyao-panel__hex-role'>{role}</Text>
-            <Text className='liuyao-panel__hex-name'>{guaSym(gua)}　{gua.name}</Text>
-            <Text className='liuyao-panel__hex-fullname'>{guaFullName(gua)}</Text>
-            <View className='liuyao-panel__hex-lines'>
-                {rows.map((r, i) => (
-                    <View
-                        key={i}
-                        className={`liuyao-panel__hex-line ${r.moving ? 'liuyao-panel__hex-line--moving' : ''}`}
-                    >
-                        <Text className='liuyao-panel__hl-name'>{YAO_LABELS[i]}</Text>
-                        <View className='liuyao-panel__hl-bar'>
-                            {r.yang
-                                ? <View className='liuyao-panel__hl-seg' />
-                                : (
-                                    <>
-                                        <View className='liuyao-panel__hl-seg' />
-                                        <View className='liuyao-panel__hl-seg' />
-                                    </>
-                                )}
-                        </View>
-                        <Text className='liuyao-panel__hl-mk'>{r.mark}</Text>
-                    </View>
-                ))}
-            </View>
-        </View>
-    )
-}
 
 export default function LiuyaoPanel () {
     const [phase, setPhase] = useState<Phase>('setup')
     const [question, setQuestion] = useState('')
-    const [mode, setMode] = useState<ShakeMode>('manual')
+    const [mode, setMode] = useState<ShakeMode>('auto')
     const [lines, setLines] = useState<YaoLine[]>([])
     const [shaking, setShaking] = useState(false)
     const [coinFaces, setCoinFaces] = useState<(CoinFace | null)[]>([null, null, null])
     const [coinsDone, setCoinsDone] = useState(false)
-    const [lastYao, setLastYao] = useState('')
-    const [lastYaoShow, setLastYaoShow] = useState(false)
     const [castResult, setCastResult] = useState<LiuyaoCastResponse | null>(null)
     const [castingApi, setCastingApi] = useState(false)
     const [interpreting, setInterpreting] = useState(false)
@@ -160,7 +91,6 @@ export default function LiuyaoPanel () {
         if (castingRef.current || lines.length >= 6) return
         castingRef.current = true
         setShaking(true)
-        setLastYaoShow(false)
         setCoinsDone(false)
 
         const toss = tossCoins()
@@ -188,12 +118,7 @@ export default function LiuyaoPanel () {
         await sleep(SHAKE_MS)
         setCoinFaces(faces)
         setCoinsDone(true)
-        setLines((prev) => {
-            const next = [...prev, toss]
-            setLastYao(`第${next.length}爻 — ${yaoLabel(toss.value)}`)
-            return next
-        })
-        setLastYaoShow(true)
+        setLines((prev) => [...prev, toss])
         setShaking(false)
         castingRef.current = false
     }, [lines.length])
@@ -210,8 +135,6 @@ export default function LiuyaoPanel () {
         setLines([])
         setCoinFaces([null, null, null])
         setCoinsDone(false)
-        setLastYao('')
-        setLastYaoShow(false)
         setPhase('casting')
     }, [question])
 
@@ -308,8 +231,6 @@ export default function LiuyaoPanel () {
         setLines([])
         setCoinFaces([null, null, null])
         setCoinsDone(false)
-        setLastYao('')
-        setLastYaoShow(false)
         setStreamText('')
         setStreaming(false)
         setCastingApi(false)
@@ -332,8 +253,6 @@ export default function LiuyaoPanel () {
         setLines([])
         setCoinFaces([null, null, null])
         setCoinsDone(false)
-        setLastYao('')
-        setLastYaoShow(false)
         setCastingApi(false)
         setShaking(false)
         castingRef.current = false
@@ -348,19 +267,35 @@ export default function LiuyaoPanel () {
     }, [lines])
 
     // 已完成 N 爻显示 N（未起为 0）；摇卦中显示正在摇的第 N 爻
-    const counterNo = useMemo(() => {
-        if (lines.length >= 6) return 6
-        if (shaking) return lines.length + 1
-        return lines.length
-    }, [lines.length, shaking])
+    const castStatusText = useMemo(() => {
+        if (lines.length === 0 && !shaking) return '待摇初爻'
+        if (shaking) return `第${lines.length + 1}/6爻`
+        const latest = lines[lines.length - 1]
+        if (!latest) return '待摇初爻'
+        return `第${lines.length}/6爻 - ${YAO_TYPE_LABEL[latest.value]}`
+    }, [lines, shaking])
+
     const inSession = phase === 'casting' || phase === 'done'
+    const inResult = phase === 'result'
+    const panelClass = [
+        'liuyao-panel',
+        inSession ? 'liuyao-panel--session' : '',
+        inResult ? 'liuyao-panel--result' : ''
+    ]
+        .filter(Boolean)
+        .join(' ')
 
     return (
-        <View className='liuyao-panel'>
+        <View className={panelClass}>
             <View className='liuyao-panel__scroll'>
-                {canGoBack && <PanelBackButton onClick={goBack} />}
-                <View className='liuyao-panel__head'>
-                    <Text className='liuyao-panel__title'>六爻起卦</Text>
+                <View className='liuyao-panel__hero'>
+                    <View className='liuyao-panel__hero-row'>
+                        <View className='liuyao-panel__hero-side'>
+                            {canGoBack && <PanelBackButton onClick={goBack} />}
+                        </View>
+                        <Text className='liuyao-panel__title'>六爻起卦</Text>
+                        <View className='liuyao-panel__hero-side liuyao-panel__hero-side--mirror' />
+                    </View>
                     <Text className='liuyao-panel__subtitle'>三枚铜钱，六爻成卦，问天地之机变</Text>
                 </View>
 
@@ -437,20 +372,7 @@ export default function LiuyaoPanel () {
                                     })}
                                 </View>
                                 <View className='liuyao-panel__cast-meta'>
-                                    <Text className='liuyao-panel__counter'>
-                                        {counterNo === 0
-                                            ? '待摇初爻'
-                                            : (
-                                                <>
-                                                    第 <Text className='liuyao-panel__counter-n'>{counterNo}</Text> / 6 爻
-                                                </>
-                                            )}
-                                    </Text>
-                                    <Text
-                                        className={`liuyao-panel__last-yao ${lastYaoShow ? 'liuyao-panel__last-yao--show' : ''}`}
-                                    >
-                                        {lastYao}
-                                    </Text>
+                                    <Text className='liuyao-panel__cast-status'>{castStatusText}</Text>
                                 </View>
                             </View>
 
@@ -496,13 +418,15 @@ export default function LiuyaoPanel () {
                                 className={`liuyao-panel__cta liuyao-panel__cta--cast ${shaking ? 'liuyao-panel__cta--disabled' : ''}`}
                                 onClick={() => { if (!shaking) void castOne() }}
                             >
-                                <Text className='liuyao-panel__cta-txt'>{shaking ? '铜钱摇动中…' : '摇 卦'}</Text>
+                                {shaking
+                                    ? <PendingText className='liuyao-panel__cta-txt'>铜钱摇动中</PendingText>
+                                    : <Text className='liuyao-panel__cta-txt'>摇 卦</Text>}
                             </View>
                         )}
 
                         {phase === 'casting' && mode === 'auto' && (
                             <View className='liuyao-panel__cta liuyao-panel__cta--cast liuyao-panel__cta--disabled'>
-                                <Text className='liuyao-panel__cta-txt'>自动摇卦中…</Text>
+                                <PendingText className='liuyao-panel__cta-txt'>自动摇卦中</PendingText>
                             </View>
                         )}
 
@@ -511,7 +435,9 @@ export default function LiuyaoPanel () {
                                 className={`liuyao-panel__cta liuyao-panel__cta--cast ${castingApi ? 'liuyao-panel__cta--disabled' : ''}`}
                                 onClick={() => void viewHexagram()}
                             >
-                                <Text className='liuyao-panel__cta-txt'>{castingApi ? '生成卦象中…' : '查 看 卦 象'}</Text>
+                                {castingApi
+                                    ? <PendingText className='liuyao-panel__cta-txt'>生成卦象中</PendingText>
+                                    : <Text className='liuyao-panel__cta-txt'>查 看 卦 象</Text>}
                             </View>
                         )}
                     </View>
@@ -519,57 +445,62 @@ export default function LiuyaoPanel () {
 
                 {phase === 'result' && castResult && (
                     <View className='liuyao-panel__result'>
-                        <View className='liuyao-panel__res-q'>
-                            <Text className='liuyao-panel__q-tag'>所问</Text>
-                            <Text className='liuyao-panel__res-q-text'>{question.trim()}</Text>
-                        </View>
+                        <View className='liuyao-panel__result-body'>
+                            <View className='liuyao-panel__q-card'>
+                                <Text className='liuyao-panel__q-tag'>所问</Text>
+                                <Text className='liuyao-panel__q-text'>{question.trim()}</Text>
+                            </View>
 
-                        {quota && quota.free_remaining > 0 && (
-                            <Text className='liuyao-panel__quota'>
-                                今日免费 AI 解卦剩余 {quota.free_remaining} 次
-                            </Text>
-                        )}
+                            {quota && quota.free_remaining > 0 && (
+                                <Text className='liuyao-panel__quota'>
+                                    今日免费 AI 解卦剩余 {quota.free_remaining} 次
+                                </Text>
+                            )}
 
-                        <View className='liuyao-panel__hex-cards'>
-                            <HexCard role='本卦' gua={castResult.ben_gua} lines={castResult.lines} />
-                            {castResult.bian_gua && (
-                                <>
-                                    <View className='liuyao-panel__hex-arrow'><Text>变</Text></View>
-                                    <HexCard role='变卦' gua={castResult.bian_gua} />
-                                </>
+                            <View className='liuyao-panel__hex-cards'>
+                                <GuaPanel role='本卦' gua={castResult.ben_gua} lines={castResult.lines} />
+                                {castResult.bian_gua && (
+                                    <>
+                                        <View className='liuyao-panel__hex-arrow'><Text>变</Text></View>
+                                        <GuaPanel role='变卦' gua={castResult.bian_gua} />
+                                    </>
+                                )}
+                            </View>
+
+                            {(hasInterpretation || streaming || streamText) && (
+                                <View className='liuyao-panel__reading'>
+                                    <View className='liuyao-panel__reading-head'>
+                                        <Text className='liuyao-panel__reading-title'>机 断</Text>
+                                        {streaming
+                                            ? <PendingText className='liuyao-panel__reading-pill'>推演中</PendingText>
+                                            : <Text className='liuyao-panel__reading-pill'>玄机已断</Text>}
+                                    </View>
+                                    {streamText
+                                        ? <MarkdownView className='liuyao-panel__reading-md' content={streamText} />
+                                        : (
+                                            streaming
+                                                ? <PendingText className='liuyao-panel__reading-wait'>卦象洞开，解语将至</PendingText>
+                                                : <Text className='liuyao-panel__reading-wait'>暂无解卦内容</Text>
+                                        )}
+                                </View>
                             )}
                         </View>
 
-                        {!hasInterpretation && !streaming && (
-                            <View
-                                className={`liuyao-panel__cta liuyao-panel__cta--cast ${interpreting ? 'liuyao-panel__cta--disabled' : ''}`}
-                                onClick={() => void onInterpret()}
-                            >
-                                <Text className='liuyao-panel__cta-txt'>
-                                    {interpreting ? '解卦中…' : 'AI 解 卦'}
-                                </Text>
-                            </View>
-                        )}
-
-                        {(hasInterpretation || streaming || streamText) && (
-                            <View className='liuyao-panel__reading'>
-                                <View className='liuyao-panel__reading-head'>
-                                    <Text className='liuyao-panel__reading-title'>机 断</Text>
-                                    <Text className='liuyao-panel__reading-pill'>{streaming ? '推演中…' : '玄机已断'}</Text>
+                        {!streaming && (
+                            <View className={`liuyao-panel__result-foot ${hasInterpretation ? 'liuyao-panel__result-foot--single' : ''}`}>
+                                <View className='liuyao-panel__foot-btn liuyao-panel__foot-btn--ghost' onClick={resetAll}>
+                                    <Text className='liuyao-panel__foot-btn-txt'>重新起卦</Text>
                                 </View>
-                                {streamText
-                                    ? <MarkdownView className='liuyao-panel__reading-md' content={streamText} />
-                                    : (
-                                        <Text className='liuyao-panel__reading-wait'>
-                                            {streaming ? '卦象洞开，解语将至…' : '暂无解卦内容'}
-                                        </Text>
-                                    )}
-                            </View>
-                        )}
-
-                        {!streaming && !interpreting && (
-                            <View className='liuyao-panel__ghost-btn' onClick={resetAll}>
-                                <Text className='liuyao-panel__ghost-txt'>重 新 起 卦</Text>
+                                {!hasInterpretation && (
+                                    <View
+                                        className={`liuyao-panel__foot-btn liuyao-panel__foot-btn--primary ${interpreting ? 'liuyao-panel__foot-btn--disabled' : ''}`}
+                                        onClick={() => { if (!interpreting) void onInterpret() }}
+                                    >
+                                        {interpreting
+                                            ? <PendingText className='liuyao-panel__foot-btn-txt liuyao-panel__foot-btn-txt--primary'>解卦中</PendingText>
+                                            : <Text className='liuyao-panel__foot-btn-txt liuyao-panel__foot-btn-txt--primary'>解卦</Text>}
+                                    </View>
+                                )}
                             </View>
                         )}
                     </View>

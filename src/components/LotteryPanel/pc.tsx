@@ -2,6 +2,7 @@ import { View, Text, Image } from '@tarojs/components'
 import { useMemo } from 'react'
 
 import MarkdownView from '@/components/MarkdownView'
+import PendingText from '@/components/LoadingDots'
 import canisterSvg from '@/assets/images/canister.svg'
 import {
     formatSlipHeading,
@@ -72,7 +73,7 @@ export default function LotteryPanelPC () {
                 )}
                 {phase === 'shaking' && (
                     <View className='lottery-panel__cta lottery-panel__cta--disabled'>
-                        <Text className='lottery-panel__cta-txt'>诚心摇签中…</Text>
+                        <PendingText className='lottery-panel__cta-txt'>诚心摇签中</PendingText>
                     </View>
                 )}
                 {phase === 'drawn' && (
@@ -88,9 +89,9 @@ export default function LotteryPanelPC () {
                                 className='lottery-panel__action lottery-panel__action--primary'
                                 onClick={() => void onInterpret()}
                             >
-                                <Text className='lottery-panel__action-txt lottery-panel__action-txt--primary'>
-                                    {interpreting ? '解签中…' : '解签'}
-                                </Text>
+                                {interpreting
+                                    ? <PendingText className='lottery-panel__action-txt lottery-panel__action-txt--primary'>解签中</PendingText>
+                                    : <Text className='lottery-panel__action-txt lottery-panel__action-txt--primary'>解签</Text>}
                             </View>
                             <View className='lottery-panel__action' onClick={reset}>
                                 <Text className='lottery-panel__action-txt'>再抽一次</Text>
@@ -153,9 +154,9 @@ function ResultSheet ({ result, interpreting, onClose }: ResultSheetProps) {
                         {result.interpretation
                             ? <MarkdownView className='lottery-panel__sect-md' content={result.interpretation} />
                             : (
-                                <Text className='lottery-panel__sect-pending'>
-                                    {interpreting ? 'AI 正在解签，请稍候…' : '点击解签获取 AI 解读'}
-                                </Text>
+                                interpreting
+                                    ? <PendingText className='lottery-panel__sect-pending'>AI 正在解签，请稍候</PendingText>
+                                    : <Text className='lottery-panel__sect-pending'>点击解签获取 AI 解读</Text>
                             )}
                     </View>
 

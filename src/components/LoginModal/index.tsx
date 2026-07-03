@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 
+import PendingText from '@/components/LoadingDots'
 import { login, register } from '@/services/authApi'
 import { isValidEmail, isValidPassword, isValidPhone } from '@/constants/user'
 import { LEGAL_DOCUMENTS, type LegalDocKey } from '@/constants/legalDocs'
@@ -284,7 +285,9 @@ function LoginModalForm ({
                     className={`login-modal__submit ${submitting ? 'login-modal__submit--disabled' : ''}`}
                     onClick={() => void onSubmit()}
                 >
-                    <Text>{submitting ? '提交中…' : mode === 'login' ? '登 录' : '注 册'}</Text>
+                    {submitting
+                        ? <PendingText>提交中</PendingText>
+                        : <Text>{mode === 'login' ? '登 录' : '注 册'}</Text>}
                 </View>
 
                 <View

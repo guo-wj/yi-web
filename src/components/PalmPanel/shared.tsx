@@ -229,10 +229,11 @@ export function usePalmPanel () {
     }, [])
 
     const submitLabel = loadingStage === 'extract'
-        ? '正 在 识 别 掌 象 …'
+        ? '正 在 识 别 掌 象'
         : loadingStage === 'interpret'
-            ? '正 在 参 详 解 读 …'
+            ? '正 在 参 详 解 读'
             : (phase === 'reading' && !hasFullReading ? 'AI 参 详 解 读' : '开 始 识 别')
+    const submitLabelLoading = loadingStage === 'extract' || loadingStage === 'interpret'
 
     const lead = result
         ? (result.primary_hand === 'right' ? '右手为主' : '左手为主')
@@ -253,6 +254,7 @@ export function usePalmPanel () {
         hasFullReading,
         hintText,
         submitLabel,
+        submitLabelLoading,
         lead,
         hands,
         chooseHand,

@@ -74,30 +74,38 @@
 
     &__hero-top {
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         justify-content: space-between;
+        gap: 12px;
     }
 
     &__gy {
+        flex: 1;
+        min-width: 0;
         font-size: 14px;
         letter-spacing: 0.08em;
+        line-height: 1.5;
         color: var(--hm-ink-soft);
     }
 
     &__mon {
+        flex: none;
         display: flex;
-        align-items: baseline;
+        align-items: center;
         gap: 4px;
+        line-height: 1;
     }
 
     &__mon-b {
         font-family: var(--hm-brush);
         font-size: 20px;
+        line-height: 1;
         color: var(--hm-gold);
     }
 
     &__mon-sz {
         font-size: 13px;
+        line-height: 1;
         color: var(--hm-ink-faint);
     }
 
@@ -243,17 +251,19 @@
     }
 
     &__list {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        align-items: center;
+        width: 100%;
+        column-count: 2;
+        column-gap: 10px;
     }
 
     &__li {
-        font-size: 14px;
-        line-height: 1.6;
+        display: block;
+        break-inside: avoid;
+        font-size: 13px;
+        line-height: 1.55;
         color: var(--hm-ink-soft);
         text-align: center;
+        margin-bottom: 4px;
     }
 
     /* ===== 方位吉时 ===== */

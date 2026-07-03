@@ -3,7 +3,9 @@ import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import DivineSetup from '@/components/DivineSetup'
+import GuaPanel from '@/components/GuaPanel'
 import MarkdownView from '@/components/MarkdownView'
+import PendingText from '@/components/LoadingDots'
 import PanelBackButton from '@/components/PanelBackButton'
 import {
     MEIHUA_METHODS,
@@ -105,54 +107,6 @@ const IDLE_TILES: Record<TileKind, TileData> = {
 }
 
 interface BuildRow { filled: boolean, mark: string }
-
-function HexCard ({
-    role,
-    gua,
-    movingLine,
-    ghost
-}: {
-    role: string
-    gua: MeihuaGua
-    movingLine?: number
-    ghost?: boolean
-}) {
-    return (
-        <View className={`meihua-panel__hex ${ghost ? 'meihua-panel__hex--ghost' : ''}`}>
-            <Text className='meihua-panel__hex-role'>{role}</Text>
-            <Text className='meihua-panel__hex-name'>{gua.name}</Text>
-            <Text className='meihua-panel__hex-meta'>
-                第 {gua.number} 卦 · {gua.upper_trigram}上{gua.lower_trigram}下
-            </Text>
-            <View className='meihua-panel__hex-lines'>
-                {gua.bits.map((bit, i) => {
-                    const yang = bit === 1
-                    const moving = !ghost && movingLine === i + 1
-                    const mark = moving ? (yang ? '○' : '✕') : ''
-                    return (
-                        <View
-                            key={i}
-                            className={`meihua-panel__hex-line ${moving ? 'meihua-panel__hex-line--moving' : ''}`}
-                        >
-                            <Text className='meihua-panel__hl-name'>{YAO_LABELS[i]}</Text>
-                            <View className='meihua-panel__hl-bar'>
-                                {yang
-                                    ? <View className='meihua-panel__hl-seg' />
-                                    : (
-                                        <>
-                                            <View className='meihua-panel__hl-seg' />
-                                            <View className='meihua-panel__hl-seg' />
-                                        </>
-                                    )}
-                            </View>
-                            <Text className='meihua-panel__hl-mk'>{mark}</Text>
-                        </View>
-                    )
-                })}
-            </View>
-        </View>
-    )
-}
 
 function Orb ({ role, trigram }: { role: string, trigram: string }) {
     const elem = WUXING[trigram] ?? ''
@@ -518,11 +472,16 @@ export default function MeihuaPanel () {
         : []
 
     return (
-        <View className='meihua-panel'>
+        <View className={`meihua-panel ${phase === 'casting' ? 'meihua-panel--casting' : ''}`}>
             <View className='meihua-panel__scroll'>
-                {canGoBack && <PanelBackButton onClick={goBack} />}
-                <View className='meihua-panel__head'>
-                    <Text className='meihua-panel__title'>梅花易数</Text>
+                <View className='meihua-panel__hero'>
+                    <View className='meihua-panel__hero-row'>
+                        <View className='meihua-panel__hero-side'>
+                            {canGoBack && <PanelBackButton onClick={goBack} />}
+                        </View>
+                        <Text className='meihua-panel__title'>梅花易数</Text>
+                        <View className='meihua-panel__hero-side meihua-panel__hero-side--mirror' />
+                    </View>
                     <Text className='meihua-panel__subtitle'>先天起数 · 体用生克 · 观象玩占</Text>
                 </View>
 
@@ -551,11 +510,13 @@ export default function MeihuaPanel () {
                                         <View className='meihua-panel__shi-tick meihua-panel__shi-tick--e' />
                                         <View className='meihua-panel__shi-tick meihua-panel__shi-tick--w' />
                                     </View>
-                                    <Text className='meihua-panel__clock-lunar'>
-                                        {almanac
-                                            ? `${almanac.lunar.year_ganzhi}年 ${almanac.lunar.month_day}`
-                                            : '正在推算农历…'}
-                                    </Text>
+                                    {almanac
+                                        ? (
+                                            <Text className='meihua-panel__clock-lunar'>
+                                                {`${almanac.lunar.year_ganzhi}年 ${almanac.lunar.month_day}`}
+                                            </Text>
+                                        )
+                                        : <PendingText className='meihua-panel__clock-lunar'>正在推算农历</PendingText>}
                                     <Text className='meihua-panel__clock-greg'>
                                         {now.getFullYear()} · {pad2(now.getMonth() + 1)} · {pad2(now.getDate())}
                                         <Text className='meihua-panel__clock-time'>
@@ -642,14 +603,14 @@ export default function MeihuaPanel () {
                                     })}
                                 </View>
                             )}
+                        </View>
 
-                            <View className='meihua-panel__skip-row'>
-                                <View
-                                    className={`meihua-panel__btn-skip ${castAnimDone ? 'meihua-panel__btn-skip--ready' : ''}`}
-                                    onClick={skipToResult}
-                                >
-                                    <Text className='meihua-panel__btn-skip-txt'>直接看卦</Text>
-                                </View>
+                        <View className='meihua-panel__cast-foot'>
+                            <View
+                                className={`meihua-panel__btn-skip ${castAnimDone ? 'meihua-panel__btn-skip--ready' : ''}`}
+                                onClick={skipToResult}
+                            >
+                                <Text className='meihua-panel__btn-skip-txt'>直接看卦</Text>
                             </View>
                         </View>
                     </View>
@@ -699,34 +660,26 @@ export default function MeihuaPanel () {
                         </View>
 
                         <View className='meihua-panel__hex-cards'>
-                            <HexCard role='本　卦' gua={result.ben_gua} movingLine={result.moving_line} />
-                            <View className='meihua-panel__hex-arrow'>
-                                <Text className='meihua-panel__hex-arrow-t'>动而之</Text>
-                                <Text className='meihua-panel__hex-arrow-s'>↓</Text>
-                            </View>
-                            <HexCard role='变　卦' gua={result.bian_gua} ghost />
-                            <View className='meihua-panel__hex-arrow'>
-                                <Text className='meihua-panel__hex-arrow-t'>互见</Text>
-                                <Text className='meihua-panel__hex-arrow-s'>·</Text>
-                            </View>
-                            <HexCard role='互　卦' gua={result.hu_gua} ghost />
+                            <GuaPanel role='本卦' gua={result.ben_gua} movingLine={result.moving_line} />
+                            <GuaPanel role='变卦' gua={result.bian_gua} />
+                            <GuaPanel role='互卦' gua={result.hu_gua} />
                         </View>
 
                         {((!streamText && !streaming) || (!streaming && !interpreting)) && (
                             <View className='meihua-panel__actions'>
+                                {!streaming && !interpreting && (
+                                    <View className='meihua-panel__ghost-btn' onClick={reset}>
+                                        <Text className='meihua-panel__ghost-txt'>重 新 起 卦</Text>
+                                    </View>
+                                )}
                                 {!streamText && !streaming && (
                                     <View
                                         className={`meihua-panel__cta meihua-panel__cta--interpret ${interpreting ? 'meihua-panel__cta--disabled' : ''}`}
                                         onClick={() => void onInterpret()}
                                     >
-                                        <Text className='meihua-panel__cta-txt'>
-                                            {interpreting ? '解卦中…' : 'AI 解 卦'}
-                                        </Text>
-                                    </View>
-                                )}
-                                {!streaming && !interpreting && (
-                                    <View className='meihua-panel__ghost-btn' onClick={reset}>
-                                        <Text className='meihua-panel__ghost-txt'>重 新 起 卦</Text>
+                                        {interpreting
+                                            ? <PendingText className='meihua-panel__cta-txt'>解卦中</PendingText>
+                                            : <Text className='meihua-panel__cta-txt'>AI 解 卦</Text>}
                                     </View>
                                 )}
                             </View>
@@ -736,14 +689,16 @@ export default function MeihuaPanel () {
                             <View className='meihua-panel__reading'>
                             <View className='meihua-panel__reading-head'>
                                 <Text className='meihua-panel__reading-title'>解 曰</Text>
-                                <Text className='meihua-panel__reading-pill'>{streaming ? '推演中…' : '玄机已断'}</Text>
+                                {streaming
+                                    ? <PendingText className='meihua-panel__reading-pill'>推演中</PendingText>
+                                    : <Text className='meihua-panel__reading-pill'>玄机已断</Text>}
                             </View>
                             {streamText
                                 ? <MarkdownView className='meihua-panel__reading-md' content={streamText} />
                                 : (
-                                    <Text className='meihua-panel__reading-wait'>
-                                        {streaming ? '卦象洞开，解语将至…' : '暂无解卦内容'}
-                                    </Text>
+                                    streaming
+                                        ? <PendingText className='meihua-panel__reading-wait'>卦象洞开，解语将至</PendingText>
+                                        : <Text className='meihua-panel__reading-wait'>暂无解卦内容</Text>
                                 )}
                         </View>
                         )}

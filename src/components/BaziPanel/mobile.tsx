@@ -1,6 +1,7 @@
 import { View, Text, Input } from '@tarojs/components'
 
 import MarkdownView from '@/components/MarkdownView'
+import PendingText from '@/components/LoadingDots'
 import PanelBackButton from '@/components/PanelBackButton'
 import {
     BAZI_CALENDARS,
@@ -229,9 +230,9 @@ export default function BaziPanelMobile () {
                                 className={`bazi-m__submit ${interpreting ? 'bazi-m__submit--disabled' : ''}`}
                                 onClick={() => void onInterpret()}
                             >
-                                <Text className='bazi-m__submit-txt'>
-                                    {interpreting ? '断语生成中…' : 'AI 命理断语'}
-                                </Text>
+                                {interpreting
+                                    ? <PendingText className='bazi-m__submit-txt'>断语生成中</PendingText>
+                                    : <Text className='bazi-m__submit-txt'>AI 命理断语</Text>}
                             </View>
                         )}
 
@@ -244,9 +245,9 @@ export default function BaziPanelMobile () {
                                 {streamText
                                     ? <MarkdownView className='bazi-m__reading-md' content={streamText} />
                                     : (
-                                        <Text className='bazi-m__reading-wait'>
-                                            {streaming ? '命盘洞开，批语将至…' : '暂无内容'}
-                                        </Text>
+                                        streaming
+                                            ? <PendingText className='bazi-m__reading-wait'>命盘洞开，批语将至</PendingText>
+                                            : <Text className='bazi-m__reading-wait'>暂无内容</Text>
                                     )}
                             </View>
                         )}
@@ -266,9 +267,9 @@ export default function BaziPanelMobile () {
                         className={`bazi-m__submit ${loading ? 'bazi-m__submit--disabled' : ''}`}
                         onClick={() => void submit()}
                     >
-                        <Text className='bazi-m__submit-txt'>
-                            {loading ? '排盘中…' : '查看命盘'}
-                        </Text>
+                        {loading
+                            ? <PendingText className='bazi-m__submit-txt'>排盘中</PendingText>
+                            : <Text className='bazi-m__submit-txt'>查看命盘</Text>}
                     </View>
                 </View>
             )}

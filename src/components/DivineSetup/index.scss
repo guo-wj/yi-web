@@ -69,6 +69,9 @@
         margin: 0 auto;
         overflow: hidden;
         position: relative;
+        display: flex;
+        align-items: center;
+        min-height: 44px;
         -webkit-mask: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
         mask: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
     }
@@ -76,6 +79,7 @@
     &__marquee-track {
         display: flex;
         flex-wrap: nowrap;
+        align-items: center;
         width: max-content;
         padding: 4px 0;
         animation: dv-marquee 32s linear infinite;
@@ -87,9 +91,14 @@
 
     &__chip {
         flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         white-space: nowrap;
         margin-right: 14px;
         padding: 13px 26px;
+        min-height: 44px;
+        box-sizing: border-box;
         border-radius: 999px;
         border: 1px solid var(--dv-line);
         background: var(--dv-surface);
@@ -112,6 +121,7 @@
 
     &__chip-txt {
         font-size: 16px;
+        line-height: 1.2;
         letter-spacing: 0.08em;
         color: var(--dv-ink-soft);
         white-space: nowrap;
@@ -124,9 +134,10 @@
     /* ---- question input ---- */
     &__input-wrap {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 14px;
         width: 100%;
+        min-height: 66px;
         padding: 14px 18px 14px 14px;
         border-radius: 16px;
         border: 1px solid var(--dv-input-border);
@@ -137,7 +148,8 @@
         taro-textarea-core {
             flex: 1;
             min-width: 0;
-            display: block;
+            display: flex;
+            align-items: center;
             min-height: 28px;
             max-height: 84px;
             background: transparent;
@@ -203,6 +215,7 @@
 
     &__input-badge {
         flex: none;
+        align-self: center;
         width: 38px;
         height: 38px;
         margin-top: 0;
@@ -214,6 +227,7 @@
         justify-content: center;
         font-size: 16px;
         font-weight: 600;
+        line-height: 1;
         color: var(--dv-gold);
     }
 
@@ -256,6 +270,7 @@
     &__input-ph {
         color: var(--dv-input-placeholder);
         font-size: 15px;
+        line-height: 1.6;
         text-align: left;
     }
 
@@ -439,6 +454,7 @@
     .dv-setup__chip {
         margin-right: 10px;
         padding: 10px 16px;
+        min-height: 40px;
     }
 
     .dv-setup__chip-txt {

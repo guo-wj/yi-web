@@ -409,12 +409,6 @@
         letter-spacing: 0.18em;
         padding-left: 0.18em;
         color: var(--pm-ink-faint);
-        animation: palm-loading-pulse 1.6s ease-in-out infinite;
-    }
-
-    @keyframes palm-loading-pulse {
-        0%, 100% { opacity: 0.45; }
-        50% { opacity: 1; }
     }
 
     /* section caption divider */

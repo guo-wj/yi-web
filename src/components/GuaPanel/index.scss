@@ -1,0 +1,160 @@
+.gua-panel {
+    --gp-surface: #fffdf8;
+    --gp-line: rgba(120, 95, 45, 0.22);
+    --gp-shadow-lg: rgba(70, 52, 22, 0.32);
+    --gp-brush: 'ZCOOL XiaoWei', 'Noto Serif SC', 'Songti SC', serif;
+    --gp-ink: #2b241b;
+    --gp-ink-faint: #9c8e76;
+    --gp-gold-bright: #d8b25e;
+    --gp-gold: #a9802f;
+    --gp-red: #b23227;
+
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 18px 18px 16px;
+    border-radius: 16px;
+    border: 1px solid var(--gp-line);
+    background: var(--gp-surface);
+    box-shadow: 0 12px 32px -18px var(--gp-shadow-lg);
+    overflow: visible;
+
+    &--result {
+        flex: none;
+
+        .gua-panel__rows {
+            flex: none;
+            justify-content: flex-start;
+            gap: 4px;
+        }
+    }
+
+    &__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+        padding-bottom: 12px;
+        margin-bottom: 6px;
+        border-bottom: 1px solid var(--gp-line);
+        box-sizing: border-box;
+    }
+
+    &__title {
+        flex: 1;
+        min-width: 0;
+        font-family: var(--gp-brush);
+        font-size: 18px;
+        letter-spacing: 0.12em;
+        color: var(--gp-ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__note {
+        flex: none;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--gp-ink-faint);
+        white-space: nowrap;
+    }
+
+    &__rows {
+        width: 100%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 2px;
+    }
+
+    &__row {
+        display: grid;
+        grid-template-columns: 2em minmax(0, 1fr) 1.25em;
+        column-gap: 8px;
+        align-items: center;
+        width: 100%;
+        min-width: 0;
+        height: 44px;
+        box-sizing: border-box;
+    }
+
+    &__name {
+        justify-self: start;
+        font-family: var(--gp-brush);
+        font-size: 15px;
+        line-height: 1;
+        letter-spacing: 0;
+        white-space: nowrap;
+        color: var(--gp-ink-faint);
+    }
+
+    &__row--filled &__name {
+        color: var(--gp-ink);
+    }
+
+    &__bar {
+        min-width: 0;
+        display: flex;
+        gap: 12px;
+        height: 14px;
+        overflow: hidden;
+    }
+
+    &__seg {
+        flex: 1;
+        min-width: 0;
+        border-radius: 3px;
+        background: var(--gp-line);
+    }
+
+    &__row--filled &__seg {
+        background: linear-gradient(180deg, var(--gp-gold-bright), var(--gp-gold));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    &__row--moving &__seg {
+        box-shadow: inset 0 0 0 1px var(--gp-red);
+    }
+
+    &__mark {
+        justify-self: center;
+        width: 100%;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--gp-red);
+        min-height: 1em;
+    }
+}
+
+@media (max-width: 540px) {
+    .gua-panel {
+        padding: 16px 18px 14px;
+
+        &__title {
+            font-size: 18px;
+        }
+
+        &__row {
+            height: 42px;
+            column-gap: 8px;
+        }
+
+        &__name {
+            font-size: 15px;
+        }
+
+        &__bar {
+            height: 15px;
+            gap: 14px;
+        }
+    }
+}

@@ -518,11 +518,13 @@ $mobile-topbar-row-h: 56px;
             flex: 1;
             height: 100%;
             min-height: 0;
+            align-items: stretch;
 
             .liuyao-panel {
                 flex: 1;
                 min-height: 0;
                 width: 100%;
+                max-width: 100%;
             }
         }
 
@@ -551,11 +553,13 @@ $mobile-topbar-row-h: 56px;
             flex: 1;
             height: 100%;
             min-height: 0;
+            align-items: stretch;
 
             .meihua-panel {
                 flex: 1;
                 min-height: 0;
                 width: 100%;
+                max-width: 100%;
             }
         }
 
@@ -676,6 +680,7 @@ $mobile-topbar-row-h: 56px;
     .lottery-m__scroll,
     .lottery-m__sheet-body,
     .liuyao-panel__scroll,
+    .liuyao-panel__result-body,
     .meihua-panel__scroll {
         overflow-x: hidden;
         @include hide-mobile-scrollbar;

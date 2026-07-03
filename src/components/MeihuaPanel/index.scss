@@ -68,6 +68,38 @@
         box-sizing: border-box;
     }
 
+    &__hero {
+        width: 100%;
+        padding-top: 10px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+
+    &__hero-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 44px;
+    }
+
+    &__hero-side {
+        flex: 0 0 44px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+        .panel-back {
+            width: auto;
+            padding-top: 0;
+            align-self: auto;
+        }
+
+        &--mirror {
+            visibility: hidden;
+            pointer-events: none;
+        }
+    }
+
     &__head {
         margin-top: clamp(24px, 6vh, 44px);
         text-align: center;
@@ -78,9 +110,13 @@
     }
 
     &__title {
+        flex: 1;
+        min-width: 0;
+        text-align: center;
         font-family: var(--mh-brush);
         font-size: clamp(34px, 4.4vw, 46px);
         font-weight: 400;
+        line-height: 1.3;
         letter-spacing: 0.22em;
         padding-left: 0.22em;
         color: var(--mh-title);
@@ -88,10 +124,17 @@
     }
 
     &__subtitle {
+        display: block;
+        margin-top: 6px;
+        text-align: center;
         font-size: 15px;
         letter-spacing: 0.28em;
         padding-left: 0.28em;
         color: var(--mh-subtitle);
+    }
+
+    &__hero + .dv-setup {
+        margin-top: 12px;
     }
 
     /* ============ 起卦方式面板（由 DivineSetup 承载，作为其 children） ============ */
@@ -289,6 +332,21 @@
         animation: mh-fade 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    &__cast {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    &__cast-foot {
+        flex: none;
+        width: 100%;
+        margin-top: auto;
+        padding-top: 16px;
+        box-sizing: border-box;
+    }
+
     &__q-card {
         display: flex;
         align-items: center;
@@ -342,7 +400,7 @@
         margin-top: 30px;
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
         padding: 40px 36px 36px;
         border-radius: 22px;
         border: 1px solid var(--mh-line);
@@ -357,6 +415,7 @@
         text-indent: 0.3em;
         color: var(--mh-gold);
         margin-bottom: 6px;
+        text-align: center;
     }
 
     &__conjure-sub {
@@ -364,31 +423,36 @@
         letter-spacing: 0.16em;
         color: var(--mh-ink-faint);
         margin-bottom: 34px;
+        text-align: center;
     }
 
     &__tiles {
-        display: flex;
-        gap: 26px;
-        flex-wrap: wrap;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        width: 100%;
     }
 
     &__tile {
-        width: 168px;
+        width: auto;
+        min-width: 0;
+        height: 172px;
+        min-height: 172px;
+        box-sizing: border-box;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 14px;
-        padding: 24px 18px;
+        justify-content: flex-start;
+        gap: 8px;
+        padding: 16px 10px 14px;
         border-radius: 18px;
         background: var(--mh-bg-soft);
         border: 1px solid var(--mh-line);
-        transition: border-color 0.35s, box-shadow 0.35s, transform 0.35s;
+        transition: border-color 0.35s, box-shadow 0.35s;
 
         &--locked {
             border-color: var(--mh-gold-soft);
             box-shadow: 0 12px 30px -18px var(--mh-shadow-lg);
-            transform: translateY(-3px);
         }
     }
 
@@ -436,24 +500,32 @@
     }
 
     &__tile-sym {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 30px;
         font-size: 30px;
         line-height: 1;
         color: var(--mh-ink-faint);
         opacity: 0;
-        transform: translateY(6px);
-        transition: opacity 0.4s, transform 0.4s, color 0.4s;
+        transition: opacity 0.4s, color 0.4s;
     }
 
     &__tile--locked &__tile-sym {
         opacity: 1;
-        transform: none;
         color: var(--mh-gold);
     }
 
     &__tile-tri {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 18px;
         font-size: 13px;
         letter-spacing: 0.16em;
-        min-height: 18px;
+        text-align: center;
         color: var(--mh-ink-faint);
         opacity: 0;
         transition: opacity 0.4s;
@@ -466,6 +538,7 @@
 
     &__build {
         margin-top: 34px;
+        align-self: center;
         width: 100%;
         max-width: 360px;
         display: flex;
@@ -487,9 +560,13 @@
     }
 
     &__bl-name {
-        width: 30px;
+        flex: none;
+        width: auto;
+        min-width: 2.4em;
         font-size: 11px;
-        letter-spacing: 0.08em;
+        line-height: 1;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
         color: var(--mh-ink-faint);
     }
 
@@ -521,28 +598,35 @@
     }
 
     &__skip-row {
-        margin-top: 28px;
+        display: none;
     }
 
     &__btn-skip {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
-        padding: 8px 18px;
-        border-radius: 999px;
+        width: 100%;
+        min-height: 48px;
+        padding: 14px 20px;
+        border-radius: 14px;
         border: 1px solid var(--mh-line);
+        background: var(--mh-surface);
+        box-sizing: border-box;
         cursor: pointer;
-        transition: border-color 0.2s;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, opacity 0.2s;
+        opacity: 0.72;
 
         &:hover {
             border-color: var(--mh-gold-soft);
+            opacity: 0.88;
         }
     }
 
     &__btn-skip-txt {
-        font-size: 13px;
-        letter-spacing: 0.2em;
-        color: var(--mh-ink-faint);
+        font-family: var(--mh-brush);
+        font-size: 18px;
+        letter-spacing: 0.14em;
+        color: var(--mh-ink-soft);
         transition: color 0.2s;
     }
 
@@ -551,12 +635,18 @@
     }
 
     &__btn-skip--ready {
-        border-color: var(--mh-gold-soft);
-        background: var(--mh-active-bg);
-        box-shadow: 0 8px 24px -12px var(--mh-shadow-lg);
+        opacity: 1;
+        border: none;
+        background: linear-gradient(135deg, var(--mh-gold) 0%, var(--mh-gold-deep, #b8923a) 100%);
+        box-shadow: 0 8px 24px -8px var(--mh-shadow-lg);
 
         .meihua-panel__btn-skip-txt {
-            color: var(--mh-gold);
+            color: var(--mh-surface, #fff);
+        }
+
+        &:hover {
+            opacity: 1;
+            filter: brightness(1.03);
         }
     }
 
@@ -584,7 +674,7 @@
         justify-content: center;
         gap: 12px;
         width: 100%;
-        max-width: 420px;
+        max-width: 100%;
         margin: 28px auto 8px;
         padding: 0 4px;
         box-sizing: border-box;
@@ -837,10 +927,22 @@
     &__hex-cards {
         margin-top: 26px;
         display: flex;
+        flex-direction: column;
         align-items: stretch;
-        justify-content: center;
-        gap: 24px;
-        flex-wrap: wrap;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .gua-panel {
+        --gp-surface: var(--mh-surface);
+        --gp-line: var(--mh-line);
+        --gp-shadow-lg: var(--mh-shadow-lg);
+        --gp-brush: var(--mh-brush);
+        --gp-ink: var(--mh-ink);
+        --gp-ink-faint: var(--mh-ink-faint);
+        --gp-gold-bright: var(--mh-gold-bright);
+        --gp-gold: var(--mh-gold);
+        --gp-red: var(--mh-red);
     }
 
     &__hex {
@@ -921,9 +1023,13 @@
     }
 
     &__hl-name {
-        width: 26px;
+        flex: none;
+        width: auto;
+        min-width: 2.4em;
         font-size: 10.5px;
+        line-height: 1;
         letter-spacing: 0.06em;
+        white-space: nowrap;
         color: var(--mh-ink-faint);
     }
 
@@ -954,30 +1060,6 @@
         font-size: 12px;
         font-weight: 700;
         color: var(--mh-red);
-    }
-
-    &__hex-arrow {
-        align-self: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: var(--mh-gold);
-
-        @media (max-width: 880px) {
-            transform: rotate(90deg);
-        }
-    }
-
-    &__hex-arrow-t {
-        font-family: var(--mh-brush);
-        font-size: 16px;
-        letter-spacing: 0.1em;
-    }
-
-    &__hex-arrow-s {
-        margin-top: 2px;
-        font-size: 20px;
-        line-height: 1;
     }
 
     &__reading {
@@ -1123,17 +1205,120 @@
     --mh-yao: #e8c882;
 }
 
+.meihua-panel--casting {
+    height: 100%;
+
+    .meihua-panel__scroll {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        box-sizing: border-box;
+    }
+}
+
 @media (max-width: 540px) {
     .meihua-panel {
         &__scroll {
-            padding: 0 16px 40px;
+            padding: 4px 16px 40px;
+        }
+
+        &__hero {
+            padding-top: 8px;
+            margin-bottom: 8px;
+        }
+
+        &__hero-row {
+            min-height: 44px;
+        }
+
+        &__hero-side {
+            flex-basis: 40px;
+
+            .panel-back__btn {
+                width: 40px;
+                height: 40px;
+                font-size: 32px;
+            }
         }
 
         &__title { font-size: 25px; }
 
         &__subtitle {
+            margin-top: 4px;
             letter-spacing: 0.14em;
             padding-left: 0.14em;
+        }
+
+        &__hero + .dv-setup {
+            margin-top: 8px;
+        }
+
+        &__conjure {
+            margin-top: 16px;
+            padding: 24px 14px 20px;
+        }
+
+        &__conjure-sub {
+            margin-bottom: 18px;
+        }
+
+        &__tiles {
+            gap: 8px;
+        }
+
+        &__tile {
+            height: 148px;
+            min-height: 148px;
+            padding: 12px 6px 10px;
+            gap: 6px;
+            border-radius: 14px;
+        }
+
+        &__tile-cap {
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-align: center;
+        }
+
+        &__tile-num-wrap {
+            height: 44px;
+            min-height: 44px;
+        }
+
+        &__tile-num {
+            font-size: 40px;
+            min-height: 44px;
+        }
+
+        &__tile-sym {
+            min-height: 22px;
+            font-size: 22px;
+        }
+
+        &__tile-tri {
+            min-height: 16px;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-align: center;
+        }
+
+        &--casting {
+            .meihua-panel__scroll {
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+                padding-bottom: 0;
+            }
+
+            .meihua-panel__cast-foot {
+                padding-top: 12px;
+                padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+            }
+
+            .meihua-panel__btn-skip-txt {
+                font-size: 17px;
+                letter-spacing: 0.12em;
+            }
         }
 
         &__actions {

@@ -9,6 +9,7 @@ import {
     useFacePanel
 } from './shared'
 import PanelBackButton from '@/components/PanelBackButton'
+import PendingText from '@/components/LoadingDots'
 
 import './index.scss'
 
@@ -26,6 +27,7 @@ export default function FacePanelPC () {
         hintText,
         lead,
         submitLabel,
+        submitLabelLoading,
         chooseSlot,
         clearSlot,
         submit,
@@ -99,7 +101,9 @@ export default function FacePanelPC () {
                             className={`face-panel__submit ${(!ready || loading) ? 'face-panel__submit--disabled' : ''}`}
                             onClick={() => void submit()}
                         >
-                            <Text className='face-panel__submit-txt'>{submitLabel}</Text>
+                            {submitLabelLoading
+                                ? <PendingText spaced className='face-panel__submit-txt'>{submitLabel}</PendingText>
+                                : <Text className='face-panel__submit-txt'>{submitLabel}</Text>}
                         </View>
                         <Text className='face-panel__form-hint'>
                             已上传 {uploadedCount} / {MAX_IMAGES} 张 · {hintText}
@@ -205,7 +209,9 @@ export default function FacePanelPC () {
 
                         {!hasFullReading && !loading && (
                             <View className='face-panel__submit' onClick={() => void onInterpret()}>
-                                <Text className='face-panel__submit-txt'>{submitLabel}</Text>
+                                {submitLabelLoading
+                                ? <PendingText spaced className='face-panel__submit-txt'>{submitLabel}</PendingText>
+                                : <Text className='face-panel__submit-txt'>{submitLabel}</Text>}
                             </View>
                         )}
 

@@ -9,6 +9,7 @@ import {
     useFacePanel
 } from './shared'
 import PanelBackButton from '@/components/PanelBackButton'
+import PendingText from '@/components/LoadingDots'
 
 import './mobile.scss'
 
@@ -26,6 +27,7 @@ export default function FacePanelMobile () {
         hintText,
         lead,
         submitLabel,
+        submitLabelLoading,
         chooseSlot,
         clearSlot,
         submit,
@@ -195,7 +197,9 @@ export default function FacePanelMobile () {
 
                         {!hasFullReading && !loading && (
                             <View className='face-m__submit' onClick={() => void onInterpret()}>
-                                <Text className='face-m__submit-txt'>{submitLabel}</Text>
+                                {submitLabelLoading
+                                ? <PendingText spaced className='face-m__submit-txt'>{submitLabel}</PendingText>
+                                : <Text className='face-m__submit-txt'>{submitLabel}</Text>}
                             </View>
                         )}
 
@@ -212,7 +216,9 @@ export default function FacePanelMobile () {
                         className={`face-m__submit ${(!ready || loading) ? 'face-m__submit--disabled' : ''}`}
                         onClick={() => void submit()}
                     >
-                        <Text className='face-m__submit-txt'>{submitLabel}</Text>
+                        {submitLabelLoading
+                            ? <PendingText spaced className='face-m__submit-txt'>{submitLabel}</PendingText>
+                            : <Text className='face-m__submit-txt'>{submitLabel}</Text>}
                     </View>
                 </View>
             )}

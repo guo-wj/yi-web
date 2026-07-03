@@ -2,6 +2,7 @@ import { View, Text, Image } from '@tarojs/components'
 import { useMemo } from 'react'
 
 import MarkdownView from '@/components/MarkdownView'
+import PendingText from '@/components/LoadingDots'
 import canisterSvg from '@/assets/images/canister.svg'
 import {
     formatSlipHeading,
@@ -56,7 +57,13 @@ export default function LotteryPanelMobile () {
                         >
                             <View className='lottery-m__drawn-cap' />
                             <View className='lottery-m__drawn-body'>
-                                <Text className='lottery-m__drawn-label'>{slipStickText}</Text>
+                                <View className='lottery-m__drawn-label'>
+                                    {[...slipStickText].map((char, i) => (
+                                        <Text key={`${char}-${i}`} className='lottery-m__drawn-char'>
+                                            {char}
+                                        </Text>
+                                    ))}
+                                </View>
                                 <View className='lottery-m__drawn-seal'>
                                     <Text className='lottery-m__drawn-seal-txt'>{result.slip.tier}</Text>
                                 </View>
@@ -74,7 +81,7 @@ export default function LotteryPanelMobile () {
                 )}
                 {phase === 'shaking' && (
                     <View className='lottery-m__cta lottery-m__cta--disabled'>
-                        <Text className='lottery-m__cta-txt'>诚心摇签中…</Text>
+                        <PendingText className='lottery-m__cta-txt'>诚心摇签中</PendingText>
                     </View>
                 )}
                 {phase === 'drawn' && (
@@ -89,9 +96,9 @@ export default function LotteryPanelMobile () {
                             className='lottery-m__action lottery-m__action--primary'
                             onClick={() => void onInterpret()}
                         >
-                            <Text className='lottery-m__action-txt lottery-m__action-txt--primary'>
-                                {interpreting ? '解签中…' : '解签'}
-                            </Text>
+                            {interpreting
+                                ? <PendingText className='lottery-m__action-txt lottery-m__action-txt--primary'>解签中</PendingText>
+                                : <Text className='lottery-m__action-txt lottery-m__action-txt--primary'>解签</Text>}
                         </View>
                         <View className='lottery-m__action' onClick={reset}>
                             <Text className='lottery-m__action-txt'>再抽一次</Text>
@@ -155,9 +162,9 @@ function ResultSheet ({ result, interpreting, onClose }: ResultSheetProps) {
                         {result.interpretation
                             ? <MarkdownView className='lottery-m__sect-md' content={result.interpretation} />
                             : (
-                                <Text className='lottery-m__sect-pending'>
-                                    {interpreting ? 'AI 正在解签，请稍候…' : '点击解签获取 AI 解读'}
-                                </Text>
+                                interpreting
+                                    ? <PendingText className='lottery-m__sect-pending'>AI 正在解签，请稍候</PendingText>
+                                    : <Text className='lottery-m__sect-pending'>点击解签获取 AI 解读</Text>
                             )}
                     </View>
 

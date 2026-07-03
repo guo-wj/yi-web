@@ -272,10 +272,11 @@ export function useFacePanel () {
     }, [])
 
     const submitLabel = extracting
-        ? '正 在 识 别 面 象 …'
+        ? '正 在 识 别 面 象'
         : interpreting
-            ? '正 在 参 详 解 读 …'
+            ? '正 在 参 详 解 读'
             : (phase === 'reading' && !hasFullReading ? 'AI 参 详 解 读' : '开 始 识 别')
+    const submitLabelLoading = extracting || interpreting
 
     return {
         phase,
@@ -292,6 +293,7 @@ export function useFacePanel () {
         hintText,
         lead,
         submitLabel,
+        submitLabelLoading,
         chooseSlot,
         clearSlot,
         submit,

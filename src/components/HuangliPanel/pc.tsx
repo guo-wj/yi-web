@@ -1,5 +1,7 @@
 import { View, Text } from '@tarojs/components'
 
+import PendingText from '@/components/LoadingDots'
+
 import {
     toCnYear,
     toCnMonth,
@@ -17,7 +19,7 @@ export default function HuangliPanelPC () {
     if (loading) {
         return (
             <View className='huangli huangli--state'>
-                <Text className='huangli__state-txt'>正在翻黄历…</Text>
+                <PendingText className='huangli__state-txt'>正在翻黄历</PendingText>
             </View>
         )
     }

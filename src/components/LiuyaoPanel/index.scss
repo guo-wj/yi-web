@@ -57,6 +57,18 @@
     font-size: 16px;
     line-height: 1.5;
 
+    .gua-panel {
+        --gp-surface: var(--ly-surface);
+        --gp-line: var(--ly-line);
+        --gp-shadow-lg: var(--ly-shadow-lg);
+        --gp-brush: var(--ly-brush);
+        --gp-ink: var(--ly-ink);
+        --gp-ink-faint: var(--ly-ink-faint);
+        --gp-gold-bright: var(--ly-gold-bright);
+        --gp-gold: var(--ly-gold);
+        --gp-red: var(--ly-red);
+    }
+
     &::after {
         content: '';
         position: absolute;
@@ -79,6 +91,46 @@
         align-items: center;
     }
 
+    &--session,
+    &--result {
+        .liuyao-panel__scroll {
+            align-items: stretch;
+        }
+    }
+
+    &__hero {
+        width: 100%;
+        padding-top: 10px;
+        margin-bottom: 10px;
+        flex: none;
+        box-sizing: border-box;
+    }
+
+    &__hero-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 44px;
+    }
+
+    &__hero-side {
+        flex: 0 0 44px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+        .panel-back {
+            width: auto;
+            padding-top: 0;
+            align-self: auto;
+        }
+
+        &--mirror {
+            visibility: hidden;
+            pointer-events: none;
+        }
+    }
+
     &__head {
         margin-top: clamp(24px, 6vh, 48px);
         text-align: center;
@@ -90,9 +142,13 @@
     }
 
     &__title {
+        flex: 1;
+        min-width: 0;
+        text-align: center;
         font-family: var(--ly-brush);
         font-size: clamp(34px, 4.4vw, 46px);
         font-weight: 400;
+        line-height: 1.3;
         letter-spacing: 0.22em;
         padding-left: 0.22em;
         color: var(--ly-title);
@@ -100,10 +156,17 @@
     }
 
     &__subtitle {
+        display: block;
+        margin-top: 6px;
+        text-align: center;
         font-size: 15px;
         letter-spacing: 0.28em;
         padding-left: 0.28em;
         color: var(--ly-subtitle);
+    }
+
+    &__hero + .dv-setup {
+        margin-top: 12px;
     }
 
     &__cta {
@@ -166,16 +229,24 @@
 
     /* ---- casting session ---- */
     &__session {
-        width: min(100%, 980px);
-        margin: 8px auto 0;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
         display: flex;
         flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        align-self: stretch;
     }
 
     &__q-card {
         display: flex;
         align-items: center;
         gap: 16px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
         padding: 20px 24px;
         border-radius: 16px;
         border: 1px solid var(--ly-line);
@@ -196,6 +267,7 @@
 
     &__q-text {
         flex: 1;
+        min-width: 0;
         font-size: 19px;
         letter-spacing: 0.06em;
         color: var(--ly-ink);
@@ -227,9 +299,14 @@
         gap: 26px;
         margin-top: 26px;
         align-items: stretch;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
 
         @media (max-width: 880px) {
             grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 14px;
         }
     }
 
@@ -240,6 +317,10 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
         padding: 40px 28px 30px;
         border-radius: 20px;
         border: 1px solid var(--ly-line);
@@ -283,6 +364,11 @@
         z-index: 2;
         display: flex;
         gap: 26px;
+        width: 100%;
+        max-width: 100%;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
     }
 
     &__coin-cell {
@@ -290,16 +376,23 @@
         flex-direction: column;
         align-items: center;
         gap: 16px;
+        flex-shrink: 0;
     }
 
     &__coin-stage {
         perspective: 700px;
+        width: 92px;
+        height: 108px;
+        overflow: hidden;
+        flex-shrink: 0;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
     }
 
     &__coin {
         width: 92px;
         height: 92px;
-        filter: drop-shadow(0 8px 14px rgba(80, 52, 12, 0.38));
 
         &--tossing {
             animation: liuyao-hop 0.82s cubic-bezier(0.3, 0.1, 0.3, 1);
@@ -358,91 +451,92 @@
     &__cast-meta {
         position: relative;
         z-index: 2;
-        margin-top: 30px;
+        margin-top: 14px;
         text-align: center;
     }
 
-    &__counter {
+    &__cast-status {
         font-size: 16px;
-        letter-spacing: 0.16em;
+        letter-spacing: 0.1em;
         color: var(--ly-ink-soft);
-    }
-
-    &__counter-n {
-        font-family: var(--ly-brush);
-        font-size: 24px;
-        color: var(--ly-gold);
-        margin: 0 4px;
-    }
-
-    &__last-yao {
-        display: block;
-        margin-top: 10px;
-        min-height: 22px;
-        font-size: 14px;
-        letter-spacing: 0.14em;
-        color: var(--ly-gold);
-        opacity: 0;
-        transition: opacity 0.3s;
-
-        &--show {
-            opacity: 1;
-        }
     }
 
     /* ---- 卦象渐成 ---- */
     &__yaopanel {
         display: flex;
         flex-direction: column;
-        padding: 26px 28px;
-        border-radius: 20px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 18px 18px 16px;
+        border-radius: 16px;
         border: 1px solid var(--ly-line);
         background: var(--ly-surface);
-        box-shadow: 0 16px 40px -26px var(--ly-shadow-lg);
+        box-shadow: 0 12px 32px -18px var(--ly-shadow-lg);
+        overflow: visible;
     }
 
     &__yp-head {
         display: flex;
-        align-items: baseline;
+        align-items: center;
         justify-content: space-between;
-        padding-bottom: 16px;
-        margin-bottom: 8px;
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+        padding-bottom: 12px;
+        margin-bottom: 6px;
         border-bottom: 1px solid var(--ly-line);
+        box-sizing: border-box;
     }
 
     &__yp-title {
+        flex: 1;
+        min-width: 0;
         font-family: var(--ly-brush);
-        font-size: 21px;
-        letter-spacing: 0.2em;
+        font-size: 18px;
+        letter-spacing: 0.12em;
         color: var(--ly-ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     &__yp-note {
-        font-size: 12px;
-        letter-spacing: 0.2em;
+        flex: none;
+        font-size: 11px;
+        letter-spacing: 0.08em;
         color: var(--ly-ink-faint);
+        white-space: nowrap;
     }
 
     &__yp-rows {
-        flex: 1;
+        width: 100%;
+        min-width: 0;
         display: flex;
         flex-direction: column;
-        justify-content: space-around;
+        justify-content: space-between;
+        gap: 2px;
     }
 
     &__yao-row {
-        display: flex;
+        display: grid;
+        grid-template-columns: 2em minmax(0, 1fr) 1.25em;
+        column-gap: 8px;
         align-items: center;
-        gap: 18px;
-        height: 52px;
+        width: 100%;
+        min-width: 0;
+        height: 44px;
+        box-sizing: border-box;
     }
 
     &__yao-name {
-        flex: none;
-        width: 34px;
+        justify-self: start;
         font-family: var(--ly-brush);
-        font-size: 16px;
-        letter-spacing: 0.1em;
+        font-size: 15px;
+        line-height: 1;
+        letter-spacing: 0;
+        white-space: nowrap;
         color: var(--ly-ink-faint);
         transition: color 0.3s;
     }
@@ -452,14 +546,16 @@
     }
 
     &__yao-bar {
-        flex: 1;
+        min-width: 0;
         display: flex;
-        gap: 16px;
-        height: 17px;
+        gap: 12px;
+        height: 14px;
+        overflow: hidden;
     }
 
     &__yao-seg {
         flex: 1;
+        min-width: 0;
         border-radius: 3px;
         background: var(--ly-line);
         transition: background 0.4s, box-shadow 0.4s;
@@ -467,137 +563,74 @@
 
     &__yao-row--filled &__yao-seg {
         background: linear-gradient(180deg, var(--ly-gold-bright), var(--ly-gold));
-        box-shadow: 0 2px 8px -3px rgba(169, 128, 47, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    &__yao-row--moving &__yao-seg {
+        box-shadow: inset 0 0 0 1px var(--ly-red);
     }
 
     &__yao-mark {
-        flex: none;
-        width: 26px;
+        justify-self: center;
+        width: 100%;
         text-align: center;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 700;
+        line-height: 1;
         color: var(--ly-red);
+        min-height: 1em;
     }
 
     /* ---- result ---- */
     &__result {
-        width: min(100%, 980px);
+        width: 100%;
+        max-width: 100%;
         margin: 8px auto 0;
         display: flex;
         flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        align-self: stretch;
     }
 
-    &__res-q {
-        align-self: center;
+    &__result-body {
+        flex: 1;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 28px;
-        font-size: 18px;
-        color: var(--ly-ink);
-    }
-
-    &__res-q-text {
-        color: var(--ly-ink);
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        box-sizing: border-box;
+        padding-bottom: 20px;
     }
 
     &__quota {
         align-self: center;
-        margin: -16px 0 20px;
+        margin: 0;
         font-size: 14px;
         color: var(--ly-muted, #8a7a6a);
     }
 
     &__hex-cards {
         display: flex;
-        align-items: stretch;
-        justify-content: center;
-        gap: 30px;
-        flex-wrap: wrap;
-    }
-
-    &__hex {
-        flex: 0 1 300px;
-        display: flex;
         flex-direction: column;
-        align-items: center;
-        padding: 26px 28px 30px;
-        border-radius: 20px;
-        border: 1px solid var(--ly-line);
-        background: var(--ly-surface);
-        box-shadow: 0 16px 40px -26px var(--ly-shadow-lg);
-    }
-
-    &__hex-role {
-        margin-bottom: 18px;
-        font-family: var(--ly-brush);
-        font-size: 12px;
-        letter-spacing: 0.3em;
-        color: var(--ly-gold);
-        padding: 5px 14px;
-        border: 1px solid var(--ly-gold-soft);
-        border-radius: 999px;
-    }
-
-    &__hex-name {
-        margin-bottom: 4px;
-        font-family: var(--ly-brush);
-        font-size: 30px;
-        letter-spacing: 0.14em;
-        color: var(--ly-ink);
-    }
-
-    &__hex-fullname {
-        margin-bottom: 20px;
-        font-size: 13px;
-        letter-spacing: 0.24em;
-        color: var(--ly-ink-faint);
-    }
-
-    &__hex-lines {
-        display: flex;
-        flex-direction: column-reverse;
-        gap: 9px;
+        align-items: stretch;
+        gap: 12px;
         width: 100%;
     }
 
-    &__hex-line {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        height: 22px;
-    }
+    &__yaopanel--result {
+        width: 100%;
+        flex: none;
 
-    &__hl-name {
-        width: 28px;
-        font-size: 11px;
-        letter-spacing: 0.08em;
-        color: var(--ly-ink-faint);
-    }
-
-    &__hl-bar {
-        flex: 1;
-        display: flex;
-        gap: 14px;
-        height: 13px;
-    }
-
-    &__hl-seg {
-        flex: 1;
-        border-radius: 3px;
-        background: linear-gradient(180deg, var(--ly-gold-bright), var(--ly-gold));
-    }
-
-    &__hex-line--moving &__hl-seg {
-        box-shadow: 0 0 0 1px var(--ly-red), 0 0 10px -2px var(--ly-red);
-    }
-
-    &__hl-mk {
-        width: 18px;
-        text-align: center;
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--ly-red);
+        .liuyao-panel__yp-rows {
+            flex: none;
+            justify-content: flex-start;
+            gap: 4px;
+        }
     }
 
     &__hex-arrow {
@@ -606,21 +639,78 @@
         align-items: center;
         justify-content: center;
         font-family: var(--ly-brush);
-        font-size: 28px;
+        font-size: 16px;
+        line-height: 1;
         color: var(--ly-gold);
-
-        @media (max-width: 880px) {
-            transform: rotate(90deg);
-        }
+        padding: 2px 0;
+        transform: none;
     }
 
     &__reading {
-        margin-top: 34px;
-        padding: 28px 32px 32px;
-        border-radius: 20px;
+        margin-top: 0;
+        padding: 18px 20px 20px;
+        border-radius: 16px;
         border: 1px solid var(--ly-line);
         background: var(--ly-surface);
         box-shadow: 0 16px 40px -26px var(--ly-shadow-lg);
+    }
+
+    &__result-foot {
+        display: flex;
+        gap: 12px;
+        width: 100%;
+        flex-shrink: 0;
+        margin-top: 0;
+        padding-top: 12px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+        border-top: 1px solid var(--ly-line);
+        box-sizing: border-box;
+        background: transparent;
+
+        &--single {
+            .liuyao-panel__foot-btn--ghost {
+                flex: 1;
+            }
+        }
+    }
+
+    &__foot-btn {
+        flex: 1;
+        box-sizing: border-box;
+        min-height: 48px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid var(--ly-line);
+        background: var(--ly-surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &--primary {
+            border: none;
+            background: var(--ly-cta-bg);
+            box-shadow: var(--ly-cta-shadow);
+        }
+
+        &--disabled {
+            opacity: 0.55;
+            pointer-events: none;
+        }
+    }
+
+    &__foot-btn-txt {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        color: var(--ly-ink-soft);
+
+        &--primary {
+            font-family: var(--ly-brush);
+            font-size: 17px;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            color: var(--ly-cta-ink);
+        }
     }
 
     &__reading-head {
@@ -674,6 +764,23 @@
         .md-view__strong {
             color: var(--ly-ink);
         }
+    }
+}
+
+.liuyao-panel--result {
+    height: 100%;
+
+    .liuyao-panel__scroll {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        padding-bottom: 0;
+    }
+
+    .liuyao-panel__result {
+        flex: 1;
+        min-height: 0;
+        margin: 0;
     }
 }
 
@@ -739,29 +846,238 @@
 
 @keyframes liuyao-hop {
     0%   { transform: translateY(0) scale(1); }
-    18%  { transform: translateY(-78px) scale(1.06); }
-    40%  { transform: translateY(-104px) scale(1.08); }
-    62%  { transform: translateY(-58px) scale(1.04); }
-    82%  { transform: translateY(6px) scale(0.98); }
-    92%  { transform: translateY(-4px) scale(1.01); }
+    18%  { transform: translateY(-36px) scale(1.05); }
+    40%  { transform: translateY(-48px) scale(1.06); }
+    62%  { transform: translateY(-28px) scale(1.04); }
+    82%  { transform: translateY(4px) scale(0.98); }
+    92%  { transform: translateY(-2px) scale(1.01); }
+    100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes liuyao-hop-m {
+    0%   { transform: translateY(0) scale(1); }
+    18%  { transform: translateY(-20px) scale(1.04); }
+    40%  { transform: translateY(-28px) scale(1.05); }
+    62%  { transform: translateY(-16px) scale(1.03); }
+    82%  { transform: translateY(3px) scale(0.98); }
+    92%  { transform: translateY(-2px) scale(1.01); }
     100% { transform: translateY(0) scale(1); }
 }
 
 @media (max-width: 540px) {
     .liuyao-panel {
         &__scroll {
-            padding: 0 16px 40px;
+            padding: 4px 16px 16px;
+            min-height: 100%;
+        }
+
+        &--session {
+            height: 100%;
+
+            .liuyao-panel__scroll {
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+                align-items: stretch;
+            }
+
+            .liuyao-panel__session {
+                flex: 1;
+                min-height: 0;
+                width: 100%;
+            }
+
+            .liuyao-panel__cast-grid {
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 16px;
+                width: 100%;
+                overflow: hidden;
+            }
+
+            .liuyao-panel__altar,
+            .liuyao-panel__yaopanel {
+                width: 100%;
+                max-width: 100%;
+                align-self: stretch;
+            }
+
+            .liuyao-panel__yaopanel {
+                flex: 1;
+                min-height: 0;
+            }
+
+            .liuyao-panel__yp-rows {
+                flex: 1;
+                min-height: 0;
+                justify-content: space-evenly;
+            }
+
+            .liuyao-panel__yao-row {
+                flex: none;
+                height: 42px;
+                min-height: unset;
+                max-height: none;
+            }
+        }
+
+        &--result {
+            .liuyao-panel__scroll {
+                padding-bottom: 0;
+            }
+
+            .liuyao-panel__result-body {
+                gap: 10px;
+                padding-bottom: 24px;
+            }
+
+            .liuyao-panel__q-card {
+                margin-bottom: 0;
+            }
+
+            .liuyao-panel__yaopanel--result {
+                padding: 16px 18px 14px;
+            }
+
+            .liuyao-panel__yp-title {
+                font-size: 18px;
+            }
+
+            .liuyao-panel__yao-row {
+                height: 42px;
+            }
+        }
+
+        &__hero {
+            padding-top: 8px;
+            margin-bottom: 6px;
+        }
+
+        &__hero-row {
+            min-height: 44px;
+        }
+
+        &__hero-side {
+            flex-basis: 40px;
+
+            .panel-back__btn {
+                width: 40px;
+                height: 40px;
+                font-size: 32px;
+            }
         }
 
         &__title { font-size: 25px; }
         &__subtitle {
+            margin-top: 4px;
             letter-spacing: 0.14em;
             padding-left: 0.14em;
+            font-size: 12px;
         }
-        &__coins { gap: 16px; }
-        &__coin { width: 72px; height: 72px; }
+
+        &__hero + .dv-setup {
+            margin-top: 8px;
+        }
+
+        &__q-card {
+            padding: 14px 16px;
+            gap: 12px;
+        }
+
+        &__q-tag {
+            padding: 4px 10px;
+            font-size: 11px;
+        }
+
+        &__cast-grid {
+            margin-top: 12px;
+            gap: 12px;
+        }
+
+        &__altar {
+            padding: 22px 18px 16px;
+        }
+
+        &__altar-ring {
+            top: 58px;
+            width: 230px;
+            height: 230px;
+
+            &::after {
+                font-size: 80px;
+            }
+        }
+
+        &__coins { gap: 14px; }
+
+        &__coin-stage {
+            width: 76px;
+            height: 92px;
+        }
+
+        &__coin { width: 76px; height: 76px; }
+
+        &__coin--tossing {
+            animation-name: liuyao-hop-m;
+        }
+
+        &__coin-cell {
+            gap: 10px;
+        }
+
+        &__coin-label {
+            font-size: 15px;
+            min-height: 20px;
+        }
+
+        &__cast-meta {
+            margin-top: 14px;
+        }
+
+        &__cast-status {
+            font-size: 14px;
+        }
+
+        &__yaopanel {
+            padding: 16px 18px 14px;
+        }
+
+        &__yp-head {
+            padding-bottom: 10px;
+            margin-bottom: 4px;
+        }
+
+        &__yp-title {
+            font-size: 19px;
+        }
+
+        &__yp-rows {
+            justify-content: flex-start;
+            gap: 4px;
+        }
+
+        &--session .liuyao-panel__yp-rows {
+            justify-content: space-evenly;
+            gap: 0;
+        }
+
+        &__yao-row {
+            height: 42px;
+            column-gap: 8px;
+        }
+
+        &__yao-name {
+            font-size: 15px;
+        }
+
+        &__yao-bar {
+            height: 15px;
+            gap: 14px;
+        }
+
         &__q-text { font-size: 16px; }
-        &__hex-name { font-size: 26px; }
 
         &__cta {
             max-width: 100%;
@@ -770,7 +1086,9 @@
             padding-right: 16px;
 
             &--cast {
-                margin-top: 24px;
+                margin-top: 16px;
+                padding-top: 16px;
+                padding-bottom: 16px;
             }
         }
 
@@ -780,12 +1098,22 @@
             text-indent: 0;
             padding-left: 0.12em;
         }
+
+        &--session .liuyao-panel__cta--cast {
+            margin-top: auto;
+            flex-shrink: 0;
+        }
+
+        &--session .liuyao-panel__cast-grid {
+            margin-bottom: 16px;
+        }
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .liuyao-panel__coin--tossing {
         animation-duration: 0.01ms !important;
+        animation-name: liuyao-hop-m !important;
     }
 
     .liuyao-panel__coin-inner {

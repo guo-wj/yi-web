@@ -8,6 +8,7 @@ import {
     type HandSide
 } from './shared'
 import PanelBackButton from '@/components/PanelBackButton'
+import PendingText from '@/components/LoadingDots'
 
 import './index.scss'
 
@@ -24,6 +25,7 @@ export default function PalmPanelPC () {
         hasFullReading,
         hintText,
         submitLabel,
+        submitLabelLoading,
         lead,
         hands,
         chooseHand,
@@ -89,7 +91,9 @@ export default function PalmPanelPC () {
                             className={`palm-panel__submit ${(!ready || loading) ? 'palm-panel__submit--disabled' : ''}`}
                             onClick={() => void submit()}
                         >
-                            <Text className='palm-panel__submit-txt'>{submitLabel}</Text>
+                            {submitLabelLoading
+                                ? <PendingText spaced className='palm-panel__submit-txt'>{submitLabel}</PendingText>
+                                : <Text className='palm-panel__submit-txt'>{submitLabel}</Text>}
                         </View>
                         <Text className='palm-panel__form-hint'>{hintText}</Text>
                     </View>
@@ -112,7 +116,7 @@ export default function PalmPanelPC () {
 
                         {interpreting && !result.overview && (
                             <View className='palm-panel__card palm-panel__loading-card'>
-                                <Text className='palm-panel__loading-hint'>正在参详三线五丘…</Text>
+                                <PendingText className='palm-panel__loading-hint'>正在参详三线五丘</PendingText>
                             </View>
                         )}
 
@@ -196,7 +200,9 @@ export default function PalmPanelPC () {
                                 className='palm-panel__submit'
                                 onClick={() => void onInterpret()}
                             >
-                                <Text className='palm-panel__submit-txt'>{submitLabel}</Text>
+                                {submitLabelLoading
+                                ? <PendingText spaced className='palm-panel__submit-txt'>{submitLabel}</PendingText>
+                                : <Text className='palm-panel__submit-txt'>{submitLabel}</Text>}
                             </View>
                         )}
 

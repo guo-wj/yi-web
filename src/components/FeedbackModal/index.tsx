@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 
+import PendingText from '@/components/LoadingDots'
 import {
     closeFeedbackModal,
     getFeedbackModalOpen,
@@ -94,7 +95,9 @@ function FeedbackModalForm () {
                         className={`feedback-modal__submit ${submitting ? 'feedback-modal__submit--disabled' : ''}`}
                         onClick={() => void onSubmit()}
                     >
-                        <Text>{submitting ? '提交中…' : '提交'}</Text>
+                        {submitting
+                            ? <PendingText>提交中</PendingText>
+                            : <Text>提交</Text>}
                     </View>
                 </View>
 

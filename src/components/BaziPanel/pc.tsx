@@ -1,6 +1,7 @@
 import { View, Text, Input } from '@tarojs/components'
 
 import MarkdownView from '@/components/MarkdownView'
+import PendingText from '@/components/LoadingDots'
 import PanelBackButton from '@/components/PanelBackButton'
 import {
     BAZI_CALENDARS,
@@ -191,9 +192,9 @@ export default function BaziPanelPC () {
                             className={`bazi-panel__submit ${loading ? 'bazi-panel__submit--disabled' : ''}`}
                             onClick={() => void submit()}
                         >
-                            <Text className='bazi-panel__submit-txt'>
-                                {loading ? '排 盘 中 …' : '查 看 命 盘'}
-                            </Text>
+                            {loading
+                                ? <PendingText spaced className='bazi-panel__submit-txt'>排 盘 中</PendingText>
+                                : <Text className='bazi-panel__submit-txt'>查 看 命 盘</Text>}
                         </View>
                         <Text className='bazi-panel__form-hint'>凝神定意，如实填写，方得真盘</Text>
                     </View>
@@ -241,9 +242,9 @@ export default function BaziPanelPC () {
                                 className={`bazi-panel__submit ${interpreting ? 'bazi-panel__submit--disabled' : ''}`}
                                 onClick={() => void onInterpret()}
                             >
-                                <Text className='bazi-panel__submit-txt'>
-                                    {interpreting ? '断 语 生 成 中 …' : 'AI 命 理 断 语'}
-                                </Text>
+                                {interpreting
+                                    ? <PendingText spaced className='bazi-panel__submit-txt'>断 语 生 成 中</PendingText>
+                                    : <Text className='bazi-panel__submit-txt'>AI 命 理 断 语</Text>}
                             </View>
                         )}
 
@@ -256,9 +257,9 @@ export default function BaziPanelPC () {
                                 {streamText
                                     ? <MarkdownView className='bazi-panel__reading-md' content={streamText} />
                                     : (
-                                        <Text className='bazi-panel__reading-wait'>
-                                            {streaming ? '命盘洞开，批语将至…' : '暂无内容'}
-                                        </Text>
+                                        streaming
+                                            ? <PendingText className='bazi-panel__reading-wait'>命盘洞开，批语将至</PendingText>
+                                            : <Text className='bazi-panel__reading-wait'>暂无内容</Text>
                                     )}
                             </View>
                         )}

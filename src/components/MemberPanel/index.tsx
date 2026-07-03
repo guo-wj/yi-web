@@ -2,6 +2,7 @@ import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 
+import PendingText, { LoadingDots } from '@/components/LoadingDots'
 import { POINTS_FEATURE_COST } from '@/constants/pointsFeatures'
 import { usePoints } from '@/hooks/usePoints'
 import {
@@ -395,7 +396,9 @@ export default function MemberPanel ({
                     <View className='hero-l'>
                         <View className='hero-label'>当前积分</View>
                         <View className='hero-pts'>
-                            <Text>{loading && !balance ? '…' : (balance?.balance ?? 0)}</Text>
+                            {loading && !balance
+                                ? <LoadingDots />
+                                : <Text>{balance?.balance ?? 0}</Text>}
                             <Text className='unit'>积分</Text>
                         </View>
                         <View className='hero-tier'>
@@ -607,7 +610,9 @@ export default function MemberPanel ({
                             className={`btn-pay ${busy ? 'busy' : ''}`}
                             onClick={onRecharge}
                         >
-                            <Text>{busy ? '处理中…' : '确认充值'}</Text>
+                            {busy
+                                ? <PendingText>处理中</PendingText>
+                                : <Text>确认充值</Text>}
                         </View>
                     </View>
                 </View>

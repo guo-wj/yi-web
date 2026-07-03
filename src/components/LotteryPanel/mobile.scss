@@ -160,16 +160,26 @@
     }
 
     &__drawn-label {
-        writing-mode: vertical-rl;
-        text-orientation: upright;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 3px;
         margin-top: 20px;
         max-height: 58%;
+        overflow: hidden;
+    }
+
+    &__drawn-char {
+        display: block;
+        flex: none;
         font-size: 17px;
         font-weight: 700;
-        letter-spacing: 0.1em;
-        line-height: 1.15;
+        line-height: 1.1;
+        letter-spacing: 0.06em;
         color: #5a1410;
         text-align: center;
+        white-space: nowrap;
     }
 
     &__drawn-seal {
@@ -318,12 +328,15 @@
         display: flex;
         align-items: flex-end;
         justify-content: center;
+        padding-top: max(12px, env(safe-area-inset-top, 0px));
+        box-sizing: border-box;
         animation: lottery-fade 0.3s ease;
     }
 
     &__sheet {
         width: 100%;
-        max-height: 90vh;
+        max-height: min(76vh, calc(100vh - 48px));
+        max-height: min(76dvh, calc(100dvh - 48px));
         display: flex;
         flex-direction: column;
         overflow: hidden;
