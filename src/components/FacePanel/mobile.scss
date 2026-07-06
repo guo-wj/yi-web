@@ -519,9 +519,26 @@
         color: var(--fm-ink-soft);
     }
 
+    /* ---- 结果底部操作 ---- */
+    &__result-foot {
+        display: flex;
+        align-items: stretch;
+        gap: 12px;
+        width: 100%;
+        margin-top: 4px;
+    }
+
+    &__submit--inline {
+        flex: 1;
+        min-width: 0;
+        width: auto;
+        height: 46px;
+    }
+
     /* ---- 重新上传 ---- */
     &__btn-back {
-        margin-top: 4px;
+        flex: 1;
+        min-width: 0;
         height: 46px;
         border-radius: 14px;
         border: 1px solid var(--fm-gold-soft);
@@ -529,6 +546,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        box-sizing: border-box;
     }
 
     &__btn-back-txt {

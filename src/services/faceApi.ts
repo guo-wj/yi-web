@@ -3,7 +3,7 @@ import Taro from '@tarojs/taro'
 import { getApiBaseUrl } from '@/config/apiBase'
 import { buildAuthHeaders } from '@/services/http'
 
-/** 与 yi-back-end POST /api/face/analyze 对齐 */
+/** 与 yi-back-end POST /api/face/extract、/interpret 对齐 */
 
 export type FaceSlot = 'front' | 'side' | 'extra'
 
@@ -83,9 +83,15 @@ export interface FaceAnalyzeResponse extends FaceStructuredBody {
 
 const FACE_EXTRACT_TIMEOUT_MS = 120_000
 const FACE_INTERPRET_TIMEOUT_MS = 90_000
-const FACE_REQUEST_TIMEOUT_MS = 180_000
 
 function parseApiError (data: unknown, status: number): string {
+    if (status === 429) {
+        const detail = data && typeof data === 'object'
+            ? (data as { detail?: unknown }).detail
+            : null
+        if (typeof detail === 'string' && detail) return detail
+        return '今日识别次数已达上限，明日再来。'
+    }
     if (!data || typeof data !== 'object') return `请求失败（${status}）`
     const detail = (data as { detail?: unknown }).detail
     if (typeof detail === 'string') return detail
@@ -153,7 +159,7 @@ async function pathToDataUrl (path: string): Promise<string> {
 }
 
 async function postFaceJson<T> (
-    path: '/extract' | '/interpret' | '/analyze',
+    path: '/extract' | '/interpret',
     data: unknown,
     timeout: number
 ): Promise<T> {
@@ -208,7 +214,10 @@ export async function postFaceInterpret (
 
 export async function postFaceAnalyze (
     imagePaths: string[],
-    slots: FaceSlot[]
+    slots: FaceSlot[],
+    options?: {
+        onExtracted?: (extracted: FaceExtractResponse) => void
+    }
 ): Promise<FaceAnalyzeResponse> {
     if (imagePaths.length < 1 || imagePaths.length > 3) {
         throw new Error('请上传 1～3 张面部图片')
@@ -217,9 +226,16 @@ export async function postFaceAnalyze (
         throw new Error('图片与槽位数量不一致')
     }
 
-    const data = await buildFacePayload(imagePaths, slots)
+    const extracted = await postFaceExtract(imagePaths, slots)
+    options?.onExtracted?.(extracted)
 
-    return postFaceJson<FaceAnalyzeResponse>('/analyze', data, FACE_REQUEST_TIMEOUT_MS)
+    const interpreted = await postFaceInterpret({ features: extracted.features })
+
+    return {
+        ...interpreted,
+        summary: extracted.summary,
+        summaries: extracted.summaries
+    }
 }
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))

@@ -190,6 +190,7 @@ export function useFacePanel () {
                 summaries: extracted.summaries
             })
             setPhase('reading')
+            refreshQuota()
         } catch (e) {
             if (!ac.signal.aborted) {
                 const msg = e instanceof Error ? e.message : '识别失败'
@@ -202,7 +203,7 @@ export function useFacePanel () {
         } finally {
             setExtracting(false)
         }
-    }, [validate, loading, paths])
+    }, [validate, loading, paths, refreshQuota])
 
     const onInterpret = useCallback(async () => {
         const extracted = extractRef.current

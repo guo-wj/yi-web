@@ -187,16 +187,17 @@ export default function PalmPanelMobile () {
                             </>
                         )}
 
-                        {!hasFullReading && !loading && (
-                            <View className='palm-m__submit' onClick={() => void onInterpret()}>
-                                {submitLabelLoading
-                                ? <PendingText spaced className='palm-m__submit-txt'>{submitLabel}</PendingText>
-                                : <Text className='palm-m__submit-txt'>{submitLabel}</Text>}
+                        <View className='palm-m__result-foot'>
+                            <View className='palm-m__btn-back' onClick={reset}>
+                                <Text className='palm-m__btn-back-txt'>重 新 上 传</Text>
                             </View>
-                        )}
-
-                        <View className='palm-m__btn-back' onClick={reset}>
-                            <Text className='palm-m__btn-back-txt'>重 新 上 传</Text>
+                            {!hasFullReading && !loading && (
+                                <View className='palm-m__submit palm-m__submit--inline' onClick={() => void onInterpret()}>
+                                    {submitLabelLoading
+                                        ? <PendingText spaced className='palm-m__submit-txt'>{submitLabel}</PendingText>
+                                        : <Text className='palm-m__submit-txt'>{submitLabel}</Text>}
+                                </View>
+                            )}
                         </View>
                     </View>
                 )}

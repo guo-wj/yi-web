@@ -195,16 +195,17 @@ export default function FacePanelMobile () {
                             </>
                         )}
 
-                        {!hasFullReading && !loading && (
-                            <View className='face-m__submit' onClick={() => void onInterpret()}>
-                                {submitLabelLoading
-                                ? <PendingText spaced className='face-m__submit-txt'>{submitLabel}</PendingText>
-                                : <Text className='face-m__submit-txt'>{submitLabel}</Text>}
+                        <View className='face-m__result-foot'>
+                            <View className='face-m__btn-back' onClick={reset}>
+                                <Text className='face-m__btn-back-txt'>重 新 上 传</Text>
                             </View>
-                        )}
-
-                        <View className='face-m__btn-back' onClick={reset}>
-                            <Text className='face-m__btn-back-txt'>重 新 上 传</Text>
+                            {!hasFullReading && !loading && (
+                                <View className='face-m__submit face-m__submit--inline' onClick={() => void onInterpret()}>
+                                    {submitLabelLoading
+                                        ? <PendingText spaced className='face-m__submit-txt'>{submitLabel}</PendingText>
+                                        : <Text className='face-m__submit-txt'>{submitLabel}</Text>}
+                                </View>
+                            )}
                         </View>
                     </View>
                 )}

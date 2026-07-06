@@ -145,6 +145,7 @@ export function usePalmPanel () {
                 right_summary: extracted.right_summary
             })
             setPhase('reading')
+            refreshQuota()
         } catch (e) {
             if (!ac.signal.aborted) {
                 const msg = e instanceof Error ? e.message : '识别失败'
@@ -157,7 +158,7 @@ export function usePalmPanel () {
         } finally {
             setLoadingStage('idle')
         }
-    }, [validate, loading, leftPath, rightPath])
+    }, [validate, loading, leftPath, rightPath, refreshQuota])
 
     const onInterpret = useCallback(async () => {
         const extracted = extractRef.current

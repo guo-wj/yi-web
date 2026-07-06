@@ -75,6 +75,13 @@ const PALM_EXTRACT_TIMEOUT_MS = 120_000
 const PALM_INTERPRET_TIMEOUT_MS = 90_000
 
 function parseApiError (data: unknown, status: number): string {
+    if (status === 429) {
+        const detail = data && typeof data === 'object'
+            ? (data as { detail?: unknown }).detail
+            : null
+        if (typeof detail === 'string' && detail) return detail
+        return '今日识别次数已达上限，明日再来。'
+    }
     if (!data || typeof data !== 'object') return `请求失败（${status}）`
     const detail = (data as { detail?: unknown }).detail
     if (typeof detail === 'string') return detail
@@ -92,7 +99,7 @@ function parseApiError (data: unknown, status: number): string {
 }
 
 async function postPalmJson<T> (
-    path: '/extract' | '/interpret' | '/analyze',
+    path: '/extract' | '/interpret',
     data: unknown,
     timeout: number
 ): Promise<T> {
