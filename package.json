@@ -16,6 +16,7 @@
         "build:alipay": "taro build --type alipay",
         "build:tt": "taro build --type tt",
         "build:h5": "taro build --type h5",
+        "deploy:h5": "npm run build:h5 && bash scripts/deploy-h5.sh",
         "build:rn": "taro build --type rn",
         "build:qq": "taro build --type qq",
         "build:jd": "taro build --type jd",
