@@ -103,7 +103,7 @@ const INTERPRET_ACTION: Partial<Record<PointsFeature, string>> = {
 }
 
 function interpretAction (feature: PointsFeature): string {
-    return INTERPRET_ACTION[feature] ?? 'AI 解读'
+    return INTERPRET_ACTION[feature] ?? '解读'
 }
 
 export function buildPointsConfirmContent (s: PointsConfirmModalState): string {

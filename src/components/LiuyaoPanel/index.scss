@@ -165,8 +165,9 @@
         color: var(--ly-subtitle);
     }
 
-    &__hero + .dv-setup {
-        margin-top: 12px;
+    &__hero + .dv-setup,
+    &__scroll > .dv-setup {
+        margin-top: clamp(36px, 10vh, 72px);
     }
 
     &__cta {
@@ -291,6 +292,12 @@
             color: var(--ly-gold);
             border-color: var(--ly-gold-soft);
         }
+
+        &--disabled {
+            opacity: 0.45;
+            pointer-events: none;
+            cursor: default;
+        }
     }
 
     &__cast-grid {
@@ -307,19 +314,21 @@
             grid-template-columns: 1fr;
             gap: 12px;
             margin-top: 14px;
+            overflow: visible;
         }
     }
 
     /* ---- 摇卦坛 ---- */
     &__altar {
         position: relative;
-        overflow: hidden;
+        overflow: visible;
         display: flex;
         flex-direction: column;
         align-items: center;
         width: 100%;
         max-width: 100%;
         min-width: 0;
+        flex-shrink: 0;
         box-sizing: border-box;
         padding: 40px 28px 30px;
         border-radius: 20px;
@@ -367,7 +376,7 @@
         width: 100%;
         max-width: 100%;
         justify-content: center;
-        overflow: hidden;
+        overflow: visible;
         flex-shrink: 0;
     }
 
@@ -382,11 +391,11 @@
     &__coin-stage {
         perspective: 700px;
         width: 92px;
-        height: 108px;
-        overflow: hidden;
+        height: 104px;
+        overflow: visible;
         flex-shrink: 0;
         display: flex;
-        align-items: flex-end;
+        align-items: center;
         justify-content: center;
     }
 
@@ -425,10 +434,9 @@
         height: 100%;
         display: block;
         border-radius: 50%;
-        object-fit: cover;
+        object-fit: contain;
         pointer-events: none;
         user-select: none;
-        mix-blend-mode: screen;
     }
 
     &__coin-label {
@@ -468,6 +476,7 @@
         width: 100%;
         max-width: 100%;
         min-width: 0;
+        flex-shrink: 0;
         box-sizing: border-box;
         padding: 18px 18px 16px;
         border-radius: 16px;
@@ -484,6 +493,7 @@
         gap: 12px;
         width: 100%;
         min-width: 0;
+        flex-shrink: 0;
         padding-bottom: 12px;
         margin-bottom: 6px;
         border-bottom: 1px solid var(--ly-line);
@@ -515,8 +525,9 @@
         min-width: 0;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        gap: 2px;
+        justify-content: flex-start;
+        gap: 4px;
+        flex-shrink: 0;
     }
 
     &__yao-row {
@@ -856,11 +867,11 @@
 
 @keyframes liuyao-hop-m {
     0%   { transform: translateY(0) scale(1); }
-    18%  { transform: translateY(-20px) scale(1.04); }
-    40%  { transform: translateY(-28px) scale(1.05); }
-    62%  { transform: translateY(-16px) scale(1.03); }
-    82%  { transform: translateY(3px) scale(0.98); }
-    92%  { transform: translateY(-2px) scale(1.01); }
+    18%  { transform: translateY(-14px) scale(1.03); }
+    40%  { transform: translateY(-18px) scale(1.04); }
+    62%  { transform: translateY(-10px) scale(1.02); }
+    82%  { transform: translateY(2px) scale(0.99); }
+    92%  { transform: translateY(-1px) scale(1); }
     100% { transform: translateY(0) scale(1); }
 }
 
@@ -872,7 +883,8 @@
         }
 
         &--session {
-            height: 100%;
+            height: auto;
+            min-height: 100%;
 
             .liuyao-panel__scroll {
                 flex: 1;
@@ -882,19 +894,19 @@
             }
 
             .liuyao-panel__session {
-                flex: 1;
-                min-height: 0;
+                flex: none;
+                min-height: auto;
                 width: 100%;
             }
 
             .liuyao-panel__cast-grid {
-                flex: 1;
-                min-height: 0;
+                flex: none;
+                min-height: auto;
                 display: flex;
                 flex-direction: column;
                 margin-bottom: 16px;
                 width: 100%;
-                overflow: hidden;
+                overflow: visible;
             }
 
             .liuyao-panel__altar,
@@ -902,23 +914,25 @@
                 width: 100%;
                 max-width: 100%;
                 align-self: stretch;
+                flex-shrink: 0;
             }
 
             .liuyao-panel__yaopanel {
-                flex: 1;
-                min-height: 0;
+                flex: none;
+                min-height: auto;
             }
 
             .liuyao-panel__yp-rows {
-                flex: 1;
-                min-height: 0;
-                justify-content: space-evenly;
+                flex: none;
+                min-height: auto;
+                justify-content: flex-start;
+                gap: 4px;
             }
 
             .liuyao-panel__yao-row {
                 flex: none;
-                height: 42px;
-                min-height: unset;
+                height: 40px;
+                min-height: 40px;
                 max-height: none;
             }
         }
@@ -977,8 +991,9 @@
             font-size: 12px;
         }
 
-        &__hero + .dv-setup {
-            margin-top: 8px;
+        &__hero + .dv-setup,
+        &__scroll > .dv-setup {
+            margin-top: clamp(28px, 8vh, 48px);
         }
 
         &__q-card {
@@ -1013,11 +1028,11 @@
         &__coins { gap: 14px; }
 
         &__coin-stage {
-            width: 76px;
+            width: 68px;
             height: 92px;
         }
 
-        &__coin { width: 76px; height: 76px; }
+        &__coin { width: 68px; height: 68px; }
 
         &__coin--tossing {
             animation-name: liuyao-hop-m;
@@ -1058,13 +1073,9 @@
             gap: 4px;
         }
 
-        &--session .liuyao-panel__yp-rows {
-            justify-content: space-evenly;
-            gap: 0;
-        }
-
         &__yao-row {
-            height: 42px;
+            height: 40px;
+            min-height: 40px;
             column-gap: 8px;
         }
 

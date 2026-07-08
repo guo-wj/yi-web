@@ -4,11 +4,15 @@ import {
     UPLOAD_TIPS,
     MOUNT_STATUS_PCT,
     LineGlyph,
+    PalmExtractPreview,
     usePalmPanel,
     type HandSide
 } from './shared'
+import UploadTipsStrip from '@/components/UploadTipsStrip'
 import PanelBackButton from '@/components/PanelBackButton'
+import PanelExtractOverlay from '@/components/PanelExtractOverlay'
 import PendingText from '@/components/LoadingDots'
+import ReadingClosingSection from '@/components/ReadingClosing'
 
 import './mobile.scss'
 
@@ -21,7 +25,8 @@ export default function PalmPanelMobile () {
         quota,
         ready,
         loading,
-        interpreting,
+        loadingStage,
+        extractStreaming,
         hasFullReading,
         hintText,
         submitLabel,
@@ -36,58 +41,54 @@ export default function PalmPanelMobile () {
         goBack
     } = usePalmPanel()
 
-    const renderDrop = (side: HandSide, path: string | null, cap: string, tag: string) => (
-        <View className='palm-m__drop-col'>
-            <Text className='palm-m__drop-cap'>{cap}</Text>
-            <View
-                className={`palm-m__drop ${path ? 'palm-m__drop--filled' : ''}`}
-                onClick={() => void chooseHand(side)}
-            >
-                {path
-                    ? (
-                        <>
-                            <Image className='palm-m__drop-img' src={path} mode='aspectFill' />
-                            <View className='palm-m__drop-scrim' />
-                            <Text className='palm-m__drop-tag'>{tag}</Text>
-                            <Text className='palm-m__drop-redo'>重新选择</Text>
-                        </>
-                    )
-                    : (
-                        <>
-                            <Text className='palm-m__drop-plus'>＋</Text>
-                            <Text className='palm-m__drop-text'>点击上传</Text>
-                        </>
-                    )}
-            </View>
+    const renderDrop = (side: HandSide, path: string | null, tag: string) => (
+        <View
+            className={`palm-m__drop ${path ? 'palm-m__drop--filled' : ''} ${loading ? 'palm-m__drop--disabled' : ''}`}
+            onClick={() => { if (!loading) void chooseHand(side) }}
+        >
+            {path
+                ? (
+                    <>
+                        <Image className='palm-m__drop-img' src={path} mode='aspectFill' />
+                        <View className='palm-m__drop-scrim' />
+                        <Text className='palm-m__drop-tag'>{tag}</Text>
+                        <Text className='palm-m__drop-redo'>重新选择</Text>
+                    </>
+                )
+                : (
+                    <>
+                        <Text className='palm-m__drop-plus'>＋</Text>
+                        <Text className='palm-m__drop-text'>点击上传</Text>
+                    </>
+                )}
         </View>
     )
 
     return (
-        <View className='palm-m'>
+        <View className={`palm-m ${phase === 'reading' ? 'palm-m--reading' : ''}`}>
             <View className='palm-m__scroll'>
-                {canGoBack && <PanelBackButton onClick={goBack} />}
-                <View className='palm-m__head'>
-                    <Text className='palm-m__title'>掌纹解析</Text>
-                    <Text className='palm-m__subtitle'>左右掌纹 · 三线五丘 · 参详解读</Text>
-                </View>
+                {canGoBack && <PanelBackButton onClick={goBack} disabled={loading} />}
 
                 {phase === 'upload' && (
                     <View className='palm-m__upload'>
-                        <View className='palm-m__tip-card'>
-                            <Text className='palm-m__tip-mark'>須知</Text>
-                            <View className='palm-m__tip-list'>
-                                {UPLOAD_TIPS.map((tip) => (
-                                    <Text key={tip} className='palm-m__tip-li'>{tip}</Text>
-                                ))}
+                        <UploadTipsStrip tips={UPLOAD_TIPS} classPrefix='palm-m' />
+
+                        <View className='palm-m__drop-grid-wrap'>
+                            <View className='palm-m__drop-labels'>
+                                <Text className='palm-m__drop-cap'>左手掌纹</Text>
+                                <Text className='palm-m__drop-cap'>右手掌纹</Text>
+                            </View>
+                            <View className='palm-m__drop-row-wrap'>
+                                <View className='palm-m__drop-row'>
+                                    {renderDrop('left', leftPath, '左手')}
+                                    {renderDrop('right', rightPath, '右手')}
+                                </View>
+                                {loadingStage === 'extract' && (
+                                    <PanelExtractOverlay compact label='掌象识别中' steps={['采象', '识纹', '整理']} />
+                                )}
+                                {loading && loadingStage !== 'extract' && <View className='palm-m__drop-lock' />}
                             </View>
                         </View>
-
-                        <View className='palm-m__drop-grid'>
-                            {renderDrop('left', leftPath, '左手掌纹', '左手')}
-                            {renderDrop('right', rightPath, '右手掌纹', '右手')}
-                        </View>
-
-                        <Text className='palm-m__form-hint'>{hintText}</Text>
                     </View>
                 )}
 
@@ -97,22 +98,27 @@ export default function PalmPanelMobile () {
                             <Text className='palm-m__s-pill palm-m__s-pill--lead'>{lead}</Text>
                             {!!hands && <Text className='palm-m__s-pill'>呈掌 · {hands}</Text>}
                             {!!result.palm_type && <Text className='palm-m__s-pill'>掌型 · {result.palm_type}</Text>}
+                            {!!result.palm_shape && result.palm_shape !== result.palm_type && (
+                                <Text className='palm-m__s-pill'>形质 · {result.palm_shape}</Text>
+                            )}
                             {!!result.complexion && <Text className='palm-m__s-pill'>气色 · {result.complexion}</Text>}
                         </View>
 
                         {quota && quota.free_remaining > 0 && (
                             <Text className='palm-m__quota'>
-                                今日免费 AI 解读剩余 {quota.free_remaining} 次
+                                今日免费参详剩余 {quota.free_remaining} 次
                             </Text>
                         )}
 
-                        {interpreting && !result.overview && (
-                            <View className='palm-m__card palm-m__loading-card'>
-                                <PendingText className='palm-m__loading-hint'>正在参详三线五丘</PendingText>
-                            </View>
+                        {!hasFullReading && (
+                            <PalmExtractPreview
+                                result={result}
+                                classPrefix='palm-m'
+                                extractStreaming={extractStreaming}
+                            />
                         )}
 
-                        {!!result.overview && (
+                        {hasFullReading && (
                             <View className='palm-m__card palm-m__overview-card'>
                                 <View className='palm-m__card-head'>
                                     <Text className='palm-m__card-title'>掌 象 综 述</Text>
@@ -121,7 +127,7 @@ export default function PalmPanelMobile () {
                             </View>
                         )}
 
-                        {!!result.lines?.length && (
+                        {hasFullReading && !!result.lines?.length && (
                             <>
                                 <View className='palm-m__section-cap'>
                                     <Text className='palm-m__section-cap-txt'>三　线</Text>
@@ -129,34 +135,36 @@ export default function PalmPanelMobile () {
                                 <View className='palm-m__lines-stack'>
                                     {result.lines.map((ln) => (
                                         <View key={ln.key} className='palm-m__line-card'>
-                                            <View className='palm-m__line-top'>
-                                                <View className='palm-m__line-glyph'>
-                                                    <LineGlyph liveKey={ln.key} className='palm-m__line-svg' />
-                                                </View>
-                                                <View className='palm-m__line-id'>
-                                                    <Text className='palm-m__line-name'>{ln.name_cn}</Text>
-                                                    <Text className='palm-m__line-en'>{ln.name_en}</Text>
-                                                </View>
-                                                <View className='palm-m__line-rate'>
-                                                    <Text className='palm-m__rate-word'>{ln.attribute}</Text>
-                                                    <View className='palm-m__dots'>
-                                                        {[1, 2, 3, 4, 5].map((i) => (
-                                                            <View
-                                                                key={i}
-                                                                className={`palm-m__dot ${i <= ln.score ? 'palm-m__dot--on' : ''}`}
-                                                            />
-                                                        ))}
+                                            <View className='palm-m__line-glyph'>
+                                                <LineGlyph liveKey={ln.key} className='palm-m__line-svg' />
+                                            </View>
+                                            <View className='palm-m__line-body'>
+                                                <View className='palm-m__line-top'>
+                                                    <View className='palm-m__line-id'>
+                                                        <Text className='palm-m__line-name'>{ln.name_cn}</Text>
+                                                        <Text className='palm-m__line-en'>{ln.name_en}</Text>
+                                                    </View>
+                                                    <View className='palm-m__line-rate'>
+                                                        <Text className='palm-m__rate-word'>{ln.attribute}</Text>
+                                                        <View className='palm-m__dots'>
+                                                            {[1, 2, 3, 4, 5].map((i) => (
+                                                                <View
+                                                                    key={i}
+                                                                    className={`palm-m__dot ${i <= ln.score ? 'palm-m__dot--on' : ''}`}
+                                                                />
+                                                            ))}
+                                                        </View>
                                                     </View>
                                                 </View>
+                                                <Text className='palm-m__line-text'>{ln.description}</Text>
                                             </View>
-                                            <Text className='palm-m__line-text'>{ln.description}</Text>
                                         </View>
                                     ))}
                                 </View>
                             </>
                         )}
 
-                        {!!result.mounts?.length && (
+                        {hasFullReading && !!result.mounts?.length && (
                             <>
                                 <View className='palm-m__section-cap'>
                                     <Text className='palm-m__section-cap-txt'>五　丘</Text>
@@ -187,27 +195,48 @@ export default function PalmPanelMobile () {
                             </>
                         )}
 
-                        <View className='palm-m__result-foot'>
-                            <View className='palm-m__btn-back' onClick={reset}>
-                                <Text className='palm-m__btn-back-txt'>重 新 上 传</Text>
-                            </View>
-                            {!hasFullReading && !loading && (
-                                <View className='palm-m__submit palm-m__submit--inline' onClick={() => void onInterpret()}>
-                                    {submitLabelLoading
-                                        ? <PendingText spaced className='palm-m__submit-txt'>{submitLabel}</PendingText>
-                                        : <Text className='palm-m__submit-txt'>{submitLabel}</Text>}
-                                </View>
-                            )}
-                        </View>
+                        {hasFullReading && (
+                            <ReadingClosingSection
+                                classPrefix='palm-m'
+                                closingSummary={result.closing_summary}
+                                adviceItems={result.advice_items}
+                            />
+                        )}
                     </View>
                 )}
             </View>
 
+            {phase === 'reading' && result && (
+                <View className='palm-m__dock palm-m__dock--result'>
+                    <View className='palm-m__result-foot'>
+                        <View
+                            className={`palm-m__btn-back ${loading ? 'palm-m__btn-back--disabled' : ''}`}
+                            onClick={() => { if (!loading) reset() }}
+                        >
+                            <Text className='palm-m__btn-back-txt'>重新上传</Text>
+                        </View>
+                        {!hasFullReading && (
+                            <View
+                                className={`palm-m__submit palm-m__submit--inline ${loading ? 'palm-m__submit--disabled' : ''}`}
+                                onClick={() => { if (!loading) void onInterpret() }}
+                            >
+                                {submitLabelLoading
+                                    ? <PendingText className='palm-m__submit-txt palm-m__submit-txt--compact'>{submitLabel.replace(/\s/g, '')}</PendingText>
+                                    : <Text className='palm-m__submit-txt palm-m__submit-txt--compact'>参详解读</Text>}
+                            </View>
+                        )}
+                    </View>
+                </View>
+            )}
+
             {phase === 'upload' && (
                 <View className='palm-m__dock'>
+                    <Text className='palm-m__form-hint'>
+                        {loadingStage === 'extract' ? '正在识读掌象，请稍候' : hintText}
+                    </Text>
                     <View
                         className={`palm-m__submit ${(!ready || loading) ? 'palm-m__submit--disabled' : ''}`}
-                        onClick={() => void submit()}
+                        onClick={() => { if (!loading) void submit() }}
                     >
                         {submitLabelLoading
                             ? <PendingText spaced className='palm-m__submit-txt'>{submitLabel}</PendingText>

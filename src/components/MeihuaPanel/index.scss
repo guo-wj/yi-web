@@ -133,8 +133,9 @@
         color: var(--mh-subtitle);
     }
 
-    &__hero + .dv-setup {
-        margin-top: 12px;
+    &__hero + .dv-setup,
+    &__scroll > .dv-setup {
+        margin-top: clamp(36px, 10vh, 72px);
     }
 
     /* ============ 起卦方式面板（由 DivineSetup 承载，作为其 children） ============ */
@@ -351,6 +352,10 @@
         display: flex;
         align-items: center;
         gap: 16px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
         padding: 20px 24px;
         border-radius: 16px;
         border: 1px solid var(--mh-line);
@@ -371,6 +376,7 @@
 
     &__q-text {
         flex: 1;
+        min-width: 0;
         font-size: 19px;
         letter-spacing: 0.06em;
         color: var(--mh-ink);
@@ -393,6 +399,12 @@
         &:hover {
             color: var(--mh-gold);
             border-color: var(--mh-gold-soft);
+        }
+
+        &--disabled {
+            opacity: 0.45;
+            pointer-events: none;
+            cursor: default;
         }
     }
 
@@ -652,12 +664,27 @@
 
     /* ============ result ============ */
     &__res-q {
-        align-self: center;
+        align-self: stretch;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 16px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
         margin-bottom: 26px;
-        font-size: 18px;
+        padding: 20px 24px;
+        border-radius: 16px;
+        border: 1px solid var(--mh-line);
+        background: var(--mh-surface);
+        box-shadow: 0 10px 30px -20px var(--mh-shadow);
+    }
+
+    &__res-q-text {
+        flex: 1;
+        min-width: 0;
+        font-size: 19px;
+        letter-spacing: 0.06em;
         color: var(--mh-ink);
     }
 
@@ -1141,6 +1168,17 @@
             background: var(--mh-surface);
             transform: translateY(-1px);
         }
+
+        &--disabled {
+            opacity: 0.55;
+            pointer-events: none;
+            cursor: default;
+
+            &:hover {
+                background: var(--mh-active-bg);
+                transform: none;
+            }
+        }
     }
 
     &__ghost-txt {
@@ -1249,8 +1287,25 @@
             padding-left: 0.14em;
         }
 
-        &__hero + .dv-setup {
-            margin-top: 8px;
+        &__hero + .dv-setup,
+        &__scroll > .dv-setup {
+            margin-top: clamp(28px, 8vh, 48px);
+        }
+
+        &__q-card,
+        &__res-q {
+            padding: 14px 16px;
+            gap: 12px;
+        }
+
+        &__q-tag {
+            padding: 4px 10px;
+            font-size: 11px;
+        }
+
+        &__q-text,
+        &__res-q-text {
+            font-size: 16px;
         }
 
         &__conjure {

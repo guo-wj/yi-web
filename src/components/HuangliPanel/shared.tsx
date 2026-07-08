@@ -61,6 +61,11 @@ export function deriveAlmanac (data: AlmanacResponse) {
     return { gz, meta, dirs }
 }
 
+/** 日期旁节气印章：仅当天为节气日（jieqi.current）时展示，勿用 term（上一节气段名，会长期不变） */
+export function jieqiSealLabel (jieqi: AlmanacResponse['jieqi']): string | null {
+    return jieqi.current || null
+}
+
 /** 黄历数据加载逻辑，PC 与移动端视图共用 */
 export function useHuangli () {
     const [data, setData] = useState<AlmanacResponse | null>(null)

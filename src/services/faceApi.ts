@@ -43,11 +43,34 @@ export interface FaceOrganDetail {
     description: string
 }
 
+export interface FaceStopPreview {
+    key: FaceStopKey
+    name_cn: string
+    region: string
+    attribute: string
+    hint: string
+}
+
+export interface FaceOrganPreview {
+    key: FaceOrganKey
+    name_cn: string
+    icon_text: string
+    office: string
+    keywords: string[]
+    status: string
+    attribute: string
+    hint: string
+}
+
 export interface FaceExtractResponse {
     face_type: string
+    face_shape: string
     complexion: string
     summary: string
     summaries: string[]
+    extract_overview: string
+    preview_stops: FaceStopPreview[]
+    preview_organs: FaceOrganPreview[]
     features: Record<string, unknown>
 }
 
@@ -60,6 +83,8 @@ export interface FaceStructuredBody {
     face_type: string
     complexion: string
     overview: string
+    closing_summary: string
+    advice_items: string[]
     stops: FaceStopDetail[]
     organs: FaceOrganDetail[]
 }
@@ -79,6 +104,9 @@ export interface FaceAnalyzeResponse extends FaceStructuredBody {
     organs: FaceOrganDetail[]
     summary?: string | null
     summaries?: string[] | null
+    extract_overview?: string | null
+    preview_stops?: FaceStopPreview[] | null
+    preview_organs?: FaceOrganPreview[] | null
 }
 
 const FACE_EXTRACT_TIMEOUT_MS = 120_000

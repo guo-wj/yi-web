@@ -6,10 +6,14 @@ import {
     UPLOAD_TIPS,
     ORGAN_STATUS_PCT,
     StopGlyph,
+    FaceExtractPreview,
     useFacePanel
 } from './shared'
+import UploadTipsStrip from '@/components/UploadTipsStrip'
 import PanelBackButton from '@/components/PanelBackButton'
+import PanelExtractOverlay from '@/components/PanelExtractOverlay'
 import PendingText from '@/components/LoadingDots'
+import ReadingClosingSection from '@/components/ReadingClosing'
 
 import './index.scss'
 
@@ -18,6 +22,8 @@ export default function FacePanelPC () {
         phase,
         paths,
         loading,
+        extracting,
+        extractStreaming,
         result,
         uploadTags,
         quota,
@@ -44,8 +50,8 @@ export default function FacePanelPC () {
             <View key={index} className='face-panel__drop-col'>
                 <Text className='face-panel__drop-cap'>{def?.label ?? `照片 ${index + 1}`}</Text>
                 <View
-                    className={`face-panel__drop ${path ? 'face-panel__drop--filled' : ''}`}
-                    onClick={() => void chooseSlot(index)}
+                    className={`face-panel__drop ${path ? 'face-panel__drop--filled' : ''} ${loading ? 'face-panel__drop--disabled' : ''}`}
+                    onClick={() => { if (!loading) void chooseSlot(index) }}
                 >
                     {path
                         ? (
@@ -55,8 +61,8 @@ export default function FacePanelPC () {
                                 <Text className='face-panel__drop-tag'>{def?.tag ?? ''}</Text>
                                 <Text className='face-panel__drop-redo'>重新选择</Text>
                                 <View
-                                    className='face-panel__drop-clear'
-                                    onClick={(e) => clearSlot(index, e)}
+                                    className={`face-panel__drop-clear ${loading ? 'face-panel__drop-clear--disabled' : ''}`}
+                                    onClick={(e) => { if (!loading) clearSlot(index, e) }}
                                 >
                                     <Text className='face-panel__drop-clear-txt'>×</Text>
                                 </View>
@@ -76,38 +82,36 @@ export default function FacePanelPC () {
     return (
         <View className='face-panel'>
             <View className='face-panel__scroll'>
-                {canGoBack && <PanelBackButton onClick={goBack} />}
-                <View className='face-panel__head'>
-                    <Text className='face-panel__title'>面相解析</Text>
-                    <Text className='face-panel__subtitle'>五官气色 · 三停九部 · 参详解读</Text>
-                </View>
+                {canGoBack && <PanelBackButton onClick={goBack} disabled={loading} />}
 
                 {phase === 'upload' && (
                     <View className='face-panel__upload'>
-                        <View className='face-panel__tip-card'>
-                            <Text className='face-panel__tip-mark'>須知</Text>
-                            <View className='face-panel__tip-list'>
-                                {UPLOAD_TIPS.map((tip) => (
-                                    <Text key={tip} className='face-panel__tip-li'>{tip}</Text>
-                                ))}
+                        <UploadTipsStrip tips={UPLOAD_TIPS} classPrefix='face-panel' />
+
+                        <View className='face-panel__drop-grid-wrap'>
+                            <View className='face-panel__drop-grid'>
+                                {Array.from({ length: MAX_IMAGES }, (_, i) => renderDrop(i))}
                             </View>
+                            {extracting && (
+                                <PanelExtractOverlay label='识象分析中' steps={['采象', '识相', '整理']} />
+                            )}
+                            {loading && !extracting && <View className='face-panel__drop-lock' />}
                         </View>
 
-                        <View className='face-panel__drop-grid'>
-                            {Array.from({ length: MAX_IMAGES }, (_, i) => renderDrop(i))}
-                        </View>
+                        <Text className='face-panel__form-hint'>
+                            {extracting
+                                ? '正在识读面象，请稍候'
+                                : `已上传 ${uploadedCount} / ${MAX_IMAGES} 张 · ${hintText}`}
+                        </Text>
 
                         <View
                             className={`face-panel__submit ${(!ready || loading) ? 'face-panel__submit--disabled' : ''}`}
-                            onClick={() => void submit()}
+                            onClick={() => { if (!loading) void submit() }}
                         >
                             {submitLabelLoading
                                 ? <PendingText spaced className='face-panel__submit-txt'>{submitLabel}</PendingText>
                                 : <Text className='face-panel__submit-txt'>{submitLabel}</Text>}
                         </View>
-                        <Text className='face-panel__form-hint'>
-                            已上传 {uploadedCount} / {MAX_IMAGES} 张 · {hintText}
-                        </Text>
                     </View>
                 )}
 
@@ -124,20 +128,29 @@ export default function FacePanelPC () {
 
                         {quota && quota.free_remaining > 0 && (
                             <Text className='face-panel__quota'>
-                                今日免费 AI 解读剩余 {quota.free_remaining} 次
+                                今日免费参详剩余 {quota.free_remaining} 次
                             </Text>
                         )}
 
-                        {/* 面相综述 */}
-                        <View className='face-panel__card face-panel__overview-card'>
-                            <View className='face-panel__card-head'>
-                                <Text className='face-panel__card-title'>面 相 综 述</Text>
-                            </View>
-                            <Text className='face-panel__overview-text'>{result.overview}</Text>
-                        </View>
+                        {!hasFullReading && (
+                            <FaceExtractPreview
+                                result={result}
+                                uploadTags={uploadTags}
+                                classPrefix='face-panel'
+                                extractStreaming={extractStreaming}
+                            />
+                        )}
 
-                        {/* 三停 */}
-                        {!!result.stops?.length && (
+                        {hasFullReading && (
+                            <View className='face-panel__card face-panel__overview-card'>
+                                <View className='face-panel__card-head'>
+                                    <Text className='face-panel__card-title'>面 相 综 述</Text>
+                                </View>
+                                <Text className='face-panel__overview-text'>{result.overview}</Text>
+                            </View>
+                        )}
+
+                        {hasFullReading && !!result.stops?.length && (
                             <>
                                 <View className='face-panel__section-cap'>
                                     <Text className='face-panel__section-cap-txt'>三　停</Text>
@@ -150,8 +163,10 @@ export default function FacePanelPC () {
                                             </View>
                                             <View className='face-panel__line-body'>
                                                 <View className='face-panel__line-top'>
-                                                    <Text className='face-panel__line-name'>{st.name_cn}</Text>
-                                                    <Text className='face-panel__line-en'>{st.region}</Text>
+                                                    <View className='face-panel__line-id'>
+                                                        <Text className='face-panel__line-name'>{st.name_cn}</Text>
+                                                        <Text className='face-panel__line-en'>{st.region}</Text>
+                                                    </View>
                                                     <View className='face-panel__line-rate'>
                                                         <Text className='face-panel__rate-word'>{st.attribute}</Text>
                                                         <View className='face-panel__dots'>
@@ -172,8 +187,7 @@ export default function FacePanelPC () {
                             </>
                         )}
 
-                        {/* 五官 */}
-                        {!!result.organs?.length && (
+                        {hasFullReading && !!result.organs?.length && (
                             <>
                                 <View className='face-panel__section-cap'>
                                     <Text className='face-panel__section-cap-txt'>五　官</Text>
@@ -207,16 +221,31 @@ export default function FacePanelPC () {
                             </>
                         )}
 
-                        {!hasFullReading && !loading && (
-                            <View className='face-panel__submit' onClick={() => void onInterpret()}>
-                                {submitLabelLoading
-                                ? <PendingText spaced className='face-panel__submit-txt'>{submitLabel}</PendingText>
-                                : <Text className='face-panel__submit-txt'>{submitLabel}</Text>}
-                            </View>
+                        {hasFullReading && (
+                            <ReadingClosingSection
+                                classPrefix='face-panel'
+                                closingSummary={result.closing_summary}
+                                adviceItems={result.advice_items}
+                            />
                         )}
 
-                        <View className='face-panel__btn-back' onClick={reset}>
-                            <Text className='face-panel__btn-back-txt'>重 新 上 传</Text>
+                        <View className='face-panel__result-foot'>
+                            <View
+                                className={`face-panel__btn-back ${loading ? 'face-panel__btn-back--disabled' : ''}`}
+                                onClick={() => { if (!loading) reset() }}
+                            >
+                                <Text className='face-panel__btn-back-txt'>重 新 上 传</Text>
+                            </View>
+                            {!hasFullReading && (
+                                <View
+                                    className={`face-panel__submit face-panel__submit--inline ${loading ? 'face-panel__submit--disabled' : ''}`}
+                                    onClick={() => { if (!loading) void onInterpret() }}
+                                >
+                                    {submitLabelLoading
+                                        ? <PendingText spaced className='face-panel__submit-txt'>{submitLabel}</PendingText>
+                                        : <Text className='face-panel__submit-txt'>{submitLabel}</Text>}
+                                </View>
+                            )}
                         </View>
                     </View>
                 )}

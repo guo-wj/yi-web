@@ -1,4 +1,5 @@
 import Taro from '@tarojs/taro'
+import { View } from '@tarojs/components'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
@@ -272,4 +273,63 @@ export function useBazi () {
         toggleFocus, selectShi, selectShiUnknown,
         submit, onInterpret, reset, canGoBack, goBack
     }
+}
+
+interface BirthDateInputProps {
+    value: string
+    onChange: (value: string) => void
+    wrapClassName: string
+    inputClassName: string
+    iconClassName?: string
+}
+
+function CalendarIcon () {
+    return (
+        <svg viewBox='0 0 24 24' fill='none' aria-hidden='true'>
+            <rect x='3.5' y='5.5' width='17' height='15' rx='2.5' stroke='currentColor' strokeWidth='1.6' />
+            <path d='M3.5 10h17' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round' />
+            <path d='M8 4v3.5M16 4v3.5' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round' />
+            <rect x='7.5' y='13' width='3' height='3' rx='0.6' fill='currentColor' />
+        </svg>
+    )
+}
+
+/** 出生日期：点击整行唤起原生日期选择 */
+export function BirthDateInput ({
+    value,
+    onChange,
+    wrapClassName,
+    inputClassName,
+    iconClassName = 'birth-date-input__icon'
+}: BirthDateInputProps) {
+    const ref = useRef<HTMLInputElement>(null)
+
+    const openPicker = () => {
+        const el = ref.current
+        if (!el) return
+        if (typeof el.showPicker === 'function') {
+            try {
+                void el.showPicker()
+            } catch {
+                el.focus()
+            }
+        } else {
+            el.focus()
+        }
+    }
+
+    return (
+        <View className={wrapClassName} onClick={openPicker}>
+            <input
+                ref={ref}
+                className={inputClassName}
+                type='date'
+                value={value}
+                onChange={(e) => onChange((e.target as HTMLInputElement).value)}
+            />
+            <View className={iconClassName}>
+                <CalendarIcon />
+            </View>
+        </View>
+    )
 }

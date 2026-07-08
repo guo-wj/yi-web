@@ -4,11 +4,15 @@ import {
     UPLOAD_TIPS,
     MOUNT_STATUS_PCT,
     LineGlyph,
+    PalmExtractPreview,
     usePalmPanel,
     type HandSide
 } from './shared'
+import UploadTipsStrip from '@/components/UploadTipsStrip'
 import PanelBackButton from '@/components/PanelBackButton'
+import PanelExtractOverlay from '@/components/PanelExtractOverlay'
 import PendingText from '@/components/LoadingDots'
+import ReadingClosingSection from '@/components/ReadingClosing'
 
 import './index.scss'
 
@@ -21,7 +25,8 @@ export default function PalmPanelPC () {
         quota,
         ready,
         loading,
-        interpreting,
+        loadingStage,
+        extractStreaming,
         hasFullReading,
         hintText,
         submitLabel,
@@ -40,8 +45,8 @@ export default function PalmPanelPC () {
         <View className='palm-panel__drop-col'>
             <Text className='palm-panel__drop-cap'>{cap}</Text>
             <View
-                className={`palm-panel__drop ${path ? 'palm-panel__drop--filled' : ''}`}
-                onClick={() => void chooseHand(side)}
+                className={`palm-panel__drop ${path ? 'palm-panel__drop--filled' : ''} ${loading ? 'palm-panel__drop--disabled' : ''}`}
+                onClick={() => { if (!loading) void chooseHand(side) }}
             >
                 {path
                     ? (
@@ -65,37 +70,35 @@ export default function PalmPanelPC () {
     return (
         <View className='palm-panel'>
             <View className='palm-panel__scroll'>
-                {canGoBack && <PanelBackButton onClick={goBack} />}
-                <View className='palm-panel__head'>
-                    <Text className='palm-panel__title'>掌纹解析</Text>
-                    <Text className='palm-panel__subtitle'>左右掌纹 · 三线五丘 · 参详解读</Text>
-                </View>
+                {canGoBack && <PanelBackButton onClick={goBack} disabled={loading} />}
 
                 {phase === 'upload' && (
                     <View className='palm-panel__upload'>
-                        <View className='palm-panel__tip-card'>
-                            <Text className='palm-panel__tip-mark'>須知</Text>
-                            <View className='palm-panel__tip-list'>
-                                {UPLOAD_TIPS.map((tip) => (
-                                    <Text key={tip} className='palm-panel__tip-li'>{tip}</Text>
-                                ))}
+                        <UploadTipsStrip tips={UPLOAD_TIPS} classPrefix='palm-panel' />
+
+                        <View className='palm-panel__drop-grid-wrap'>
+                            <View className='palm-panel__drop-grid'>
+                                {renderDrop('left', leftPath, '左手掌纹', '左手')}
+                                {renderDrop('right', rightPath, '右手掌纹', '右手')}
                             </View>
+                            {loadingStage === 'extract' && (
+                                <PanelExtractOverlay label='掌象识别中' steps={['采象', '识纹', '整理']} />
+                            )}
+                            {loading && loadingStage !== 'extract' && <View className='palm-panel__drop-lock' />}
                         </View>
 
-                        <View className='palm-panel__drop-grid'>
-                            {renderDrop('left', leftPath, '左手掌纹', '左手')}
-                            {renderDrop('right', rightPath, '右手掌纹', '右手')}
-                        </View>
+                        <Text className='palm-panel__form-hint'>
+                            {loadingStage === 'extract' ? '正在识读掌象，请稍候' : hintText}
+                        </Text>
 
                         <View
                             className={`palm-panel__submit ${(!ready || loading) ? 'palm-panel__submit--disabled' : ''}`}
-                            onClick={() => void submit()}
+                            onClick={() => { if (!loading) void submit() }}
                         >
                             {submitLabelLoading
                                 ? <PendingText spaced className='palm-panel__submit-txt'>{submitLabel}</PendingText>
                                 : <Text className='palm-panel__submit-txt'>{submitLabel}</Text>}
                         </View>
-                        <Text className='palm-panel__form-hint'>{hintText}</Text>
                     </View>
                 )}
 
@@ -105,22 +108,27 @@ export default function PalmPanelPC () {
                             <Text className='palm-panel__s-pill palm-panel__s-pill--lead'>{lead}</Text>
                             {!!hands && <Text className='palm-panel__s-pill'>呈掌 · {hands}</Text>}
                             {!!result.palm_type && <Text className='palm-panel__s-pill'>掌型 · {result.palm_type}</Text>}
+                            {!!result.palm_shape && result.palm_shape !== result.palm_type && (
+                                <Text className='palm-panel__s-pill'>形质 · {result.palm_shape}</Text>
+                            )}
                             {!!result.complexion && <Text className='palm-panel__s-pill'>气色 · {result.complexion}</Text>}
                         </View>
 
                         {quota && quota.free_remaining > 0 && (
                             <Text className='palm-panel__quota'>
-                                今日免费 AI 解读剩余 {quota.free_remaining} 次
+                                今日免费参详剩余 {quota.free_remaining} 次
                             </Text>
                         )}
 
-                        {interpreting && !result.overview && (
-                            <View className='palm-panel__card palm-panel__loading-card'>
-                                <PendingText className='palm-panel__loading-hint'>正在参详三线五丘</PendingText>
-                            </View>
+                        {!hasFullReading && (
+                            <PalmExtractPreview
+                                result={result}
+                                classPrefix='palm-panel'
+                                extractStreaming={extractStreaming}
+                            />
                         )}
 
-                        {!!result.overview && (
+                        {hasFullReading && (
                             <View className='palm-panel__card palm-panel__overview-card'>
                                 <View className='palm-panel__card-head'>
                                     <Text className='palm-panel__card-title'>掌 象 综 述</Text>
@@ -129,7 +137,7 @@ export default function PalmPanelPC () {
                             </View>
                         )}
 
-                        {!!result.lines?.length && (
+                        {hasFullReading && !!result.lines?.length && (
                             <>
                                 <View className='palm-panel__section-cap'>
                                     <Text className='palm-panel__section-cap-txt'>三　线</Text>
@@ -164,7 +172,7 @@ export default function PalmPanelPC () {
                             </>
                         )}
 
-                        {!!result.mounts?.length && (
+                        {hasFullReading && !!result.mounts?.length && (
                             <>
                                 <View className='palm-panel__section-cap'>
                                     <Text className='palm-panel__section-cap-txt'>五　丘</Text>
@@ -195,19 +203,31 @@ export default function PalmPanelPC () {
                             </>
                         )}
 
-                        {!hasFullReading && !loading && (
-                            <View
-                                className='palm-panel__submit'
-                                onClick={() => void onInterpret()}
-                            >
-                                {submitLabelLoading
-                                ? <PendingText spaced className='palm-panel__submit-txt'>{submitLabel}</PendingText>
-                                : <Text className='palm-panel__submit-txt'>{submitLabel}</Text>}
-                            </View>
+                        {hasFullReading && (
+                            <ReadingClosingSection
+                                classPrefix='palm-panel'
+                                closingSummary={result.closing_summary}
+                                adviceItems={result.advice_items}
+                            />
                         )}
 
-                        <View className='palm-panel__btn-back' onClick={reset}>
-                            <Text className='palm-panel__btn-back-txt'>重 新 上 传</Text>
+                        <View className='palm-panel__result-foot'>
+                            <View
+                                className={`palm-panel__btn-back ${loading ? 'palm-panel__btn-back--disabled' : ''}`}
+                                onClick={() => { if (!loading) reset() }}
+                            >
+                                <Text className='palm-panel__btn-back-txt'>重 新 上 传</Text>
+                            </View>
+                            {!hasFullReading && (
+                                <View
+                                    className={`palm-panel__submit palm-panel__submit--inline ${loading ? 'palm-panel__submit--disabled' : ''}`}
+                                    onClick={() => { if (!loading) void onInterpret() }}
+                                >
+                                    {submitLabelLoading
+                                        ? <PendingText spaced className='palm-panel__submit-txt'>{submitLabel}</PendingText>
+                                        : <Text className='palm-panel__submit-txt'>{submitLabel}</Text>}
+                                </View>
+                            )}
                         </View>
                     </View>
                 )}

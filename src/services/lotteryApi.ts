@@ -15,6 +15,7 @@ export interface LotterySlip {
     tier: string
     title: string
     poem: string
+    gist: string
     palace?: string
 }
 

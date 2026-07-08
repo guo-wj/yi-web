@@ -398,6 +398,7 @@ export default function MeihuaPanel () {
     }, [finishToResult])
 
     const reset = useCallback(() => {
+        if (interpretingRef.current || streaming) return
         abortRef.current?.abort()
         castRunRef.current += 1
         clearRoll()
@@ -416,11 +417,12 @@ export default function MeihuaPanel () {
         setBuildShow(false)
         setCastAnimDone(false)
         setTiles(IDLE_TILES)
-    }, [clearRoll])
+    }, [clearRoll, streaming])
 
     const canGoBack = phase !== 'setup'
 
     const goBack = useCallback(() => {
+        if (interpretingRef.current || streaming) return
         abortRef.current?.abort()
         castRunRef.current += 1
         clearRoll()
@@ -438,7 +440,7 @@ export default function MeihuaPanel () {
         interpretationRef.current = null
         setResult(null)
         setPhase('setup')
-    }, [clearRoll])
+    }, [clearRoll, streaming])
 
     const tile = useCallback((kind: TileKind, cap: string) => {
         const t = tiles[kind]
@@ -471,19 +473,12 @@ export default function MeihuaPanel () {
         ]
         : []
 
+    const interpretBusy = interpreting || streaming
+
     return (
         <View className={`meihua-panel ${phase === 'casting' ? 'meihua-panel--casting' : ''}`}>
             <View className='meihua-panel__scroll'>
-                <View className='meihua-panel__hero'>
-                    <View className='meihua-panel__hero-row'>
-                        <View className='meihua-panel__hero-side'>
-                            {canGoBack && <PanelBackButton onClick={goBack} />}
-                        </View>
-                        <Text className='meihua-panel__title'>梅花易数</Text>
-                        <View className='meihua-panel__hero-side meihua-panel__hero-side--mirror' />
-                    </View>
-                    <Text className='meihua-panel__subtitle'>先天起数 · 体用生克 · 观象玩占</Text>
-                </View>
+                {canGoBack && <PanelBackButton onClick={goBack} disabled={interpretBusy} />}
 
                 {phase === 'setup' && (
                     <DivineSetup
@@ -497,7 +492,6 @@ export default function MeihuaPanel () {
                         onMethodChange={(k) => setMethod(k as MeihuaMethod)}
                         ctaText='演　数　起　卦'
                         onCast={() => void cast()}
-                        hint='先择问事，再观此刻之数'
                     >
                         {method === 'time' && (
                             <View className='meihua-panel__mode-panel'>
@@ -562,7 +556,10 @@ export default function MeihuaPanel () {
                         <View className='meihua-panel__q-card'>
                             <Text className='meihua-panel__q-tag'>所问</Text>
                             <Text className='meihua-panel__q-text'>{question.trim()}</Text>
-                            <View className='meihua-panel__q-edit' onClick={goBack}>
+                            <View
+                                className={`meihua-panel__q-edit ${interpretBusy ? 'meihua-panel__q-edit--disabled' : ''}`}
+                                onClick={() => { if (!interpretBusy) goBack() }}
+                            >
                                 <Text>改</Text>
                             </View>
                         </View>
@@ -625,7 +622,7 @@ export default function MeihuaPanel () {
 
                         {quota && quota.free_remaining > 0 && (
                             <Text className='meihua-panel__quota'>
-                                今日免费 AI 解卦剩余 {quota.free_remaining} 次
+                                今日免费解卦剩余 {quota.free_remaining} 次
                             </Text>
                         )}
 
@@ -665,23 +662,22 @@ export default function MeihuaPanel () {
                             <GuaPanel role='互卦' gua={result.hu_gua} />
                         </View>
 
-                        {((!streamText && !streaming) || (!streaming && !interpreting)) && (
+                        {!streamText && (
                             <View className='meihua-panel__actions'>
-                                {!streaming && !interpreting && (
-                                    <View className='meihua-panel__ghost-btn' onClick={reset}>
-                                        <Text className='meihua-panel__ghost-txt'>重 新 起 卦</Text>
-                                    </View>
-                                )}
-                                {!streamText && !streaming && (
-                                    <View
-                                        className={`meihua-panel__cta meihua-panel__cta--interpret ${interpreting ? 'meihua-panel__cta--disabled' : ''}`}
-                                        onClick={() => void onInterpret()}
-                                    >
-                                        {interpreting
-                                            ? <PendingText className='meihua-panel__cta-txt'>解卦中</PendingText>
-                                            : <Text className='meihua-panel__cta-txt'>AI 解 卦</Text>}
-                                    </View>
-                                )}
+                                <View
+                                    className={`meihua-panel__ghost-btn ${interpretBusy ? 'meihua-panel__ghost-btn--disabled' : ''}`}
+                                    onClick={() => { if (!interpretBusy) reset() }}
+                                >
+                                    <Text className='meihua-panel__ghost-txt'>重 新 起 卦</Text>
+                                </View>
+                                <View
+                                    className={`meihua-panel__cta meihua-panel__cta--interpret ${interpretBusy ? 'meihua-panel__cta--disabled' : ''}`}
+                                    onClick={() => { if (!interpretBusy) void onInterpret() }}
+                                >
+                                    {interpreting
+                                        ? <PendingText className='meihua-panel__cta-txt'>解卦中</PendingText>
+                                        : <Text className='meihua-panel__cta-txt'>解 卦</Text>}
+                                </View>
                             </View>
                         )}
 

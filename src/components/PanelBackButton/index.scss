@@ -3,7 +3,7 @@
     align-self: stretch;
     box-sizing: border-box;
     width: 100%;
-    padding-top: 16px;
+    padding-top: 8px;
 
     &__btn {
         display: inline-flex;
@@ -27,6 +27,14 @@
         &:active {
             transform: translateY(-1px);
             opacity: 0.76;
+        }
+
+        &--disabled {
+            opacity: 0.45;
+            pointer-events: none;
+            cursor: default;
+            transform: none;
+            filter: none;
         }
     }
 }

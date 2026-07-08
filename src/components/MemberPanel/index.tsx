@@ -420,10 +420,10 @@ export default function MemberPanel ({
                         </View>
                         <View className='hero-actions'>
                             <View className='btn btn-gold' onClick={() => setTab('recharge')}>
-                                {IC.plus}<Text>充值积分</Text>
+                                {IC.plus}<Text className='btn-txt'>充值积分</Text>
                             </View>
                             <View className='btn btn-ghost' onClick={() => setTab('checkin')}>
-                                {IC.check}<Text>每日签到</Text>
+                                {IC.check}<Text className='btn-txt'>每日签到</Text>
                             </View>
                         </View>
                     </View>
@@ -598,7 +598,8 @@ export default function MemberPanel ({
                                 className={`pay-opt ${payMethod === k ? 'pay-opt--active' : ''}`}
                                 onClick={() => setPayMethod(k)}
                             >
-                                <Text className='po-dot' /><Text>{label}</Text>
+                                <View className='pay-opt__radio' />
+                                <Text className='pay-opt__label'>{label}</Text>
                             </View>
                         ))}
                     </View>

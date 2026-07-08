@@ -3,6 +3,16 @@ import Taro from '@tarojs/taro'
 import { getApiBaseUrl } from '@/config/apiBase'
 import { getToken } from '@/utils/auth'
 
+export class ApiError extends Error {
+    statusCode: number
+
+    constructor (message: string, statusCode: number) {
+        super(message)
+        this.name = 'ApiError'
+        this.statusCode = statusCode
+    }
+}
+
 export function parseApiDetail (data: unknown): string | null {
     if (!data || typeof data !== 'object') return null
     const d = (data as { detail?: unknown }).detail
@@ -80,7 +90,7 @@ export async function apiRequest<T> (
         }
     }
     if (status < 200 || status >= 300) {
-        throw new Error(parseApiDetail(res.data) ?? `${fallbackError}（${status}）`)
+        throw new ApiError(parseApiDetail(res.data) ?? `${fallbackError}（${status}）`, status)
     }
 
     return res.data

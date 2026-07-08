@@ -695,8 +695,8 @@ $mobile-topbar-row-h: 56px;
 
     .dv-setup__cta,
     .liuyao-panel__cta,
-    .palm-m__submit,
-    .face-m__submit,
+    .palm-m__submit:not(.palm-m__submit--inline),
+    .face-m__submit:not(.face-m__submit--inline),
     .bazi-m__submit,
     .lottery-m__cta,
     .lottery-m__actions {
@@ -707,18 +707,33 @@ $mobile-topbar-row-h: 56px;
 
     .dv-setup__cta,
     .liuyao-panel__cta,
-    .palm-m__submit,
-    .face-m__submit,
+    .palm-m__submit:not(.palm-m__submit--inline),
+    .face-m__submit:not(.face-m__submit--inline),
     .bazi-m__submit,
     .lottery-m__cta {
         padding-left: 16px;
         padding-right: 16px;
     }
 
+    .palm-m__submit--inline,
+    .face-m__submit--inline {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .palm-m__submit-txt--compact,
+    .face-m__submit-txt--compact,
+    .palm-m__btn-back-txt,
+    .face-m__btn-back-txt {
+        letter-spacing: 0.06em;
+        text-indent: 0;
+        padding-left: 0;
+    }
+
     .dv-setup__cta-txt,
     .liuyao-panel__cta-txt,
-    .palm-m__submit-txt,
-    .face-m__submit-txt,
+    .palm-m__submit-txt:not(.palm-m__submit-txt--compact),
+    .face-m__submit-txt:not(.face-m__submit-txt--compact),
     .bazi-m__submit-txt,
     .lottery-m__cta-txt {
         letter-spacing: 0.12em;

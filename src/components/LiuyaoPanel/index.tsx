@@ -77,6 +77,14 @@ export default function LiuyaoPanel () {
         void fetchPointsQuota('liuyao').then(setQuota).catch(() => {})
     }, [])
 
+    useEffect(() => {
+        ;[coinFrontImg, coinBackImg].forEach((src) => {
+            const img = new window.Image()
+            img.decoding = 'async'
+            img.src = src
+        })
+    }, [])
+
     const refreshQuota = useCallback(() => {
         if (!isLoggedIn()) return
         void fetchPointsQuota('liuyao').then(setQuota).catch(() => {})
@@ -225,6 +233,7 @@ export default function LiuyaoPanel () {
     }, [castResult, hasInterpretation, castRequestBody, lines, refreshQuota])
 
     const resetAll = useCallback(() => {
+        if (interpretingRef.current || streaming) return
         abortRef.current?.abort()
         setPhase('setup')
         setCastResult(null)
@@ -238,11 +247,12 @@ export default function LiuyaoPanel () {
         setHasInterpretation(false)
         setShaking(false)
         castingRef.current = false
-    }, [])
+    }, [streaming])
 
     const canGoBack = phase !== 'setup'
 
     const goBack = useCallback(() => {
+        if (interpretingRef.current || streaming) return
         abortRef.current?.abort()
         interpretingRef.current = false
         setInterpreting(false)
@@ -257,7 +267,7 @@ export default function LiuyaoPanel () {
         setShaking(false)
         castingRef.current = false
         setPhase('setup')
-    }, [])
+    }, [streaming])
 
     // 自下而上倒序展示：上爻在最上
     const displayRows = useMemo((): (YaoLine | null)[] => {
@@ -277,6 +287,7 @@ export default function LiuyaoPanel () {
 
     const inSession = phase === 'casting' || phase === 'done'
     const inResult = phase === 'result'
+    const interpretBusy = interpreting || streaming
     const panelClass = [
         'liuyao-panel',
         inSession ? 'liuyao-panel--session' : '',
@@ -288,16 +299,7 @@ export default function LiuyaoPanel () {
     return (
         <View className={panelClass}>
             <View className='liuyao-panel__scroll'>
-                <View className='liuyao-panel__hero'>
-                    <View className='liuyao-panel__hero-row'>
-                        <View className='liuyao-panel__hero-side'>
-                            {canGoBack && <PanelBackButton onClick={goBack} />}
-                        </View>
-                        <Text className='liuyao-panel__title'>六爻起卦</Text>
-                        <View className='liuyao-panel__hero-side liuyao-panel__hero-side--mirror' />
-                    </View>
-                    <Text className='liuyao-panel__subtitle'>三枚铜钱，六爻成卦，问天地之机变</Text>
-                </View>
+                {canGoBack && <PanelBackButton onClick={goBack} disabled={interpretBusy} />}
 
                 {phase === 'setup' && (
                     <DivineSetup
@@ -311,7 +313,6 @@ export default function LiuyaoPanel () {
                         onMethodChange={(k) => setMode(k as ShakeMode)}
                         ctaText='凝 神 起 卦'
                         onCast={startCasting}
-                        hint='先选定或写下问题，方可起卦'
                     />
                 )}
 
@@ -320,7 +321,10 @@ export default function LiuyaoPanel () {
                         <View className='liuyao-panel__q-card'>
                             <Text className='liuyao-panel__q-tag'>所问</Text>
                             <Text className='liuyao-panel__q-text'>{question.trim()}</Text>
-                            <View className='liuyao-panel__q-edit' onClick={goBack}>
+                            <View
+                                className={`liuyao-panel__q-edit ${interpretBusy ? 'liuyao-panel__q-edit--disabled' : ''}`}
+                                onClick={() => { if (!interpretBusy) goBack() }}
+                            >
                                 <Text>改</Text>
                             </View>
                         </View>
@@ -349,14 +353,16 @@ export default function LiuyaoPanel () {
                                                                 <Image
                                                                     className='liuyao-panel__coin-img'
                                                                     src={coinFrontImg}
-                                                                    mode='aspectFill'
+                                                                    mode='aspectFit'
+                                                                    lazyLoad={false}
                                                                 />
                                                             </View>
                                                             <View className='liuyao-panel__cface liuyao-panel__cface--bei'>
                                                                 <Image
                                                                     className='liuyao-panel__coin-img'
                                                                     src={coinBackImg}
-                                                                    mode='aspectFill'
+                                                                    mode='aspectFit'
+                                                                    lazyLoad={false}
                                                                 />
                                                             </View>
                                                         </View>
@@ -453,7 +459,7 @@ export default function LiuyaoPanel () {
 
                             {quota && quota.free_remaining > 0 && (
                                 <Text className='liuyao-panel__quota'>
-                                    今日免费 AI 解卦剩余 {quota.free_remaining} 次
+                                    今日免费解卦剩余 {quota.free_remaining} 次
                                 </Text>
                             )}
 
@@ -486,23 +492,24 @@ export default function LiuyaoPanel () {
                             )}
                         </View>
 
-                        {!streaming && (
-                            <View className={`liuyao-panel__result-foot ${hasInterpretation ? 'liuyao-panel__result-foot--single' : ''}`}>
-                                <View className='liuyao-panel__foot-btn liuyao-panel__foot-btn--ghost' onClick={resetAll}>
-                                    <Text className='liuyao-panel__foot-btn-txt'>重新起卦</Text>
-                                </View>
-                                {!hasInterpretation && (
-                                    <View
-                                        className={`liuyao-panel__foot-btn liuyao-panel__foot-btn--primary ${interpreting ? 'liuyao-panel__foot-btn--disabled' : ''}`}
-                                        onClick={() => { if (!interpreting) void onInterpret() }}
-                                    >
-                                        {interpreting
-                                            ? <PendingText className='liuyao-panel__foot-btn-txt liuyao-panel__foot-btn-txt--primary'>解卦中</PendingText>
-                                            : <Text className='liuyao-panel__foot-btn-txt liuyao-panel__foot-btn-txt--primary'>解卦</Text>}
-                                    </View>
-                                )}
+                        <View className={`liuyao-panel__result-foot ${hasInterpretation ? 'liuyao-panel__result-foot--single' : ''}`}>
+                            <View
+                                className={`liuyao-panel__foot-btn liuyao-panel__foot-btn--ghost ${interpretBusy ? 'liuyao-panel__foot-btn--disabled' : ''}`}
+                                onClick={() => { if (!interpretBusy) resetAll() }}
+                            >
+                                <Text className='liuyao-panel__foot-btn-txt'>重新起卦</Text>
                             </View>
-                        )}
+                            {!hasInterpretation && (
+                                <View
+                                    className={`liuyao-panel__foot-btn liuyao-panel__foot-btn--primary ${interpretBusy ? 'liuyao-panel__foot-btn--disabled' : ''}`}
+                                    onClick={() => { if (!interpretBusy) void onInterpret() }}
+                                >
+                                    {interpreting
+                                        ? <PendingText className='liuyao-panel__foot-btn-txt liuyao-panel__foot-btn-txt--primary'>解卦中</PendingText>
+                                        : <Text className='liuyao-panel__foot-btn-txt liuyao-panel__foot-btn-txt--primary'>解卦</Text>}
+                                </View>
+                            )}
+                        </View>
                     </View>
                 )}
             </View>

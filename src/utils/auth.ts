@@ -86,6 +86,15 @@ export function clearAuth (): void {
     emit()
 }
 
+function isAuthInvalidError (err: unknown): boolean {
+    if (!err || typeof err !== 'object') return false
+    const statusCode = (err as { statusCode?: unknown }).statusCode
+    const message = err instanceof Error ? err.message : ''
+    if (statusCode === 401) return true
+    if (statusCode !== 400) return false
+    return /登录已失效|未登录|用户不存在/.test(message)
+}
+
 /** 启动时用本地 token 向后端校验并刷新用户信息 */
 export async function restoreAuthSession (): Promise<void> {
     if (!state.token) return
@@ -100,7 +109,10 @@ export async function restoreAuthSession (): Promise<void> {
             /* noop */
         }
         emit()
-    } catch {
-        clearAuth()
+    } catch (err) {
+        // 仅 token 真正失效时清登录态；网络抖动或后端未启动时保留本地 token
+        if (isAuthInvalidError(err)) {
+            clearAuth()
+        }
     }
 }

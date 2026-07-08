@@ -37,6 +37,23 @@ export interface PalmMountDetail {
     description: string
 }
 
+export interface PalmLinePreview {
+    key: PalmLineKey
+    name_cn: string
+    name_en: string
+    attribute: string
+    hint?: string
+}
+
+export interface PalmMountPreview {
+    key: PalmMountKey
+    name_cn: string
+    icon_text: string
+    status: string
+    keywords: string[]
+    hint?: string
+}
+
 /** /extract 返回：先展示头部标签 */
 export interface PalmExtractResponse {
     left_features: Record<string, unknown>
@@ -44,8 +61,12 @@ export interface PalmExtractResponse {
     left_summary: string
     right_summary: string
     palm_type: string
+    palm_shape: string
     complexion: string
     primary_hand: PalmPrimaryHand
+    extract_overview: string
+    preview_lines: PalmLinePreview[]
+    preview_mounts: PalmMountPreview[]
 }
 
 /** /interpret 请求 */
@@ -62,6 +83,8 @@ export interface PalmStructuredBody {
     complexion: string
     primary_hand: PalmPrimaryHand
     overview: string
+    closing_summary: string
+    advice_items: string[]
     lines: PalmLineDetail[]
     mounts: PalmMountDetail[]
 }
@@ -69,6 +92,10 @@ export interface PalmStructuredBody {
 export interface PalmAnalyzeResponse extends PalmStructuredBody {
     left_summary?: string | null
     right_summary?: string | null
+    palm_shape?: string | null
+    extract_overview?: string | null
+    preview_lines?: PalmLinePreview[]
+    preview_mounts?: PalmMountPreview[]
 }
 
 const PALM_EXTRACT_TIMEOUT_MS = 120_000

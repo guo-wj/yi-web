@@ -97,7 +97,9 @@ export function useLottery () {
             ])
             setResult(data)
             setPhase('drawn')
-            timers.current.push(setTimeout(() => setPhase('settled'), SWAY_MS))
+            timers.current.push(setTimeout(() => {
+                setPhase('settled')
+            }, SWAY_MS))
         } catch (e) {
             const msg = e instanceof Error ? e.message : '抽签失败，请稍后重试'
             setPhase('idle')
@@ -159,6 +161,7 @@ export function useLottery () {
     }, [result])
 
     const reset = useCallback(() => {
+        if (interpretingRef.current) return
         clearTimers()
         setOpenSheet(false)
         setResult(null)

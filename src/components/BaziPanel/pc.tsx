@@ -10,7 +10,7 @@ import {
     BAZI_ORIENTATIONS,
     BAZI_SHICHEN
 } from '@/constants/baziOptions'
-import { useBazi } from './shared'
+import { useBazi, BirthDateInput } from './shared'
 
 import './index.scss'
 
@@ -35,13 +35,10 @@ export default function BaziPanelPC () {
         <View className='bazi-panel'>
             <View className='bazi-panel__scroll'>
                 {canGoBack && <PanelBackButton onClick={goBack} />}
-                <View className='bazi-panel__head'>
-                    <Text className='bazi-panel__title'>八字命理</Text>
-                    <Text className='bazi-panel__subtitle'>四柱排盘 · 五行格局 · 运势参详</Text>
-                </View>
 
                 {phase === 'form' && (
                     <View className='bazi-panel__form'>
+                        <Text className='bazi-panel__form-hint'>凝神定意，如实填写，方得真盘</Text>
                         <View className='bazi-panel__sheet'>
                             <View className='bazi-panel__grid2'>
                                 <View className='bazi-panel__field'>
@@ -101,11 +98,12 @@ export default function BaziPanelPC () {
                                     <Text className='bazi-panel__f-note'>{calendar === 'lunar' ? '农历' : '公历'}</Text>
                                     <Text className='bazi-panel__f-req'>＊</Text>
                                 </Text>
-                                <input
-                                    className='bazi-panel__f-input bazi-panel__f-date'
-                                    type='date'
+                                <BirthDateInput
+                                    wrapClassName='bazi-panel__date-wrap'
+                                    inputClassName='bazi-panel__f-input bazi-panel__f-date'
+                                    iconClassName='bazi-panel__date-icon'
                                     value={birthDate}
-                                    onChange={(e) => setBirthDate((e.target as HTMLInputElement).value)}
+                                    onChange={setBirthDate}
                                 />
                             </View>
 
@@ -196,7 +194,6 @@ export default function BaziPanelPC () {
                                 ? <PendingText spaced className='bazi-panel__submit-txt'>排 盘 中</PendingText>
                                 : <Text className='bazi-panel__submit-txt'>查 看 命 盘</Text>}
                         </View>
-                        <Text className='bazi-panel__form-hint'>凝神定意，如实填写，方得真盘</Text>
                     </View>
                 )}
 
@@ -211,7 +208,7 @@ export default function BaziPanelPC () {
 
                         {quota && quota.free_remaining > 0 && (
                             <Text className='bazi-panel__quota'>
-                                今日免费 AI 断语剩余 {quota.free_remaining} 次
+                                今日免费断语剩余 {quota.free_remaining} 次
                             </Text>
                         )}
 
@@ -244,7 +241,7 @@ export default function BaziPanelPC () {
                             >
                                 {interpreting
                                     ? <PendingText spaced className='bazi-panel__submit-txt'>断 语 生 成 中</PendingText>
-                                    : <Text className='bazi-panel__submit-txt'>AI 命 理 断 语</Text>}
+                                    : <Text className='bazi-panel__submit-txt'>命 理 断 语</Text>}
                             </View>
                         )}
 

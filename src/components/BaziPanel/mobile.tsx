@@ -10,7 +10,7 @@ import {
     BAZI_ORIENTATIONS,
     BAZI_SHICHEN
 } from '@/constants/baziOptions'
-import { useBazi } from './shared'
+import { useBazi, BirthDateInput } from './shared'
 
 import './mobile.scss'
 
@@ -35,13 +35,10 @@ export default function BaziPanelMobile () {
         <View className='bazi-m'>
             <View className='bazi-m__scroll'>
                 {canGoBack && <PanelBackButton onClick={goBack} />}
-                <View className='bazi-m__head'>
-                    <Text className='bazi-m__title'>八字命理</Text>
-                    <Text className='bazi-m__subtitle'>四柱排盘 · 五行格局 · 运势参详</Text>
-                </View>
 
                 {phase === 'form' && (
                     <View className='bazi-m__form'>
+                        <Text className='bazi-m__form-hint'>凝神定意，如实填写，方得真盘</Text>
                         <View className='bazi-m__field'>
                             <Text className='bazi-m__f-label'>
                                 性别<Text className='bazi-m__f-req'>＊</Text>
@@ -98,11 +95,12 @@ export default function BaziPanelMobile () {
                                 <Text className='bazi-m__f-note'>{calendar === 'lunar' ? '农历' : '公历'}</Text>
                                 <Text className='bazi-m__f-req'>＊</Text>
                             </Text>
-                            <input
-                                className='bazi-m__date'
-                                type='date'
+                            <BirthDateInput
+                                wrapClassName='bazi-m__date-wrap'
+                                inputClassName='bazi-m__date'
+                                iconClassName='bazi-m__date-icon'
                                 value={birthDate}
-                                onChange={(e) => setBirthDate((e.target as HTMLInputElement).value)}
+                                onChange={setBirthDate}
                             />
                         </View>
 
@@ -183,8 +181,6 @@ export default function BaziPanelMobile () {
                                 ))}
                             </View>
                         </View>
-
-                        <Text className='bazi-m__form-hint'>凝神定意，如实填写，方得真盘</Text>
                     </View>
                 )}
 
@@ -199,7 +195,7 @@ export default function BaziPanelMobile () {
 
                         {quota && quota.free_remaining > 0 && (
                             <Text className='bazi-m__quota'>
-                                今日免费 AI 断语剩余 {quota.free_remaining} 次
+                                今日免费断语剩余 {quota.free_remaining} 次
                             </Text>
                         )}
 
@@ -232,7 +228,7 @@ export default function BaziPanelMobile () {
                             >
                                 {interpreting
                                     ? <PendingText className='bazi-m__submit-txt'>断语生成中</PendingText>
-                                    : <Text className='bazi-m__submit-txt'>AI 命理断语</Text>}
+                                    : <Text className='bazi-m__submit-txt'>命理断语</Text>}
                             </View>
                         )}
 

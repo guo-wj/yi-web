@@ -7,6 +7,7 @@ import {    toCnYear,
     monthSize,
     formatChong,
     deriveAlmanac,
+    jieqiSealLabel,
     useHuangli
 } from './shared'
 
@@ -36,6 +37,7 @@ export default function HuangliPanelMobile () {
 
     const { solar, lunar, jieqi, yi, ji, details } = data
     const { gz, meta, dirs } = deriveAlmanac(data)
+    const jieqiLabel = jieqiSealLabel(jieqi)
 
     return (
         <View className='huangli-m'>
@@ -51,12 +53,14 @@ export default function HuangliPanelMobile () {
                     </View>
 
                     <View className='huangli-m__bignum'>
-                        <Text className='huangli-m__d'>{solar.day}</Text>
+                        <View className='huangli-m__d-wrap'>
+                            <Text className='huangli-m__d'>{solar.day}</Text>
+                        </View>
                         <View className='huangli-m__bignum-side'>
                             <Text className='huangli-m__wk'>{solar.weekday}</Text>
-                            {jieqi.term && (
+                            {jieqiLabel && (
                                 <View className='huangli-m__seal'>
-                                    <Text className='huangli-m__seal-txt'>{jieqi.term}</Text>
+                                    <Text className='huangli-m__seal-txt'>{jieqiLabel}</Text>
                                 </View>
                             )}
                         </View>

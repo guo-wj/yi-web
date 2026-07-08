@@ -30,14 +30,6 @@ export default function LotteryPanelMobile () {
     return (
         <View className='lottery-m'>
             <View className='lottery-m__scroll'>
-                <View className='lottery-m__titleblock'>
-                    <Text className='lottery-m__title'>灵签一动</Text>
-                    <Text className='lottery-m__subtitle'>静心凝神，摇签即得今日指引</Text>
-                    {quota && quota.free_remaining > 0 && (
-                        <Text className='lottery-m__quota'>今日免费 AI 解签剩余 {quota.free_remaining} 次</Text>
-                    )}
-                </View>
-
                 <View className='lottery-m__canister-stage'>
                     <View className='lottery-m__glow' />
                     <View
@@ -53,7 +45,7 @@ export default function LotteryPanelMobile () {
                     {drawnVisible && result && (
                         <View
                             className={drawnClass}
-                            onClick={() => phase === 'settled' && setOpenSheet(true)}
+                            onClick={() => phase === 'settled' && result.interpretation && setOpenSheet(true)}
                         >
                             <View className='lottery-m__drawn-cap' />
                             <View className='lottery-m__drawn-body'>
@@ -74,6 +66,9 @@ export default function LotteryPanelMobile () {
             </View>
 
             <View className='lottery-m__dock'>
+                {quota && quota.free_remaining > 0 && (
+                    <Text className='lottery-m__quota'>今日免费解签剩余 {quota.free_remaining} 次</Text>
+                )}
                 {phase === 'idle' && (
                     <View className='lottery-m__cta' onClick={() => void onDraw()}>
                         <Text className='lottery-m__cta-txt'>摇签求运势</Text>
@@ -94,13 +89,16 @@ export default function LotteryPanelMobile () {
                     <View className='lottery-m__actions'>
                         <View
                             className='lottery-m__action lottery-m__action--primary'
-                            onClick={() => void onInterpret()}
+                            onClick={() => { if (!interpreting) void onInterpret() }}
                         >
                             {interpreting
                                 ? <PendingText className='lottery-m__action-txt lottery-m__action-txt--primary'>解签中</PendingText>
                                 : <Text className='lottery-m__action-txt lottery-m__action-txt--primary'>解签</Text>}
                         </View>
-                        <View className='lottery-m__action' onClick={reset}>
+                        <View
+                            className={`lottery-m__action ${interpreting ? 'lottery-m__action--disabled' : ''}`}
+                            onClick={() => { if (!interpreting) reset() }}
+                        >
                             <Text className='lottery-m__action-txt'>再抽一次</Text>
                         </View>
                     </View>
@@ -159,14 +157,23 @@ function ResultSheet ({ result, interpreting, onClose }: ResultSheetProps) {
                         <View className='lottery-m__sect-h'>
                             <Text className='lottery-m__sect-h-txt'>解 曰</Text>
                         </View>
-                        {result.interpretation
-                            ? <MarkdownView className='lottery-m__sect-md' content={result.interpretation} />
-                            : (
-                                interpreting
-                                    ? <PendingText className='lottery-m__sect-pending'>AI 正在解签，请稍候</PendingText>
-                                    : <Text className='lottery-m__sect-pending'>点击解签获取 AI 解读</Text>
-                            )}
+                        <Text className='lottery-m__sect-gist'>{result.slip.gist}</Text>
                     </View>
+
+                    {(result.interpretation || interpreting) && (
+                        <View className='lottery-m__sect lottery-m__sect--ai'>
+                            <View className='lottery-m__sect-h'>
+                                <Text className='lottery-m__sect-h-txt'>详 参</Text>
+                            </View>
+                            {result.interpretation
+                                ? <MarkdownView className='lottery-m__sect-md' content={result.interpretation} />
+                                : <PendingText className='lottery-m__sect-pending'>正在详参，请稍候</PendingText>}
+                        </View>
+                    )}
+
+                    {!result.interpretation && !interpreting && (
+                        <Text className='lottery-m__sect-hint'>点击下方「解签」可获深度详参（消耗积分或免费额度）</Text>
+                    )}
 
                     <Text className='lottery-m__sheet-note'>云开月出照前程，莫向签文问死生。心若安然，处处是好程</Text>
                 </View>

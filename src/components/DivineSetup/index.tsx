@@ -40,7 +40,6 @@ interface DivineSetupProps {
     ctaText: string
     ctaDisabled?: boolean
     onCast: () => void
-    hint?: string
 }
 
 /**
@@ -60,8 +59,7 @@ export default function DivineSetup ({
     children,
     ctaText,
     ctaDisabled = false,
-    onCast,
-    hint
+    onCast
 }: DivineSetupProps) {
     const activeIndex = Math.max(0, methods.findIndex((m) => m.key === activeMethod))
     const loop = [...prompts, ...prompts]
@@ -146,8 +144,6 @@ export default function DivineSetup ({
             >
                 <Text className='dv-setup__cta-txt'>{ctaText}</Text>
             </View>
-
-            {hint ? <Text className='dv-setup__hint'>{hint}</Text> : null}
         </View>
     )
 }

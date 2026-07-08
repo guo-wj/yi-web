@@ -163,17 +163,62 @@
         color: var(--bz-ink);
     }
 
+    &__date-wrap {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        cursor: pointer;
+    }
+
     &__date {
+        display: block;
+        flex: 1;
+        width: 100%;
+        min-width: 100%;
         height: 46px;
         border-radius: 12px;
         background: var(--bz-surface);
         border: 1px solid var(--bz-line);
-        padding: 0 14px;
+        padding: 0 42px 0 14px;
         font-size: 15px;
         color: var(--bz-ink);
         font-family: inherit;
         box-sizing: border-box;
-        width: 100%;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        font-variant-numeric: tabular-nums;
+
+        &::-webkit-calendar-picker-indicator {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+    }
+
+    &__date-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        color: var(--bz-gold-soft);
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
     }
 
     &__shi-grid {
@@ -256,7 +301,7 @@
         text-align: center;
         font-size: 12px;
         color: var(--bz-ink-faint);
-        margin-top: 4px;
+        margin: clamp(16px, 3vh, 24px) 0 12px;
     }
 
     /* ===== 底部提交 ===== */

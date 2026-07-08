@@ -39,6 +39,10 @@
         flex-direction: column;
     }
 
+    &--reading &__scroll {
+        padding-bottom: calc(88px + env(safe-area-inset-bottom));
+    }
+
     &__head {
         margin-top: 20px;
         margin-bottom: 18px;
@@ -67,55 +71,51 @@
     /* ============ 上传 ============ */
     &__upload {
         width: 100%;
+        margin-top: clamp(16px, 3vh, 24px);
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 14px;
     }
 
-    &__tip-card {
+    &__drop-grid-wrap {
         position: relative;
-        background: var(--pm-surface);
-        border: 1px solid var(--pm-line);
-        border-radius: 14px;
-        padding: 14px 16px 14px 56px;
-        box-shadow: 0 12px 30px -24px rgba(70, 52, 22, 0.4);
-    }
-
-    &__tip-mark {
-        position: absolute;
-        left: 14px;
-        top: 14px;
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        background: var(--pm-active-bg);
-        color: var(--pm-gold);
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    &__tip-list {
+        width: 100%;
         display: flex;
         flex-direction: column;
         gap: 6px;
-        text-align: left;
     }
 
-    &__tip-li {
-        display: block;
+    &__drop-labels {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
         width: 100%;
-        font-size: 13px;
-        line-height: 1.5;
-        color: var(--pm-ink-soft);
-        text-align: left;
+    }
+
+    &__drop-row-wrap {
+        position: relative;
+        width: 100%;
+    }
+
+    &__drop-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        width: 100%;
+    }
+
+    &__drop-lock {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        cursor: not-allowed;
     }
 
     &__drop-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        width: 100%;
     }
 
     &__drop-col {
@@ -133,7 +133,7 @@
     &__drop {
         position: relative;
         width: 100%;
-        aspect-ratio: 3 / 4;
+        aspect-ratio: 4 / 5;
         border-radius: 12px;
         border: 1px dashed var(--pm-line-strong);
         background: var(--pm-surface);
@@ -148,6 +148,15 @@
     &__drop--filled {
         border-style: solid;
         border-color: var(--pm-gold-soft);
+    }
+
+    &__drop--disabled {
+        opacity: 0.55;
+        pointer-events: none;
+
+        .palm-m__drop-redo {
+            display: none;
+        }
     }
 
     &__drop-plus {
@@ -199,6 +208,13 @@
         text-align: center;
         font-size: 12px;
         color: var(--pm-ink-faint);
+        margin: 0 0 8px;
+        width: 100%;
+
+        &--lead {
+            margin: 0;
+            text-align: left;
+        }
     }
 
     /* ============ 底部提交 ============ */
@@ -209,7 +225,15 @@
         bottom: 0;
         z-index: 5;
         padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         background: linear-gradient(to top, var(--pm-surface) 60%, rgba(255, 253, 248, 0));
+        box-sizing: border-box;
+
+        &--result {
+            background: linear-gradient(to top, var(--pm-surface) 72%, rgba(255, 253, 248, 0));
+        }
     }
 
     &__submit {
@@ -226,6 +250,7 @@
     &__submit--disabled {
         opacity: 0.5;
         box-shadow: none;
+        pointer-events: none;
     }
 
     &__submit-txt {
@@ -270,18 +295,6 @@
         border-radius: 14px;
         padding: 16px;
         box-shadow: 0 12px 30px -24px rgba(70, 52, 22, 0.4);
-    }
-
-    &__loading-card {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    &__loading-hint {
-        font-size: 13px;
-        color: var(--pm-ink-faint);
-        letter-spacing: 0.08em;
     }
 
     &__card-head {
@@ -333,6 +346,9 @@
     }
 
     &__line-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
         background: var(--pm-surface);
         border: 1px solid var(--pm-line);
         border-radius: 14px;
@@ -340,17 +356,27 @@
         box-shadow: 0 12px 30px -24px rgba(70, 52, 22, 0.4);
     }
 
-    &__line-top {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 8px;
-    }
-
     &__line-glyph {
         flex: none;
         width: 44px;
         height: 44px;
+        border-radius: 10px;
+        background: var(--pm-bg-soft);
+        border: 1px solid var(--pm-line);
+        display: grid;
+        place-items: center;
+    }
+
+    &__line-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__line-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
     }
 
     &__line-svg {
@@ -522,16 +548,27 @@
     &__result-foot {
         display: flex;
         align-items: stretch;
-        gap: 12px;
+        gap: 10px;
         width: 100%;
-        margin-top: 4px;
+        max-width: 100%;
+        margin: 0;
+        box-sizing: border-box;
     }
 
     &__submit--inline {
         flex: 1;
         min-width: 0;
         width: auto;
+        max-width: none;
         height: 46px;
+        box-shadow: 0 10px 24px -14px rgba(169, 128, 47, 0.75);
+    }
+
+    &__submit-txt--compact {
+        font-size: 15px;
+        letter-spacing: 0.06em;
+        padding-left: 0;
+        white-space: nowrap;
     }
 
     /* ---- 重新上传 ---- */
@@ -546,13 +583,105 @@
         align-items: center;
         justify-content: center;
         box-sizing: border-box;
+
+        &--disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
     }
 
     &__btn-back-txt {
-        font-size: 15px;
-        letter-spacing: 0.3em;
-        padding-left: 0.3em;
+        font-size: 14px;
+        letter-spacing: 0.06em;
+        padding-left: 0;
         color: var(--pm-gold);
+        white-space: nowrap;
+    }
+
+    &__hand-summaries {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    &__extract-preview {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    &__hand-summary-card {
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: var(--pm-surface);
+        border: 1px solid var(--pm-line);
+    }
+
+    &__hand-summary-label {
+        display: block;
+        font-family: var(--pm-brush);
+        font-size: 13px;
+        letter-spacing: 0.18em;
+        color: var(--pm-gold);
+        margin-bottom: 6px;
+    }
+
+    &__hand-summary-text {
+        font-size: 13px;
+        line-height: 1.65;
+        color: var(--pm-ink-soft);
+    }
+
+    &__line-card--preview {
+        padding: 14px 16px;
+    }
+
+    &__mount-card--preview {
+        padding: 14px 16px;
+    }
+
+    &__closing-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+
+    &__advice-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    &__advice-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    &__advice-n {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--pm-active-bg);
+        border: 1px solid var(--pm-line-strong);
+        font-size: 11px;
+        line-height: 20px;
+        text-align: center;
+        color: var(--pm-gold);
+    }
+
+    &__advice-txt {
+        flex: 1;
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--pm-ink-soft);
     }
 }
 
