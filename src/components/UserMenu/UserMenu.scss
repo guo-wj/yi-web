@@ -276,11 +276,40 @@ $popover-logout-dark: #d05749;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
 
+    &--portal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 500;
+        width: min(280px, calc(100vw - 40px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+        font-size: 15px;
+        border-radius: 16px;
+
+        @include popover-surface-large;
+        @include popover-density-large;
+
+        .home__avatar-face {
+            width: 36px;
+            height: 36px;
+            font-size: 36px;
+        }
+    }
+
     &--theme-light {
         background: rgba(255, 253, 248, 0.94);
         box-shadow:
             0 8px 28px rgba(70, 52, 22, 0.1),
             0 0 0 1px rgba(120, 95, 45, 0.1);
+
+        .home__avatar-face {
+            background: linear-gradient(145deg, #e8dfd2, #d4c4b0);
+            border-color: rgba(120, 95, 45, 0.16);
+            box-shadow: 0 2px 6px rgba(74, 63, 53, 0.1);
+        }
+
+        .home__avatar-letter {
+            color: #5c4d3e;
+        }
     }
 
     &--theme-dark {
@@ -288,6 +317,16 @@ $popover-logout-dark: #d05749;
         box-shadow:
             0 10px 32px rgba(0, 0, 0, 0.38),
             0 0 0 1px rgba(214, 180, 110, 0.12);
+
+        .home__avatar-face {
+            background: linear-gradient(145deg, #3a3228 0%, #2a231c 100%);
+            border-color: rgba(214, 180, 110, 0.24);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.32);
+        }
+
+        .home__avatar-letter {
+            color: #e8c882;
+        }
 
         .home__popover-divider {
             background: rgba(214, 180, 110, 0.12);

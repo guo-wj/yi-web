@@ -1,0 +1,121 @@
+.invite-entry {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    color: #a9802f;
+    background: rgba(169, 128, 47, 0.1);
+    border: 1px solid rgba(169, 128, 47, 0.22);
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+
+    &:active {
+        transform: translateY(1px);
+    }
+
+    &__icon {
+        flex: none;
+        width: 14px;
+        height: 14px;
+        background-color: currentColor;
+    }
+
+    &__label {
+        line-height: 1.2;
+        white-space: nowrap;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+    }
+
+    &--topbar {
+        height: 36px;
+        padding: 0 14px;
+
+        .invite-entry__icon {
+            width: 13px;
+            height: 13px;
+        }
+
+        .invite-entry__label {
+            font-size: 13px;
+        }
+    }
+
+    &--sidebar {
+        height: auto;
+        padding: 6px 4px;
+        gap: 8px;
+        border-radius: 0;
+        color: #6a5d49;
+        background: transparent;
+        border: none;
+
+        .invite-entry__icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .invite-entry__label {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+
+        &:active {
+            transform: none;
+            opacity: 0.72;
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                color: #a9802f;
+                background: transparent;
+                border-color: transparent;
+            }
+        }
+    }
+
+    @media (hover: hover) {
+        &:hover {
+            color: #8f6828;
+            background: rgba(169, 128, 47, 0.16);
+            border-color: rgba(169, 128, 47, 0.35);
+        }
+    }
+}
+
+.feature-shell--theme-dark {
+    .invite-entry {
+        color: #d3ad5c;
+        background: rgba(211, 173, 92, 0.12);
+        border-color: rgba(211, 173, 92, 0.28);
+
+        &--sidebar {
+            color: #b8a488;
+            background: transparent;
+            border: none;
+
+            @media (hover: hover) {
+                &:hover {
+                    color: #d3ad5c;
+                    background: transparent;
+                    border-color: transparent;
+                }
+            }
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                background: rgba(211, 173, 92, 0.18);
+                border-color: rgba(211, 173, 92, 0.4);
+            }
+        }
+    }
+}

@@ -15,6 +15,7 @@ import {
     subscribeAuthModal,
     type AuthModalMode
 } from '@/utils/authModal'
+import { clearPendingInviteCode, getPendingInviteCode } from '@/utils/inviteCode'
 import { openAlertModal } from '@/utils/confirmModal'
 
 import './index.scss'
@@ -63,6 +64,7 @@ function LoginModalForm ({
         setEmail('')
         setPassword('')
         setConfirmPassword('')
+        setInviteCode(getPendingInviteCode() ?? '')
         setShowPassword(false)
         setShowConfirmPassword(false)
         setSubmitting(false)
@@ -109,6 +111,9 @@ function LoginModalForm ({
                 })
 
             setAuth(data.token, data.user)
+            if (mode === 'register' && invite) {
+                clearPendingInviteCode()
+            }
             void import('@/hooks/usePoints').then(({ refreshPointsBalance }) => refreshPointsBalance())
             void Taro.showToast({
                 title: mode === 'login' ? '登录成功' : '注册成功',

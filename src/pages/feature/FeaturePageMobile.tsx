@@ -8,6 +8,8 @@ import {
 } from '@/utils/shellSettings'
 import type { FeatureKey } from '@/constants/features'
 import { FeatureMainBlock, FeatureSidebar, useFeatureState } from './components/shared'
+import { captureInviteFromQuery } from '@/utils/inviteCode'
+import { maybeOpenInviteRegister } from '@/utils/requireAuth'
 import './mobile.scss'
 
 /** 与 mobile.scss 中 $mobile-topbar-row-h 保持一致 */
@@ -30,6 +32,8 @@ export default function FeaturePageMobile () {
     const [drawerOpen, setDrawerOpen] = useState(false)
 
     useLoad((options) => {
+        captureInviteFromQuery(options as Record<string, string | undefined>)
+        maybeOpenInviteRegister()
         const raw = options?.key as string | undefined
         const tab = options?.tab as string | undefined
         syncFeatureKey(raw, tab)

@@ -12,6 +12,7 @@ import MeihuaPanel from '@/components/MeihuaPanel'
 import PalmPanel from '@/components/PalmPanel'
 import FacePanel from '@/components/FacePanel'
 import MemberPanel from '@/components/MemberPanel'
+import InviteQuickEntry from '@/components/InviteQuickEntry'
 import foldIcon from '@/assets/icons/fold.svg'
 import {
     type FeatureKey,
@@ -27,7 +28,7 @@ import { persistFeatureKey, readInitialFeatureKey } from '@/utils/featureKeyPers
 function parseMemberTab (raw?: string): MemberPanelTabKey | undefined {
     if (!raw) return undefined
     if (raw === 'ledger') return 'tx'
-    if (['overview', 'checkin', 'tx', 'recharge', 'member'].includes(raw)) {
+    if (['overview', 'checkin', 'tx', 'recharge', 'member', 'invite'].includes(raw)) {
         return raw as MemberPanelTabKey
     }
     return undefined
@@ -251,32 +252,43 @@ export function FeatureSidebar ({
                         </View>
                     )
                 })}
+
+                {drawerMode && (
+                    <>
+                        <View className='feature-page__sidebar-rule feature-page__sidebar-rule--member' />
+                        <View
+                            className={`feature-page__nav-item feature-page__nav-item--member ${activeKey === 'member' ? 'feature-page__nav-item--active' : ''}`}
+                            onClick={onMemberNav}
+                        >
+                            <View className='feature-page__nav-icon-box'>
+                                <FeatureIcon
+                                    className='feature-page__nav-icon'
+                                    src={MEMBER_FEATURE.icon}
+                                    scale={MEMBER_FEATURE.iconScale}
+                                />
+                            </View>
+                            <View className='feature-page__nav-text'>
+                                <View className='feature-page__nav-title-row'>
+                                    <Text className='feature-page__nav-title'>{MEMBER_FEATURE.title}</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </>
+                )}
             </View>
 
             {drawerMode ? (
                 <View className='feature-page__sidebar-dock-bar'>
-                    <View
-                        className='feature-page__nav-item feature-page__nav-item--member feature-page__nav-item--dock-inline'
-                        onClick={onMemberNav}
-                    >
-                        <View className='feature-page__nav-icon-box'>
-                            <FeatureIcon
-                                className='feature-page__nav-icon'
-                                src={MEMBER_FEATURE.icon}
+                    <View className='feature-page__sidebar-rule feature-page__sidebar-rule--dock' />
+                    <View className='feature-page__dock-actions'>
+                        <View className='feature-page__dock-avatar'>
+                            <UserMenu
+                                dock='sidebar-inline'
+                                uiMode='mobile'
+                                collapsed={false}
                             />
                         </View>
-                        <View className='feature-page__nav-text'>
-                            <View className='feature-page__nav-title-row'>
-                                <Text className='feature-page__nav-title'>{MEMBER_FEATURE.title}</Text>
-                            </View>
-                        </View>
-                    </View>
-                    <View className='feature-page__sidebar-footer feature-page__sidebar-footer--drawer'>
-                        <UserMenu
-                            dock='sidebar-inline'
-                            uiMode='mobile'
-                            collapsed={false}
-                        />
+                        <InviteQuickEntry variant='sidebar' />
                     </View>
                 </View>
             ) : (
@@ -290,6 +302,7 @@ export function FeatureSidebar ({
                                 <FeatureIcon
                                     className='feature-page__nav-icon'
                                     src={MEMBER_FEATURE.icon}
+                                    scale={MEMBER_FEATURE.iconScale}
                                 />
                             </View>
                             {!collapsed && (

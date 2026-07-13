@@ -14,6 +14,10 @@ import { openConfirmModal } from '@/utils/confirmModal'
 import { openContactModal } from '@/utils/contactModal'
 import { openLoginModal } from '@/utils/requireAuth'
 import {
+    computeAnchoredPopoverPosition,
+    rectFromElement
+} from '@/utils/anchoredPopover'
+import {
     getShellSettingsState,
     setShellTheme,
     subscribeShellSettings,
@@ -46,12 +50,16 @@ export default function UserMenu ({
     const [menuOpen, setMenuOpen] = useState(false)
     const [appearanceOpen, setAppearanceOpen] = useState(false)
     const [themeSubPos, setThemeSubPos] = useState({ top: 0, left: 0 })
+    const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
     const rootRef = useRef<HTMLElement | null>(null)
+    const triggerRef = useRef<HTMLElement | null>(null)
+    const popoverRef = useRef<HTMLElement | null>(null)
     const appearanceRef = useRef<HTMLElement | null>(null)
     const themeSubRef = useRef<HTMLElement | null>(null)
     const appearanceHoverTimer = useRef<number | null>(null)
     const isSidebarInline = dock === 'sidebar-inline'
     const isTopbarInline = dock === 'topbar-inline'
+    const usePortalPopover = isSidebarInline && uiMode === 'mobile'
     const { user, isLoggedIn } = useAuth()
     const { theme } = useSyncExternalStore(
         subscribeShellSettings,
@@ -78,10 +86,12 @@ export default function UserMenu ({
         const onDocClick = (e: MouseEvent) => {
             const target = e.target as Node
             const root = rootRef.current
+            const popover = popoverRef.current
             const sub = themeSubRef.current
             const insideRoot = root?.contains(target)
+            const insidePopover = popover?.contains(target)
             const insideSub = sub?.contains(target)
-            if (!insideRoot && !insideSub) {
+            if (!insideRoot && !insidePopover && !insideSub) {
                 setMenuOpen(false)
                 setAppearanceOpen(false)
             }
@@ -93,7 +103,7 @@ export default function UserMenu ({
             clearTimeout(id)
             document.removeEventListener('click', onDocClick, true)
         }
-    }, [menuOpen])
+    }, [menuOpen, usePortalPopover])
 
     const onTriggerClick = useCallback((e: { stopPropagation?: () => void }) => {
         e.stopPropagation?.()
@@ -121,6 +131,38 @@ export default function UserMenu ({
             setAppearanceOpen(false)
         }, 120)
     }, [clearAppearanceHoverTimer])
+
+    const syncPopoverPos = useCallback(() => {
+        const trigger = triggerRef.current
+        const popoverEl = popoverRef.current
+        if (!trigger || !popoverEl || typeof window === 'undefined') return
+
+        const anchor = rectFromElement(trigger)
+        const popoverWidth = popoverEl.offsetWidth || 280
+        const popoverHeight = popoverEl.offsetHeight || 320
+        const next = computeAnchoredPopoverPosition(
+            anchor,
+            popoverWidth,
+            popoverHeight,
+            'upper-right'
+        )
+        setPopoverPos(next)
+    }, [])
+
+    useEffect(() => {
+        if (!menuOpen || !usePortalPopover) return
+
+        syncPopoverPos()
+        const id = window.requestAnimationFrame(() => syncPopoverPos())
+        if (typeof window === 'undefined') return
+        window.addEventListener('resize', syncPopoverPos)
+        window.addEventListener('scroll', syncPopoverPos, true)
+        return () => {
+            window.cancelAnimationFrame(id)
+            window.removeEventListener('resize', syncPopoverPos)
+            window.removeEventListener('scroll', syncPopoverPos, true)
+        }
+    }, [menuOpen, usePortalPopover, syncPopoverPos])
 
     const syncThemeSubPos = useCallback(() => {
         const el = appearanceRef.current
@@ -256,6 +298,69 @@ export default function UserMenu ({
 
     const avatarLetter = userInitial(displayName)
 
+    const menuPopover = menuOpen && isLoggedIn && (
+        <View
+            ref={popoverRef}
+            className={[
+                'home__popover',
+                `home__popover--theme-${theme}`,
+                usePortalPopover ? 'home__popover--portal' : ''
+            ].filter(Boolean).join(' ')}
+            style={usePortalPopover ? {
+                top: `${popoverPos.top}px`,
+                left: `${popoverPos.left}px`
+            } : undefined}
+            catchMove
+            onClick={(e) => e.stopPropagation?.()}
+        >
+            <View className='home__popover-profile'>
+                <View className='home__avatar-face'>
+                    <Text className='home__avatar-letter'>{avatarLetter}</Text>
+                </View>
+                <View className='home__popover-profile-copy'>
+                    <Text className='home__popover-phone'>{displayName}</Text>
+                </View>
+            </View>
+
+            <View className='home__popover-divider' />
+
+            <View className='home__popover-nav'>
+                <View
+                    ref={appearanceRef}
+                    className={`home__popover-appearance ${appearanceOpen ? 'home__popover-appearance--open' : ''}`}
+                >
+                    <View
+                        className='home__popover-row home__popover-row--has-sub'
+                        onClick={onAppearanceRowClick}
+                    >
+                        <Text className='home__popover-row-label'>外观</Text>
+                        <Text className='home__popover-row-hint'>{themeLabel}</Text>
+                        <Text className='home__popover-row-chevron'>›</Text>
+                    </View>
+                </View>
+
+                {USER_MENU_ROWS.map((row) => (
+                    <View
+                        key={row.key}
+                        className='home__popover-row'
+                        onClick={() => onMenuRow(row.key)}
+                    >
+                        <Text className='home__popover-row-label'>{row.label}</Text>
+                        {row.chevron && (
+                            <Text className='home__popover-row-chevron'>›</Text>
+                        )}
+                    </View>
+                ))}
+            </View>
+
+            <View className='home__popover-divider' />
+
+            <View className='home__popover-row home__popover-row--logout' onClick={onMenuLogout}>
+                <Text className='home__popover-row-label'>退出登录</Text>
+            </View>
+        </View>
+    )
+
     const themeSubmenu = appearanceOpen && (
         <View
             ref={themeSubRef}
@@ -295,6 +400,7 @@ export default function UserMenu ({
             style={isSidebarInline || isTopbarInline ? undefined : { top: topOffset }}
         >
             <View
+                ref={triggerRef}
                 className='home__user-trigger'
                 onClick={onTriggerClick}
             >
@@ -314,59 +420,8 @@ export default function UserMenu ({
                 )}
             </View>
 
-            {menuOpen && isLoggedIn && (
-                <View
-                    className={`home__popover home__popover--theme-${theme}`}
-                    catchMove
-                    onClick={(e) => e.stopPropagation?.()}
-                >
-                    <View className='home__popover-profile'>
-                        <View className='home__avatar-face'>
-                            <Text className='home__avatar-letter'>{avatarLetter}</Text>
-                        </View>
-                        <View className='home__popover-profile-copy'>
-                            <Text className='home__popover-phone'>{displayName}</Text>
-                        </View>
-                    </View>
-
-                    <View className='home__popover-divider' />
-
-                    <View className='home__popover-nav'>
-                        <View
-                            ref={appearanceRef}
-                            className={`home__popover-appearance ${appearanceOpen ? 'home__popover-appearance--open' : ''}`}
-                        >
-                            <View
-                                className='home__popover-row home__popover-row--has-sub'
-                                onClick={onAppearanceRowClick}
-                            >
-                                <Text className='home__popover-row-label'>外观</Text>
-                                <Text className='home__popover-row-hint'>{themeLabel}</Text>
-                                <Text className='home__popover-row-chevron'>›</Text>
-                            </View>
-                        </View>
-
-                        {USER_MENU_ROWS.map((row) => (
-                            <View
-                                key={row.key}
-                                className='home__popover-row'
-                                onClick={() => onMenuRow(row.key)}
-                            >
-                                <Text className='home__popover-row-label'>{row.label}</Text>
-                                {row.chevron && (
-                                    <Text className='home__popover-row-chevron'>›</Text>
-                                )}
-                            </View>
-                        ))}
-                    </View>
-
-                    <View className='home__popover-divider' />
-
-                    <View className='home__popover-row home__popover-row--logout' onClick={onMenuLogout}>
-                        <Text className='home__popover-row-label'>退出登录</Text>
-                    </View>
-                </View>
-            )}
+            {!usePortalPopover && menuPopover}
+            {typeof document !== 'undefined' && usePortalPopover && menuPopover && createPortal(menuPopover, document.body)}
             {typeof document !== 'undefined' && appearanceOpen && createPortal(themeSubmenu, document.body)}
         </View>
     )

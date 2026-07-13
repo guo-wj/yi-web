@@ -1,4 +1,4 @@
-@use '../../styles/pc-brown-gold-theme' as *;
+@use './home-hub.scss';
 
 @mixin font-sans {
     font-family:
@@ -14,147 +14,75 @@
 .home-page--pc {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     min-height: 100vh;
     @include font-sans;
-    background: $pc-main-bg;
-    color: $pc-text-strong;
+    background: home-hub.$hub-bg;
+    color: home-hub.$hub-text;
 
-    .home-page__header {
+    .home-page__topbar {
         width: 100%;
-        max-width: 1180px;
+        max-width: 1080px;
         margin: 0 auto;
         display: flex;
         align-items: center;
-        justify-content: center;
-        padding: 22px 24px 20px;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 28px 8px;
     }
 
-    .home-page__header-inner {
+    .home-page__brand-block {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 6px;
+        gap: 12px;
+    }
+
+    .home-page__brand-mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #d4b06a, #a9802f);
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
     }
 
     .home-page__brand {
-        font-size: 24px;
-        font-weight: 600;
-        letter-spacing: 0.32em;
-        padding-right: 0.32em;
-        color: $pc-text-strong;
-        text-align: center;
+        display: block;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        color: #3d3530;
     }
 
     .home-page__brand-tagline {
-        font-size: 13px;
-        letter-spacing: 0.16em;
-        color: $pc-text-secondary;
-        text-align: center;
+        display: block;
+        margin-top: 4px;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        color: #7a6f64;
+    }
+
+    .home-page__topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .home__user--topbar {
+            position: relative;
+            top: auto;
+            right: auto;
+            transform: none;
+        }
     }
 
     .home-page__main {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
         width: 100%;
-        max-width: 1180px;
-        min-height: 0;
+        max-width: 1080px;
         margin: 0 auto;
         padding: 8px 28px 40px;
-    }
-
-    .home-page__cards {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        grid-auto-rows: auto;
-        gap: 22px;
-        align-items: stretch;
-        height: calc(100vh - 200px);
-    }
-
-    .home-page__card {
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 28px;
-        padding: 40px 22px;
-        text-align: center;
-        text-decoration: none;
-        color: inherit;
-        background: $pc-card-bg;
-        border: 1px solid $pc-card-border;
-        border-radius: 24px;
-        box-shadow: $pc-card-shadow;
-        transition: transform 0.22s ease, box-shadow 0.22s ease;
-
-        &:hover,
-        &.home-page__card--hover {
-            transform: translateY(-5px);
-            box-shadow: $pc-card-hover-shadow;
-        }
-    }
-
-    .home-page__card-icon-ring {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 92px;
-        height: 92px;
-        border-radius: 50%;
-        background: $pc-icon-ring-bg;
-        border: 1px solid $pc-icon-ring-border;
-        box-shadow:
-            0 6px 18px rgba(0, 0, 0, 0.28),
-            inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    }
-
-    .home-page__card-icon {
-        width: 48px;
-        height: 48px;
-        background-color: $pc-accent;
-    }
-
-    .home-page__card-body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 14px;
-        width: 100%;
-        max-width: 13rem;
-    }
-
-    .home-page__card-title-row {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .home-page__card-title {
-        font-size: 18px;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        color: $pc-text-strong;
-    }
-
-    .home-page__card-desc {
-        font-size: 13px;
-        line-height: 1.8;
-        max-width: 14em;
-        color: $pc-text-secondary;
-        display: -webkit-box;
-        -webkit-line-clamp: 5;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        opacity: 0.9;
-    }
-
-    .home-page__card-arrow {
-        display: none;
     }
 
     .home-page__footer {
@@ -164,8 +92,8 @@
         bottom: 0;
         z-index: 100;
         padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
-        background: $pc-footer-bg;
-        border-top: 1px solid $pc-border;
+        background: rgba(247, 243, 238, 0.96);
+        border-top: 1px solid rgba(74, 63, 53, 0.08);
         backdrop-filter: blur(10px);
     }
 
@@ -175,24 +103,8 @@
         margin: 0 auto;
         text-align: center;
         font-size: 12px;
-        line-height: 1.65;
-        color: $pc-text-tertiary;
-    }
-
-    .home-page__pill {
-        padding: 3px 8px;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        border-radius: 999px;
-        color: #fff;
-
-        &--hot {
-            background: $pc-chip-hot;
-        }
-
-        &--new {
-            background: $pc-chip-new;
-        }
+        line-height: 1.4;
+        white-space: nowrap;
+        color: #9a8f84;
     }
 }

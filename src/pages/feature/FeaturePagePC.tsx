@@ -15,7 +15,10 @@ import pinIcon from '@/assets/icons/pin.svg'
 import { FEATURE_ITEMS, getFeatureByKey, MEMBER_FEATURE } from '@/constants/features'
 import { selectMemberTab } from '@/utils/memberNav'
 import MemberPanel from '@/components/MemberPanel'
+import InviteQuickEntry from '@/components/InviteQuickEntry'
 import { useFeatureState } from './components/shared'
+import { captureInviteFromQuery } from '@/utils/inviteCode'
+import { maybeOpenInviteRegister } from '@/utils/requireAuth'
 import {
     getShellSettingsState,
     subscribeShellSettings
@@ -44,6 +47,8 @@ export default function FeaturePagePC () {
     const { activeKey, memberTab, selectFeature, syncFeatureKey } = useFeatureState()
 
     useLoad((options) => {
+        captureInviteFromQuery(options as Record<string, string | undefined>)
+        maybeOpenInviteRegister()
         const raw = options?.key as string | undefined
         const tab = options?.tab as string | undefined
         syncFeatureKey(raw, tab)
@@ -98,6 +103,7 @@ export default function FeaturePagePC () {
                             <FeatureIcon
                                 className='feature-shell__nav-icon'
                                 src={MEMBER_FEATURE.icon}
+                                scale={MEMBER_FEATURE.iconScale}
                             />
                         </View>
                         <Text className='feature-shell__nav-label'>{MEMBER_FEATURE.title}</Text>
@@ -121,8 +127,11 @@ export default function FeaturePagePC () {
                         <Text className='feature-shell__crumb-sub'>· {active.sub}</Text>
                     </View>
                     <View className='feature-shell__spacer' />
-                    <View className='feature-shell__topbar-user'>
-                        <UserMenu dock='topbar-inline' uiMode='pc' />
+                    <View className='feature-shell__topbar-actions'>
+                        <InviteQuickEntry variant='topbar' />
+                        <View className='feature-shell__topbar-user'>
+                            <UserMenu dock='topbar-inline' uiMode='pc' />
+                        </View>
                     </View>
                 </View>
 

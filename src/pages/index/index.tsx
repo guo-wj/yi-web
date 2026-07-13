@@ -1,12 +1,14 @@
-import Taro, { useLoad } from '@tarojs/taro'
-import { View } from '@tarojs/components'
+import { useLoad } from '@tarojs/taro'
 
-/** 入口页统一跳转功能壳，避免首页异步 CSS 分片在部分环境下未加载 */
+import { isMobile } from '@/utils/device'
+import { captureInviteFromQuery } from '@/utils/inviteCode'
+import HomePageMobile from './HomePageMobile'
+import HomePagePC from './HomePagePC'
+
 export default function Index () {
-    useLoad(() => {
-        void Taro.reLaunch({ url: '/pages/feature/index' })
+    useLoad((options) => {
+        captureInviteFromQuery(options as Record<string, string | undefined>)
     })
 
-    // 跳转完成前占位，避免 return null 白屏
-    return <View className='index-redirect' />
+    return isMobile() ? <HomePageMobile /> : <HomePagePC />
 }

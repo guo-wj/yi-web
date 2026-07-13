@@ -16,18 +16,21 @@ import {
     type PointsLedgerItem,
     type RechargePlan
 } from '@/services/pointsApi'
+import { fetchInviteStats, type InviteStats } from '@/services/inviteApi'
+import { buildInviteLink } from '@/utils/inviteCode'
 import { getShellSettingsState, subscribeShellSettings } from '@/utils/shellSettings'
 import { ensureLoggedIn } from '@/utils/requireAuth'
 
 import './index.scss'
 
-type TabKey = 'overview' | 'checkin' | 'tx' | 'recharge' | 'member'
+type TabKey = 'overview' | 'checkin' | 'tx' | 'recharge' | 'member' | 'invite'
 export type MemberPanelTabKey = TabKey
 type PayMethod = 'wechat' | 'alipay'
 
 const TABS: { key: TabKey; label: string }[] = [
     { key: 'overview', label: '概览' },
     { key: 'checkin', label: '签到' },
+    { key: 'invite', label: '邀请' },
     { key: 'tx', label: '流水' },
     { key: 'recharge', label: '充值' },
     { key: 'member', label: '会员' }
@@ -111,7 +114,8 @@ function ledgerTitle (item: PointsLedgerItem): string {
         expire: '积分过期',
         admin: '积分调整',
         checkin: '每日签到',
-        recharge: '积分充值'
+        recharge: '积分充值',
+        invite: '邀请奖励'
     }
     return typeMap[item.type] ?? item.type
 }
@@ -132,7 +136,7 @@ function planFeatureList (plan: MemberPlan): string[] {
 
 function parseMemberTab (raw?: string): TabKey {
     if (raw === 'ledger') return 'tx'
-    if (['overview', 'checkin', 'tx', 'recharge', 'member'].includes(raw ?? '')) {
+    if (['overview', 'checkin', 'tx', 'recharge', 'member', 'invite'].includes(raw ?? '')) {
         return raw as TabKey
     }
     return 'overview'
@@ -154,6 +158,8 @@ export default function MemberPanel ({
 
     const [ledger, setLedger] = useState<PointsLedgerItem[]>([])
     const [plans, setPlans] = useState<{ members: MemberPlan[]; recharge: RechargePlan[] } | null>(null)
+    const [inviteStats, setInviteStats] = useState<InviteStats | null>(null)
+    const [inviteLoading, setInviteLoading] = useState(false)
     const [txFilter, setTxFilter] = useState<'all' | 'in' | 'out'>('all')
     const [selPkg, setSelPkg] = useState<string | null>(null)
     const [payMethod, setPayMethod] = useState<PayMethod>('wechat')
@@ -161,6 +167,14 @@ export default function MemberPanel ({
 
     const reloadLedger = useCallback(() => {
         void fetchPointsLedger(1, 50).then((res) => setLedger(res.items)).catch(() => {})
+    }, [])
+
+    const reloadInviteStats = useCallback(() => {
+        setInviteLoading(true)
+        void fetchInviteStats()
+            .then(setInviteStats)
+            .catch(() => {})
+            .finally(() => setInviteLoading(false))
     }, [])
 
     useEffect(() => {
@@ -179,8 +193,15 @@ export default function MemberPanel ({
         }
         void refresh()
         reloadLedger()
+        reloadInviteStats()
         void fetchMemberPlans().then(setPlans).catch(() => {})
-    }, [embedded, refresh, reloadLedger])
+    }, [embedded, refresh, reloadLedger, reloadInviteStats])
+
+    useEffect(() => {
+        if (tab === 'invite' && !inviteStats && !inviteLoading) {
+            reloadInviteStats()
+        }
+    }, [tab, inviteStats, inviteLoading, reloadInviteStats])
 
     // 默认选中第一个充值套餐
     useEffect(() => {
@@ -349,6 +370,19 @@ export default function MemberPanel ({
         }
     }, [busy, refresh, reloadLedger])
 
+    const referralCode = inviteStats?.referral_code ?? balance?.referral_code ?? ''
+    const inviteLink = referralCode ? buildInviteLink(referralCode) : ''
+
+    const copyText = useCallback(async (text: string, okTitle: string) => {
+        if (!text) return
+        try {
+            await Taro.setClipboardData({ data: text })
+            void Taro.showToast({ title: okTitle, icon: 'none' })
+        } catch {
+            void Taro.showToast({ title: '复制失败', icon: 'none' })
+        }
+    }, [])
+
     const txRow = (item: PointsLedgerItem): ReactNode => {
         const isIn = item.amount >= 0
         return (
@@ -421,6 +455,9 @@ export default function MemberPanel ({
                         <View className='hero-actions'>
                             <View className='btn btn-gold' onClick={() => setTab('recharge')}>
                                 {IC.plus}<Text className='btn-txt'>充值积分</Text>
+                            </View>
+                            <View className='btn btn-ghost' onClick={() => setTab('invite')}>
+                                {IC.star}<Text className='btn-txt'>邀请好友</Text>
                             </View>
                             <View className='btn btn-ghost' onClick={() => setTab('checkin')}>
                                 {IC.check}<Text className='btn-txt'>每日签到</Text>
@@ -536,6 +573,82 @@ export default function MemberPanel ({
                                 </View>
                             )
                         })}
+                    </View>
+                </View>
+            </View>
+
+            {/* ============ 邀请 ============ */}
+            <View className={`mc-panel ${tab === 'invite' ? 'mc-panel--active' : ''}`}>
+                <View className='inv-top'>
+                    <View className='card inv-code'>
+                        <Text className='inv-lbl'>我的邀请码</Text>
+                        <View className='inv-code-box'>
+                            <Text className='inv-code-val'>
+                                {inviteLoading && !referralCode
+                                    ? '加载中…'
+                                    : (referralCode || '—')}
+                            </Text>
+                        </View>
+                        <View
+                            className={`inv-btn inv-btn--gold ${referralCode ? '' : 'inv-btn--disabled'}`}
+                            onClick={() => void copyText(referralCode, '邀请码已复制')}
+                        >
+                            <Text>复制邀请码</Text>
+                        </View>
+                        <Text className='inv-link-lbl'>邀请链接</Text>
+                        <View className='inv-link-box'>
+                            <Text className='inv-link-val'>{inviteLink || '—'}</Text>
+                            <View
+                                className={`inv-btn inv-btn--ghost ${inviteLink ? '' : 'inv-btn--disabled'}`}
+                                onClick={() => void copyText(inviteLink, '链接已复制')}
+                            >
+                                <Text>复制链接</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <View className='card inv-stats'>
+                        <Text className='inv-lbl'>邀请成果</Text>
+                        <View className='inv-stat-grid'>
+                            <View className='inv-stat'>
+                                <Text className='inv-stat-num'>{inviteStats?.invite_count ?? 0}</Text>
+                                <Text className='inv-stat-lbl'>成功邀请</Text>
+                            </View>
+                            <View className='inv-stat'>
+                                <Text className='inv-stat-num'>{inviteStats?.points_earned_total ?? 0}</Text>
+                                <Text className='inv-stat-lbl'>累计奖励</Text>
+                            </View>
+                            <View className='inv-stat'>
+                                <Text className='inv-stat-num'>{inviteStats?.points_earned_this_month ?? 0}</Text>
+                                <Text className='inv-stat-lbl'>本月已获得</Text>
+                            </View>
+                            <View className='inv-stat'>
+                                <Text className='inv-stat-num'>{inviteStats?.monthly_cap_remaining ?? 0}</Text>
+                                <Text className='inv-stat-lbl'>本月剩余额度</Text>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                <View className='card inv-rules'>
+                    <Text className='inv-rules-t'>邀请规则</Text>
+                    <View className='inv-rules-list'>
+                        <Text className='inv-rule-line'>
+                            · 好友通过您的邀请码注册，您可获得
+                            <Text className='b'> {inviteStats?.inviter_bonus ?? 50} </Text>
+                            积分，好友额外获得
+                            <Text className='b'> {inviteStats?.invitee_bonus ?? 30} </Text>
+                            积分
+                        </Text>
+                        <Text className='inv-rule-line'>
+                            · 新用户注册礼
+                            <Text className='b'> {inviteStats?.register_bonus ?? 100} </Text>
+                            积分，与邀请奖励可叠加
+                        </Text>
+                        <Text className='inv-rule-line'>
+                            · 每月邀请奖励上限
+                            <Text className='b'> {inviteStats?.monthly_cap ?? 500} </Text>
+                            积分，分享给好友即可开始积累
+                        </Text>
                     </View>
                 </View>
             </View>

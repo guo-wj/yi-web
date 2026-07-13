@@ -8,6 +8,7 @@ import {
     openMemberCenter,
     subscribeInsufficientPointsModal
 } from '@/utils/insufficientPointsModal'
+import { openInviteShareModal } from '@/utils/inviteShareModal'
 
 import '../PointsConfirmModal/index.scss'
 
@@ -52,6 +53,15 @@ function InsufficientPointsModalForm () {
                         onClick={() => openMemberCenter('recharge')}
                     >
                         <Text>去充值</Text>
+                    </View>
+                    <View
+                        className='insufficient-modal__btn insufficient-modal__btn--secondary'
+                        onClick={() => {
+                            closeInsufficientPointsModal()
+                            void openInviteShareModal()
+                        }}
+                    >
+                        <Text>邀请好友</Text>
                     </View>
                     <View
                         className='insufficient-modal__btn insufficient-modal__btn--secondary'

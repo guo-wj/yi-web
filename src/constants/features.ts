@@ -5,7 +5,7 @@ import iconZiwei from '@/assets/icons/ziwei.svg'
 import iconBazi from '@/assets/icons/bazi.svg'
 import iconHand from '@/assets/icons/hand.svg'
 import iconFace from '@/assets/icons/face.svg'
-import iconMember from '@/assets/icons/member.svg'
+import iconVip from '@/assets/icons/vip.svg'
 // import iconTaluo from '@/assets/icons/taluo.svg' // 塔罗牌暂未开放
 
 export type FeatureKey = 'huangli' | 'qian' | 'liuyao' | 'ziwei' | 'bazi' | 'zhangwen' | 'mianxiang' | 'member' // | 'taluo'
@@ -98,7 +98,8 @@ export const MEMBER_FEATURE: FeatureItem = {
     title: '会员中心',
     desc: '积分充值 · 会员权益',
     sub: '积分 · 权益 · 修行之资',
-    icon: iconMember
+    icon: iconVip,
+    iconScale: 0.88
 }
 
 export function getFeatureByKey (key: string | undefined): FeatureItem {

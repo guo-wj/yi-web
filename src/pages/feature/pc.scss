@@ -243,6 +243,14 @@
         }
     }
 
+    &__topbar-actions {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 100%;
+    }
+
     &__topbar-user {
         position: relative;
         flex: none;

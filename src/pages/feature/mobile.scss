@@ -162,6 +162,10 @@ $mobile-topbar-row-h: 56px;
         &--dock {
             margin: 12px 4px 4px;
         }
+
+        &--member {
+            margin: 20px 4px 8px;
+        }
     }
 
     .feature-page__sidebar-body {
@@ -178,57 +182,65 @@ $mobile-topbar-row-h: 56px;
 
     .feature-page__sidebar-dock-bar {
         flex-shrink: 0;
+        margin-top: auto;
+        padding: 0 8px calc(10px + env(safe-area-inset-bottom));
+    }
+
+    .feature-page__dock-actions {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        margin-top: auto;
-        padding: 25px 4px 6px;
-        border-top: 1px solid rgba(74, 63, 53, 0.12);
+        gap: 12px;
+        padding: 10px 4px 2px;
+    }
 
-        .feature-page__nav-item--dock-inline {
-            flex: none;
-            align-items: center;
-            margin-bottom: 0;
-            padding: 6px 8px;
+    .feature-page__dock-actions .invite-entry--sidebar {
+        flex: none;
+        margin-left: auto;
+    }
+
+    .feature-page__dock-avatar {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+        .home__user.home__user--embed {
+            width: 100% !important;
             min-width: 0;
+            flex-shrink: 1;
         }
 
-        .feature-page__nav-text {
+        .home__user-trigger {
+            width: 100%;
             min-width: 0;
+            flex-shrink: 1;
         }
 
-        .feature-page__nav-title {
-            white-space: nowrap;
-        }
-
-        .feature-page__sidebar-footer--drawer {
+        .home__user-meta {
+            display: flex;
             flex: 1;
             min-width: 0;
-            justify-content: flex-end;
-            padding: 0;
-            margin: 0;
+            margin-left: 10px;
+        }
 
-            .home__user--embed {
-                width: auto;
-                justify-content: flex-end;
-            }
+        .home__user-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 15px;
+            font-weight: 600;
+            color: $text-body;
+        }
 
-            .home__user-trigger {
-                width: auto;
-                max-width: 100%;
-                justify-content: flex-end;
-            }
+        .home__user-hint {
+            font-size: 11px;
+        }
 
-            .home__user-meta {
-                display: none;
-            }
-
-            .home__avatar-face {
-                width: 40px;
-                height: 40px;
-                font-size: 40px;
-            }
+        .home__avatar-face {
+            width: 36px;
+            height: 36px;
+            font-size: 36px;
         }
     }
 
@@ -595,7 +607,9 @@ $mobile-topbar-row-h: 56px;
             .mc {
                 flex: 1;
                 min-height: 0;
+                min-width: 0;
                 width: 100%;
+                max-width: 100%;
             }
         }
     }
