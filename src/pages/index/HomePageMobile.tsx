@@ -1,17 +1,27 @@
 import { View, Text } from '@tarojs/components'
+import { useSyncExternalStore } from 'react'
 
 import UserMenu from '@/components/UserMenu'
 import InviteQuickEntry from '@/components/InviteQuickEntry'
 import { useStatusBarHeight } from '@/utils/useStatusBarHeight'
+import {
+    getShellSettingsState,
+    subscribeShellSettings
+} from '@/utils/shellSettings'
 import HomeHubContent from './components/HomeHubContent'
 import './mobile.scss'
 
 export default function HomePageMobile () {
     const statusBarHeight = useStatusBarHeight()
+    const { theme } = useSyncExternalStore(
+        subscribeShellSettings,
+        getShellSettingsState,
+        getShellSettingsState
+    )
 
     return (
         <View
-            className='home-page home-page--mobile'
+            className={`home-page home-page--mobile home-page--theme-${theme}`}
             style={{ paddingTop: statusBarHeight }}
         >
             <View className='home-page__topbar'>

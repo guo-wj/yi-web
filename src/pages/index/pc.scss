@@ -108,3 +108,27 @@
         color: #9a8f84;
     }
 }
+
+.home-page--pc.home-page--theme-dark {
+    background:
+        radial-gradient(120% 80% at 50% -10%, rgba(214, 180, 110, 0.1) 0%, transparent 48%),
+        linear-gradient(180deg, #1a1510 0%, #14110c 42%, #100e0a 100%);
+    color: #ede3cf;
+
+    .home-page__brand {
+        color: #ede3cf;
+    }
+
+    .home-page__brand-tagline {
+        color: #7a6e5c;
+    }
+
+    .home-page__footer {
+        background: rgba(20, 17, 12, 0.96);
+        border-top-color: rgba(214, 180, 110, 0.12);
+    }
+
+    .home-page__footer-disclaimer {
+        color: #6f6450;
+    }
+}

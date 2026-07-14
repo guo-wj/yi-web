@@ -592,3 +592,94 @@ $hub-radius: 18px;
         }
     }
 }
+
+/* ---- 首页暗黑模式 ---- */
+.home-page--theme-dark {
+    .home-hub {
+        &__section-title {
+            color: #ede3cf;
+        }
+
+        &__section-hint {
+            color: #7a6e5c;
+        }
+
+        &__user-strip {
+            background: rgba(30, 26, 19, 0.92);
+            border-color: rgba(214, 180, 110, 0.14);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+
+            &--guest {
+                background: linear-gradient(135deg, rgba(48, 38, 22, 0.96), rgba(30, 26, 19, 0.94));
+            }
+        }
+
+        &__user-title {
+            color: #ede3cf;
+        }
+
+        &__user-sub {
+            color: #9a8c74;
+        }
+
+        &__user-btn--ghost {
+            background: rgba(211, 173, 92, 0.12);
+            color: #d3ad5c;
+            border-color: rgba(211, 173, 92, 0.28);
+        }
+
+        &__fortune {
+            background: #1e1a13;
+            border-color: rgba(214, 180, 110, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+        }
+
+        &__fortune-loading,
+        &__fortune-label {
+            color: #cbb892;
+        }
+
+        &__fortune-score {
+            color: #d3ad5c;
+        }
+
+        &__fortune-track {
+            background: rgba(214, 180, 110, 0.12);
+        }
+
+        &__quick-item {
+            background: #1e1a13;
+            border-color: rgba(214, 180, 110, 0.1);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+        }
+
+        &__quick-label {
+            color: #ede3cf;
+        }
+
+        &__quick-desc {
+            color: #7a6e5c;
+        }
+
+        &__quick-item--purple { color: #b794f6; .home-hub__quick-icon-wrap { background: rgba(183, 148, 246, 0.14); } }
+        &__quick-item--blue { color: #7cb0ff; .home-hub__quick-icon-wrap { background: rgba(124, 176, 255, 0.14); } }
+        &__quick-item--gold { color: #d3ad5c; .home-hub__quick-icon-wrap { background: rgba(211, 173, 92, 0.14); } }
+        &__quick-item--rose { color: #f472b6; .home-hub__quick-icon-wrap { background: rgba(244, 114, 182, 0.14); } }
+
+        &__grid-item--amber { background: linear-gradient(145deg, #3a2f1c, #2a2214); color: #e0c07a; }
+        &__grid-item--violet { background: linear-gradient(145deg, #2c2438, #221c2e); color: #c4a8ff; }
+        &__grid-item--sky { background: linear-gradient(145deg, #1f2a38, #182230); color: #8eb8ff; }
+        &__grid-item--rose { background: linear-gradient(145deg, #35222a, #281820); color: #f0a0b8; }
+        &__grid-item--teal { background: linear-gradient(145deg, #1d2f2c, #162422); color: #7bd4c2; }
+        &__grid-item--orange { background: linear-gradient(145deg, #37261a, #281c14); color: #e8a86a; }
+        &__grid-item--green { background: linear-gradient(145deg, #223028, #1a241e); color: #86c894; }
+
+        &__grid-icon-wrap {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        &__grid-desc {
+            color: rgba(237, 227, 207, 0.62);
+        }
+    }
+}

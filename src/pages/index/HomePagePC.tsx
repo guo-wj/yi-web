@@ -1,13 +1,24 @@
 import { View, Text } from '@tarojs/components'
+import { useSyncExternalStore } from 'react'
 
 import UserMenu from '@/components/UserMenu'
 import InviteQuickEntry from '@/components/InviteQuickEntry'
+import {
+    getShellSettingsState,
+    subscribeShellSettings
+} from '@/utils/shellSettings'
 import HomeHubContent from './components/HomeHubContent'
 import './pc.scss'
 
 export default function HomePagePC () {
+    const { theme } = useSyncExternalStore(
+        subscribeShellSettings,
+        getShellSettingsState,
+        getShellSettingsState
+    )
+
     return (
-        <View className='home-page home-page--pc'>
+        <View className={`home-page home-page--pc home-page--theme-${theme}`}>
             <View className='home-page__topbar'>
                 <View className='home-page__brand-block'>
                     <View className='home-page__brand-mark'>
