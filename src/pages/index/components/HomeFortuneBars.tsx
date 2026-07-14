@@ -1,4 +1,5 @@
 import { View, Text } from '@tarojs/components'
+import { useEffect, useState } from 'react'
 
 import type { FortuneItem } from '../utils/homeFortune'
 
@@ -8,6 +9,17 @@ interface HomeFortuneBarsProps {
 }
 
 export default function HomeFortuneBars ({ items, loading }: HomeFortuneBarsProps) {
+    const [animate, setAnimate] = useState(false)
+
+    useEffect(() => {
+        if (loading || !items.length) {
+            setAnimate(false)
+            return
+        }
+        const id = window.setTimeout(() => setAnimate(true), 80)
+        return () => window.clearTimeout(id)
+    }, [loading, items])
+
     if (loading) {
         return (
             <View className='home-hub__fortune home-hub__fortune--loading'>
@@ -19,13 +31,13 @@ export default function HomeFortuneBars ({ items, loading }: HomeFortuneBarsProp
     if (!items.length) return null
 
     return (
-        <View className='home-hub__fortune'>
+        <View className={`home-hub__fortune${animate ? ' home-hub__fortune--animate' : ''}`}>
             <View className='home-hub__section-head'>
                 <Text className='home-hub__section-title'>今日指数</Text>
                 <Text className='home-hub__section-hint'>基于黄历宜忌推算</Text>
             </View>
             <View className='home-hub__fortune-grid'>
-                {items.map((item) => (
+                {items.map((item, index) => (
                     <View key={item.key} className='home-hub__fortune-item'>
                         <View className='home-hub__fortune-head'>
                             <Text className='home-hub__fortune-label'>{item.label}</Text>
@@ -35,8 +47,9 @@ export default function HomeFortuneBars ({ items, loading }: HomeFortuneBarsProp
                             <View
                                 className='home-hub__fortune-fill'
                                 style={{
-                                    width: `${item.score}%`,
-                                    background: `linear-gradient(90deg, ${item.color}, ${item.color}cc)`
+                                    width: animate ? `${item.score}%` : '0%',
+                                    background: `linear-gradient(90deg, ${item.color}, ${item.color}cc)`,
+                                    transitionDelay: `${index * 70}ms`
                                 }}
                             />
                         </View>

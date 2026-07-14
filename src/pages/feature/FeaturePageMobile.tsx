@@ -58,8 +58,6 @@ export default function FeaturePageMobile () {
                     >
                         <Text className='feature-page-mobile__menu-icon'>☰</Text>
                     </View>
-                    <Text className='feature-page-mobile__topbar-title'>易AI</Text>
-                    <View className='feature-page-mobile__topbar-spacer' />
                 </View>
             </View>
 

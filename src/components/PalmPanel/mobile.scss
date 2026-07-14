@@ -319,7 +319,7 @@
         align-items: center;
         justify-content: center;
         gap: 12px;
-        margin: 4px 0;
+        margin: 10px 0 6px;
 
         &::before,
         &::after {
@@ -455,21 +455,22 @@
     }
 
     /* ---- 五丘 ---- */
-    &__mounts-stack {
+    &__mounts-stack,
+    &__mounts-grid {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
     }
 
     &__mount-card {
         background: var(--pm-surface);
         border: 1px solid var(--pm-line);
         border-radius: 14px;
-        padding: 14px;
+        padding: 16px 16px 18px;
         box-shadow: 0 12px 30px -24px rgba(70, 52, 22, 0.4);
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 14px;
     }
 
     &__mount-top {
@@ -496,7 +497,7 @@
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
     }
 
     &__mount-name {
@@ -540,8 +541,9 @@
 
     &__mount-text {
         font-size: 13px;
-        line-height: 1.7;
+        line-height: 1.75;
         color: var(--pm-ink-soft);
+        padding-top: 2px;
     }
 
     /* ---- 结果底部操作 ---- */
@@ -640,7 +642,8 @@
     }
 
     &__mount-card--preview {
-        padding: 14px 16px;
+        padding: 16px 16px 18px;
+        gap: 14px;
     }
 
     &__closing-wrap {

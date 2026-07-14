@@ -84,24 +84,6 @@ $mobile-topbar-row-h: 56px;
         color: $text-title;
     }
 
-    &__topbar-title {
-        flex: 1;
-        min-width: 0;
-        text-align: center;
-        font-size: 19px;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        color: $text-title;
-        line-height: 1.2;
-    }
-
-    &__topbar-spacer {
-        flex: none;
-        width: 44px;
-        height: 44px;
-        margin-left: 6px;
-    }
-
     &__body {
         flex: 1;
         min-height: 0;
@@ -779,8 +761,7 @@ $d-gold-hover: #c4a574;
         background: rgba(214, 180, 110, 0.1);
     }
 
-    .feature-page-mobile__menu-icon,
-    .feature-page-mobile__topbar-title {
+    .feature-page-mobile__menu-icon {
         color: $d-title;
     }
 

@@ -1,4 +1,5 @@
 import { View, Text } from '@tarojs/components'
+import { useEffect, useState } from 'react'
 
 import PendingText from '@/components/LoadingDots'
 import type { AlmanacResponse } from '@/services/almanacApi'
@@ -18,13 +19,40 @@ export default function HomeTodayCard ({
     data,
     todayScore
 }: HomeTodayCardProps) {
+    const [displayScore, setDisplayScore] = useState(0)
     const yiPreview = data?.yi.slice(0, 3).join(' · ') ?? '加载今日宜忌…'
+
+    useEffect(() => {
+        if (loading) {
+            setDisplayScore(0)
+            return
+        }
+
+        let frame = 0
+        const from = 0
+        const to = todayScore
+        const duration = 780
+        const start = performance.now()
+
+        const tick = (now: number) => {
+            const t = Math.min(1, (now - start) / duration)
+            const eased = 1 - (1 - t) ** 3
+            setDisplayScore(Math.round(from + (to - from) * eased))
+            if (t < 1) {
+                frame = window.requestAnimationFrame(tick)
+            }
+        }
+
+        frame = window.requestAnimationFrame(tick)
+        return () => window.cancelAnimationFrame(frame)
+    }, [loading, todayScore])
 
     return (
         <View
             className='home-hub__today'
             onClick={() => navigateToFeature('huangli')}
         >
+            <View className='home-hub__today-shine' />
             <View className='home-hub__today-top'>
                 <View className='home-hub__today-copy'>
                     <Text className='home-hub__today-kicker'>今日运势</Text>
@@ -41,8 +69,8 @@ export default function HomeTodayCard ({
                         </>
                     ) : null}
                 </View>
-                <View className='home-hub__today-score'>
-                    <Text className='home-hub__today-score-num'>{todayScore}</Text>
+                <View className={`home-hub__today-score${!loading ? ' home-hub__today-score--ready' : ''}`}>
+                    <Text className='home-hub__today-score-num'>{displayScore}</Text>
                     <Text className='home-hub__today-score-unit'>分</Text>
                 </View>
             </View>
